@@ -5,7 +5,11 @@ import openpyxl
 import nibabel as nifti
 import numpy as np
 import os
+import logging
 
+logger = logging.getLogger(__name__)
+
+logger.info("Converting DICOM files to NIfTI format...")
 dicom_data = pd.DataFrame()
 
 #get dicom folder path
