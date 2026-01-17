@@ -1,0 +1,40 @@
+#!/bin/bash
+#SBATCH --job-name=Med3DVLM_test
+#SBATCH --time=2-00:00:00
+#SBATCH --partition=gpu
+#SBATCH --ntasks-per-node=1  # number of MP tasks
+#SBATCH --nodes=1  # number of nodes
+#SBATCH --gres=gpu:1  # number of gpus per node
+#SBATCH --cpus-per-task=16  # number of cores per task; gpu contains 64 cpus per node.
+#SBATCH --mem=20G
+#SBATCH --output=/home/remote/shghosh/logs/Med3DVLM_test.out
+#SBATCH --error=/home/remote/shghosh/logs/Med3DVLM_test.err
+# Environment Setup
+# Load the Base Anaconda/Conda module provided by the cluster
+module load anaconda3/2024.10
+# Initialize Conda for the script's shell (This fixes the 'conda init' error)
+CONDA_PATH=$(conda info --base)
+source $CONDA_PATH/etc/profile.d/conda.sh
+
+conda activate Med3DVLM
+
+
+module load nvidia/cuda/12.9.1 
+module load cuda
+
+
+base_dir="/home/remote/shghosh/Med3DVLM"
+
+cd $base_dir || { echo "Base directory not found! Exiting."; exit 1; }
+
+echo "Starting job on $(hostname) at $(date)"
+
+
+for dir in "$base_dir"/*; do
+  if [ -d "$dir" ]; then  # Check if it's actually a directory
+    python $base_dir/src/demo/demo.py \
+    --model_name_or_path $base_dir/src/model/Med3DVLM-Qwen-2.5-7B
+  fi
+done
+
+echo "Job finished at $(date)"
