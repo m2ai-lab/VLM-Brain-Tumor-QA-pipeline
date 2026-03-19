@@ -21,7 +21,7 @@ def main(args):
     for root, _, files in os.walk(args.qa_path):
         for file in files:
             if file.lower().endswith(".csv") and "result" in file.lower():
-                test_name = root.split('/')[-1] +"_" + file.lower().split('.')[0]
+                test_name = root.split('/')[-1] +"_" + file.lower().split('.')[0].replace("_results","")
                 read_path = os.path.join(root, file)
                 write_path = os.path.join(root, test_name + "_wrongs.csv")
                 results_files[test_name].append((read_path, write_path))
@@ -36,8 +36,10 @@ def main(args):
         
         rights = []
         wrongs = []
+        indexes = []
         total_right = 0  # Initialize total_right to 0 for each test!
         
+        idx = 0
         for ans, pred in zip(answer_df['Answer'], results_df['predicted_answer']):
             answer = str(ans)
             prediction = str(pred)
@@ -45,11 +47,15 @@ def main(args):
             if answer in prediction:
                 total_right += 1
             else:
+                indexes.append(idx)
                 rights.append(answer)
                 wrongs.append(prediction)
+            
+            idx+=1
 
         # 3. Save the wrongs cleanly using Pandas instead of numpy
         wrongs_df = pd.DataFrame({
+            'Question Index': indexes,
             'Correct_Answer': rights, 
             'Predicted_Answer': wrongs
         })

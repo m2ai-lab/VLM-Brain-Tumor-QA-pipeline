@@ -155,14 +155,14 @@ def main(args):
         print(f"Response: {response}\n{'-'*30}")
         
     # Save results
-    qa_data["MedGemma_Answer"] = generated_answer
+    qa_data["predicted_answer"] = generated_answer
     qa_data["MedGemma_Reasoning"] = generated_reasoning
     qa_data.to_csv(args.output_path, index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MedGemma NIfTI Inference")
     parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/Results.csv")
+    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/multi_slice_results.csv")
     parser.add_argument('--image_dir', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-1.5-4b-it")
     

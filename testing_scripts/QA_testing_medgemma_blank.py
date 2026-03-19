@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field, ValidationError
 from typing import Literal
 import re 
 
-slice_names = ["Axial", "Coronal", "Sagittal"]
 
 FEW_SHOT_EXAMPLE = """
 Example Request:
@@ -36,9 +35,9 @@ class MedResponse(BaseModel):
     answer: str = Field(description="The final choice selected from the options.")
 
 
-def query_the_model(model, processor, question, patient_id, base_image_dir):
+def query_the_model(model, processor, question, patient_id, image_path):
     # Assume the PNGs are stored in a folder named after the patient ID
-    patient_image_path = path.join(base_image_dir, str(patient_id),"Axial.png")
+    patient_image_path = image_path
     
     if not path.exists(patient_image_path):
         return {"reasoning": f"Error: Directory {patient_image_path} not found.", "answer": "Error"}
@@ -133,7 +132,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_dir)
+        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_path)
         generated_answer.append(response['answer'])
         generated_reasoning.append(response['reasoning'])
         print(f"Response: {response}\n{'-'*30}")
@@ -146,8 +145,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MedGemma NIfTI Inference")
     parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/single_slice_results.csv")
-    parser.add_argument('--image_dir', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices")
+    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/blank_results.csv")
+    parser.add_argument('--image_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.png")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-1.5-4b-it")
     
     args = parser.parse_args()

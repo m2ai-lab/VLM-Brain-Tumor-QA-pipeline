@@ -7,8 +7,8 @@ import argparse
 import SimpleITK as sitk
 import torch.nn.functional as F
 
-def query_the_model(model, tokenizer, question, patient_id, image_dir):
-    full_image_path = path.join(image_dir, f'{patient_id}_nifti', f'{patient_id}_FLAIR.nii.gz')
+def query_the_model(model, tokenizer, question, patient_id, image_path):
+    full_image_path = image_path
     
     if not path.exists(full_image_path):
         return f"Error: Path {full_image_path} not found."
@@ -80,7 +80,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_dir)
+        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_path)
         responses.append(response)
         print(f"Response: {response}\n{'-'*30}")
         
@@ -92,8 +92,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Medgemma QA testing")
     parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Results.csv")
-    parser.add_argument('--image_dir', type=str, default="/mnt/fac/CX000019_DS1/UCSF-PGDM/PKG_-_UCSF-PDGM_Version_5/UCSF-PDGM-v5")
+    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/blank_results.csv")
+    parser.add_argument('--image_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.nii.gz")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B")
     
     args = parser.parse_args()

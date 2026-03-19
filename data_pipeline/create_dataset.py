@@ -72,20 +72,25 @@ def main(args):
     # 2. Map the paths to a temporary variable
     folder_paths = qa_data['Accession_number'].map(accession_to_path)
 
-    def get_first_dcm(path):
-        # Check if the path is valid and exists
-        if pd.isna(path) or not os.path.exists(path):
+    if args.single_dicom:
+        def get_first_dcm(path):
+            # Check if the path is valid and exists
+            if pd.isna(path) or not os.path.exists(path):
+                return None
+            
+            # Return the full path of the first .dcm file found
+            for file in os.listdir(path):
+                if file.endswith(".dcm"):
+                    return os.path.join(path, file)
+                    
             return None
         
-        # Return the full path of the first .dcm file found
-        for file in os.listdir(path):
-            if file.endswith(".dcm"):
-                return os.path.join(path, file)
-                
-        return None
 
-    # 4. Apply it to create your new column
-    qa_data['image_path'] = folder_paths.apply(get_first_dcm)
+        # 4. Apply it to create your new column
+        qa_data['image_path'] = folder_paths.apply(get_first_dcm)
+    
+    else:
+        qa_data['image_path'] = folder_paths
 
     #Replaced 'accession_num' with 'Accession Num'
     qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
@@ -113,7 +118,7 @@ if __name__ == "__main__":
                         type=str, 
                         required=False, 
                         help='Path to output data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/format_dataset.csv")
+                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/dicom_dataset.csv")
     parser.add_argument('--deid_to_newID_path', 
                         type=str, 
                         required=False, 
@@ -140,6 +145,11 @@ if __name__ == "__main__":
                         required=False, 
                         help='Limit the size of the dataset if required',
                         default=100000)
+    parser.add_argument('--single_dicom',
+                        type=bool, 
+                        required=False, 
+                        help='single_dicom if required',
+                        default=False)
     args = parser.parse_args()
     
     main(args)
