@@ -8,7 +8,7 @@ def argument_handler():
     parser = argparse.ArgumentParser(description="Evaluation Pipeline")
     parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs")
     parser.add_argument('--answer_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Evals.json")
+    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics/Evals.json")
     
     return parser.parse_args()
 
@@ -38,7 +38,7 @@ def main(args):
         wrongs = []
         indexes = []
         total_right = 0  # Initialize total_right to 0 for each test!
-        
+        question_idx = answer_df.iloc[:, 0]
         idx = 0
         for ans, pred in zip(answer_df['Answer'], results_df['predicted_answer']):
             answer = str(ans)
@@ -47,7 +47,7 @@ def main(args):
             if answer in prediction:
                 total_right += 1
             else:
-                indexes.append(idx)
+                indexes.append(question_idx[idx])
                 rights.append(answer)
                 wrongs.append(prediction)
             

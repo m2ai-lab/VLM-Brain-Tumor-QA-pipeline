@@ -141,7 +141,7 @@ if __name__ == "__main__":
                         default=["FLAIR"])
 
     parser.add_argument('--num_entries',
-                        type=list, 
+                        type=int, 
                         required=False, 
                         help='Limit the size of the dataset if required',
                         default=100000)

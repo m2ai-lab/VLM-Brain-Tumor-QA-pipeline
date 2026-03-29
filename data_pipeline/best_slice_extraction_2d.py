@@ -192,7 +192,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MedGemma NIfTI Inference")
-    parser.add_argument('--qa_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
+    parser.add_argument('--qa_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
     parser.add_argument('--output_slice_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices/")
     args = parser.parse_args()
     main(args)
