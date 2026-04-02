@@ -191,7 +191,7 @@ def main(args):
     print(f"Created {count} slice sets out of {qa_data.shape[0]}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MedGemma NIfTI Inference")
+    parser = argparse.ArgumentParser(description="Best Slice Extraction")
     parser.add_argument('--qa_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
     parser.add_argument('--output_slice_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices/")
     args = parser.parse_args()
