@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="ca1bf7cd-4fd9-456b-8df1-89ce47c6e542" name="shghosh@chpc-ucsf-login-vm1">
+        <fileTransfer accessType="SFTP" sshConfigId="bd12e165-c162-41ed-be05-8689ac532b94" sshConfig="shghosh@chpc-ucsf-login-vm1">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
