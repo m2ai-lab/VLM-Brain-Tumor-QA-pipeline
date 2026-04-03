@@ -9,7 +9,16 @@ import re
 import torch
 
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT1 = """
+Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats. If not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
+{
+  "common_themes": "Description of any common themes or topics in the questions.",
+  "common_formats": "Description of any common formats or structures in the questions.",
+  "insufficient_information": "State if there is not enough information to determine patterns."
+}
+"""
+
+SYSTEM_PROMPT2 = """
 Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats that differ from the provided default characteristics. If there is not a noticable difference or not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
 {
   "common_themes": "Description of any common themes or topics in the questions.",
@@ -18,7 +27,6 @@ Analyze the following questions and determine patterns in the types of questions
 }
 default characteristics:
 """
-
 
 class QwenResponse(BaseModel):
     common_themes: str = Field(description="Description of any common themes or topics in the questions.")
@@ -43,10 +51,10 @@ def clean_json_string(raw_str):
     match = re.search(r'\{.*\}', clean_str, re.DOTALL)
     return match.group(0) if match else clean_str
 
-def query_the_model(model, tokenizer, questions):
+def query_the_model(model, tokenizer, questions,system_prompt=SYSTEM_PROMPT1):
     # Use a system prompt to strongly enforce JSON
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"Questions to analyze: {questions}"}
     ]
     
@@ -133,11 +141,11 @@ def main(args):
     responses = dict.fromkeys(question_tests.keys())
 
     default_characteristics = json.dumps(query_the_model(model, tokenizer, all_right_question_string +", "+ all_wrong_question_string), indent=4)
-    SYSTEM_PROMPT = SYSTEM_PROMPT + default_characteristics
+    SYSTEM_PROMPT2 = SYSTEM_PROMPT2 + default_characteristics
     for label, questions in question_tests.items():
         print(f"Analyzing {label}...")
         # Passed tokenizer to the function
-        response = query_the_model(model, tokenizer, questions)
+        response = query_the_model(model, tokenizer, questions, SYSTEM_PROMPT2)
         responses[label] = response
 
         print(f"Response: {response}\n{'-'*30}")
