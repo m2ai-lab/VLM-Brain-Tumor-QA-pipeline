@@ -161,12 +161,6 @@ def finetune (model_name: str, dataset):
             def __init__(self, processor):
                 self.processor = processor
 
-                self.model_token = "<start_of_turn>model"
-                self.model_token_ids = self.processor(
-                    text=self.model_token,
-                    return_tensors="pt"
-                )["input_ids"][0]
-
             def __call__(self, batch):
                 #create lists for both the prompts and images (indecies map images to prompts)
                 prompts = []
@@ -195,7 +189,7 @@ def finetune (model_name: str, dataset):
                         f"{FEW_SHOT_EXAMPLE}"
                         "---\n"
                         f"Actual Question: {entry['Question']}\n"
-                        "Response: "
+                        f"Actual Answer: {entry['Answer']}"
                     )
                     prompts.append(prompt_text)
 
