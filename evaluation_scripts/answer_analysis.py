@@ -13,7 +13,7 @@ SYSTEM_PROMPT1 = """
 Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats. If not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
 {
   "common_themes": "Description of any common themes or topics in the questions.",
-  "common_formats": "Description of any common formats or structures in the questions.",
+  "common_keywords": "Question specific keywords that differ from the default characteristics",
   "insufficient_information": "State if there is not enough information to determine patterns."
 }
 """
@@ -146,7 +146,7 @@ def main(args):
     adjusted_system_prompt = """Identify key differences between the default characteristics defined below and the following questions answer in the following format for key findings. If there is insufficent differences state that explicitly 
         {
             "common_themes": "Description of common themes that differ from the default characteristisc.",
-            "common_formats": "Question specific keywords that differ from the default characteristics",
+            "common_keywords": "Question specific keywords that differ from the default characteristics",
             "insufficient_information": "State if there is not enough information to determine patterns."
         }
         default characteristics:
