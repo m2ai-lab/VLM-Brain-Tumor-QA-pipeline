@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import torch
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -306,18 +306,30 @@ def stage2_aggregate_rw(args: argparse.Namespace) -> tuple[Counter, Counter]:
 # STAGE 3 — Qwen contrastive question analysis
 # ──────────────────────────────────────────────────────────────────────────────
 class QwenResponse(BaseModel):
-    success_patterns: str = Field(
-        description="Themes or structural patterns common ONLY in questions the model got right."
+    success_patterns: str = Field(...)
+    failure_patterns: str = Field(...)
+    key_differences: str = Field(...)
+    insightful_conclusion: str = Field(...)
+
+    @field_validator(
+        "success_patterns",
+        "failure_patterns",
+        "key_differences",
+        "insightful_conclusion",
+        mode="before",
     )
-    failure_patterns: str = Field(
-        description="Themes or structural patterns common ONLY in questions the model got wrong."
-    )
-    key_differences: str = Field(
-        description="Primary differences in wording, complexity, or subject matter between sets."
-    )
-    insightful_conclusion: str = Field(
-        description="A definitive statement on the model's blind spots and why it is failing."
-    )
+    @classmethod
+    def coerce_to_string(cls, v):
+        if v is None:
+            return ""
+        if isinstance(v, str):
+            return v
+        if isinstance(v, list):
+            # Convert list outputs into one readable string
+            return " | ".join(str(x).strip() for x in v if str(x).strip())
+        if isinstance(v, dict):
+            return json.dumps(v, ensure_ascii=False)
+        return str(v)
 
 
 def _clean_json_string(raw: str) -> str:
