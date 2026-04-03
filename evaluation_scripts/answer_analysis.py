@@ -10,12 +10,13 @@ import torch
 
 
 SYSTEM_PROMPT = """
-Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats. If not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
+Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats that differ from the provided default characteristics. If there is not a noticable difference or not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
 {
   "common_themes": "Description of any common themes or topics in the questions.",
   "common_formats": "Description of any common formats or structures in the questions.",
   "insufficient_information": "State if there is not enough information to determine patterns."
 }
+default characteristics:
 """
 
 
@@ -130,6 +131,9 @@ def main(args):
 
     #Query the model for each question set and store responses in a dictionary
     responses = dict.fromkeys(question_tests.keys())
+
+    default_characteristics = json.dumps(query_the_model(model, tokenizer, all_right_question_string +", "+ all_wrong_question_string), indent=4)
+    SYSTEM_PROMPT = SYSTEM_PROMPT + default_characteristics
     for label, questions in question_tests.items():
         print(f"Analyzing {label}...")
         # Passed tokenizer to the function
