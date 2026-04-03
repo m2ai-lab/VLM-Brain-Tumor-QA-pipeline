@@ -1,0 +1,16 @@
+{
+    "__global__": {
+        "Broad Analysis": {
+            "success_patterns": "The success patterns include a high frequency of multiple-choice questions with clear, structured answers, often involving binary choices (yes/no), and specific anatomical locations. The questions are typically straightforward and require direct observation from imaging reports.",
+            "failure_patterns": "The failure patterns involve more complex, multi-step reasoning and less structured questions. They often require interpretation of imaging characteristics, understanding of clinical implications, and inference beyond direct observations. The questions frequently involve ambiguous or nuanced responses.",
+            "key_differences": "Success questions tend to be more straightforward, binary, and directly answerable from the imaging report. Failure questions require deeper analysis, interpretation, and contextual understanding, leading to more varied and complex answers.",
+            "insightful_conclusion": "The model struggles with questions that require interpretive reasoning, context understanding, and nuanced responses. It excels at direct, binary answers but fails when faced with complex, multi-step reasoning tasks that demand deeper analysis of imaging characteristics and clinical implications."
+        },
+        "Extreme Analysis": {
+            "success_patterns": "Questions were detailed, required understanding of medical terminology, and often involved multiple pieces of information to be considered together. They were typically open-ended and required knowledge of specific anatomical regions and imaging characteristics.",
+            "failure_patterns": "Questions were more straightforward, often binary (yes/no), and less contextually rich. They lacked the depth and specificity found in successful questions, focusing on single elements rather than comprehensive analysis.",
+            "key_differences": "Success questions involved complex, multi-step reasoning and required a deep understanding of medical imaging and anatomy. Failure questions were simpler, often requiring only basic recognition of terms or conditions without the need for synthesis of multiple pieces of information.",
+            "insightful_conclusion": "The model struggles with questions that require nuanced understanding and integration of multiple pieces of information, indicating a potential weakness in handling complex, context-rich scenarios. It excels in questions that test specific, well-defined knowledge points but may lack the ability to synthesize and apply this knowledge in more intricate settings."
+        }
+    }
+}
