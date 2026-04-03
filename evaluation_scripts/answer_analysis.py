@@ -9,29 +9,20 @@ import re
 import torch
 
 
-SYSTEM_PROMPT1 = """
-Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats. If not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
+SYSTEM_PROMPT = """
+Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats that differ from whole question bank. If there is not a noticable difference or not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
 {
-  "common_themes": "Description of any common themes or topics in the questions.",
-  "common_keywords": "Question specific keywords that differ from the default characteristics",
-  "insufficient_information": "State if there is not enough information to determine patterns."
+  "common_themes": "Description of any common themes or topics in the provided questions that differ from the question bank.",
+  "common_keywords": "Question specific keywords that differ from the whole question bank",
+  "insufficient_information": "State if there is not enough information to determine differences."
 }
-"""
-
-adjusted_system_prompt = """
-Analyze the following questions and determine patterns in the types of questions specifying any common themes, topics, or formats that differ from the provided default characteristics. If there is not a noticable difference or not enough information is provided, state that explicitly. Your response should be a JSON object with the following format:
-{
-  "common_themes": "Description of any common themes or topics in the questions.",
-  "common_keywords": "Question specific keywords that differ from the default characteristics",
-  "insufficient_information": "State if there is not enough information to determine patterns."
-}
-default characteristics:
+question bank:
 """
 
 class QwenResponse(BaseModel):
-    common_themes: str = Field(description="Description of any common themes or topics in the questions.")
-    common_keywords: str = Field(description="Question specific keywords that differ from the default characteristics")
-    insufficient_information: str = Field(description="State if there is not enough information to determine patterns.")
+    common_themes: str = Field(description="Description of any common themes or topics in the provided questions that differ from the question bank.")
+    common_keywords: str = Field(description="Question specific keywords that differ from the whole question bank")
+    insufficient_information: str = Field(description="State if there is not enough information to determine differences.")
 
 
 def argument_handler():
@@ -51,7 +42,7 @@ def clean_json_string(raw_str):
     match = re.search(r'\{.*\}', clean_str, re.DOTALL)
     return match.group(0) if match else clean_str
 
-def query_the_model(model, tokenizer, questions,system_prompt=SYSTEM_PROMPT1):
+def query_the_model(model, tokenizer, questions,system_prompt=SYSTEM_PROMPT):
     # Use a system prompt to strongly enforce JSON
     messages = [
         {"role": "system", "content": system_prompt},
@@ -140,24 +131,13 @@ def main(args):
     #Query the model for each question set and store responses in a dictionary
     responses = dict.fromkeys(question_tests.keys())
 
-    default_characteristics = json.dumps(query_the_model(model, tokenizer, all_right_question_string +", "+ all_wrong_question_string), indent=4)
 
     
-    adjusted_system_prompt = """Identify key differences between the default characteristics defined below and the following questions answer in the following format for key findings. If there is insufficent differences state that explicitly 
-        {
-            "common_themes": "Description of common themes that differ from the default characteristisc.",
-            "common_keywords": "Question specific keywords that differ from the default characteristics",
-            "insufficient_information": "State if there is not enough information to determine patterns."
-        }
-        default characteristics:
-        """
-
-    
-    system_prompt2 = adjusted_system_prompt + default_characteristics
+    adjusted_system_prompt = SYSTEM_PROMPT + all_right_question_string +", "+ all_wrong_question_string
     for label, questions in question_tests.items():
         print(f"Analyzing {label}...")
         # Passed tokenizer to the function
-        response = query_the_model(model, tokenizer, questions, system_prompt2)
+        response = query_the_model(model, tokenizer, questions, adjusted_system_prompt)
         responses[label] = response
 
         print(f"Response: {response}\n{'-'*30}")
@@ -170,3 +150,4 @@ def main(args):
 
 if __name__ == "__main__":
     main(argument_handler())
+
