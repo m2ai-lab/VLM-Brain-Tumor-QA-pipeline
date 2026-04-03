@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH --job-name=llava_inspect
+#SBATCH --time=01:00:00
+#SBATCH --partition=gpu
+#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=20G
+#SBATCH --output=/home/remote/%u/logs/%x_%j.out
+#SBATCH --error=/home/remote/%u/logs/%x_%j.err
+
+# 1. Load the cluster's Conda module
+module load miniforge3
+
+# 1. Complete isolation
+export PYTHONNOUSERSITE=1
+export PYTHONPATH=""
+
+# 2. Force library priority
+export LD_LIBRARY_PATH="/scratch/user/jlateef/llava/lib:$LD_LIBRARY_PATH"
+
+# 4. Use the full path to your python (as you did before)
+#scratch/user/jlateef/llava/bin/pip install "transformers==4.36.2" "tokenizers>=0.15.0" "sentencepiece==0.1.99" shortuuid "accelerate==0.21.0" "peft==0.4.0" "pydantic<2,>=1" "markdown2[all]" protobuf numpy "scikit-learn==1.2.2" "gradio==3.35.2" "gradio_client==0.2.9" requests "httpx==0.24.0" uvicorn fastapi "einops==0.6.1" "einops-exts==0.0.4" "timm==0.9.12" tiktoken "openai==1.12.0" backoff torch "deepspeed==0.9.5" ninja wandb
+/scratch/user/jlateef/llava/bin/python /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/finetune_scripts/model_inspect.py
+echo "------------------------------------------------------------"
+echo "Job finished at $(date)"

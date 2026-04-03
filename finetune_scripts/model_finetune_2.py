@@ -162,6 +162,12 @@ def finetune (model_name: str, dataset):
             def __init__(self, processor):
                 self.processor = processor
 
+                self.model_token = "<start_of_turn>model"
+                self.model_token_ids = self.processor(
+                    text=self.model_token,
+                    return_tensors="pt"
+                )["input_ids"][0]
+
             def __call__(self, batch):
                 #create lists for both the prompts and images (indecies map images to prompts)
                 prompts = []
@@ -203,15 +209,35 @@ def finetune (model_name: str, dataset):
                 input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
 
                 # Encode multimodal input
-                inputs = processor(
+                inputs = self.processor(
                     text=input_text,
                     images=images,
                     padding=True,
+                    truncation=True,
                     return_tensors="pt"
                 )
-
+                
                 # Causal LM setup
-                inputs["labels"] = inputs["input_ids"].clone()
+                labels = inputs["input_ids"].clone()
+
+                for i in range(len(batch)):
+                    full_ids = inputs["input_ids"][i]
+
+                    start_idx = None
+
+                    for j in range(len(full_ids) - len(self.model_token_ids)):
+                        if torch.equal(full_ids[j:j+len(self.model_token_ids)], self.model_token_ids):
+                            print("FOUND")
+                            start_idx = j + len(self.model_token_ids)
+                            break
+
+                    if start_idx is not None:
+                        labels[i, :start_idx] = -100
+
+                pad_token_id = self.processor.tokenizer.pad_token_id
+                labels[labels == pad_token_id] = -100
+
+                inputs["labels"] = labels
 
                 return inputs
 
@@ -222,7 +248,13 @@ def finetune (model_name: str, dataset):
         qa_train = Dataset.from_pandas(qa_train)
         qa_eval = Dataset.from_pandas(qa_eval)
 
+        col = BrainCollator(processor)
+        batch = col([qa_train[0]])
+
+        print(batch)
+
         #Initialize the training arguments for the Trainer object
+        """
         training_args = TrainingArguments(
                 output_dir="../brain_qa_evaluater",
                 per_device_train_batch_size=1,
@@ -231,7 +263,7 @@ def finetune (model_name: str, dataset):
                 eval_steps=500,
                 #logging_steps=10,
                 #log_level="info",
-                save_steps=10,
+                save_steps=500,
                 num_train_epochs=3,
                 learning_rate=2e-5,
                 fp16=True,
@@ -254,6 +286,7 @@ def finetune (model_name: str, dataset):
         #Run the model trainer and then save it once finetuned
         trainer.train()
         trainer.save_model("/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-finetuned")
+        """
 
 
 def main():
