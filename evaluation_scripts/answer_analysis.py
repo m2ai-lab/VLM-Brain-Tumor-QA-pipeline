@@ -27,8 +27,8 @@ class QwenResponse(BaseModel):
 
 def argument_handler():
     parser = argparse.ArgumentParser(description="Evaluation Pipeline")
-    parser.add_argument('--rights_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics/Top_rights.csv")
-    parser.add_argument('--wrongs_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics/Top_wrongs.csv")
+    parser.add_argument('--rights_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics/Top_right.csv")
+    parser.add_argument('--wrongs_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics/Top_wrong.csv")
     parser.add_argument('--answer_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
     parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics/QA_Analysis.json")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Qwen2.5-7B-Instruct", help="Path or Hugging Face model name")
