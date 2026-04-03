@@ -356,10 +356,49 @@ def _query_model(model, tokenizer, user_prompt: str) -> dict:
         return {"error": str(e), "raw": raw_output}
 
 
+def _prepare_questions_df(df: pd.DataFrame, answer_lookup: pd.DataFrame | None = None) -> pd.DataFrame:
+    """
+    Ensure DataFrame has:
+      - Question (string)
+      - Count (numeric)
+    If Question is missing, try to recover via Question Index using answer_lookup.
+    """
+    out = df.copy()
+
+    if "Question" not in out.columns:
+        idx_col = None
+        for c in ["Question Index", "Question_Idx", "question_index", "question_idx"]:
+            if c in out.columns:
+                idx_col = c
+                break
+
+        if idx_col is not None and answer_lookup is not None and "Question" in answer_lookup.columns:
+            idx_vals = pd.to_numeric(out[idx_col], errors="coerce")
+            out["Question"] = idx_vals.map(answer_lookup["Question"])
+        else:
+            out["Question"] = pd.NA
+
+    if "Count" not in out.columns:
+        out["Count"] = 1
+
+    out["Question"] = out["Question"].astype(str).str.strip()
+    out["Count"] = pd.to_numeric(out["Count"], errors="coerce").fillna(1)
+    out = out[out["Question"].notna() & (out["Question"] != "nan") & (out["Question"] != "")]
+    return out
+
+
 def _build_comparison_prompts(rights_df: pd.DataFrame, wrongs_df: pd.DataFrame) -> dict:
     """Return broad + extreme contrastive prompts from two question DataFrames."""
+    rights_df = rights_df.copy()
+    wrongs_df = wrongs_df.copy()
+
     rights_df["Question"] = rights_df["Question"].astype(str).str.strip()
     wrongs_df["Question"] = wrongs_df["Question"].astype(str).str.strip()
+
+    if "Count" not in rights_df.columns:
+        rights_df["Count"] = 1
+    if "Count" not in wrongs_df.columns:
+        wrongs_df["Count"] = 1
 
     all_right = ", ".join(sorted(rights_df["Question"].dropna().unique()))
     all_wrong = ", ".join(sorted(wrongs_df["Question"].dropna().unique()))
@@ -411,12 +450,17 @@ def stage3_question_analysis(args: argparse.Namespace) -> None:
         args.model_path, torch_dtype=torch.bfloat16, device_map="auto"
     )
 
+    # Build answer lookup for fallback Question mapping
+    answer_lookup_df = pd.read_csv(args.answer_path)
+    answer_idx_col = answer_lookup_df.columns[0]
+    answer_lookup_df = answer_lookup_df.rename(columns={answer_idx_col: "Question_Idx"}).set_index("Question_Idx")
+
     final_analysis: dict = {}
 
     # ── A) Global analysis ────────────────────────────────────────────────────
     print("\n  [A] Global analysis across all models …")
-    global_rights_df = pd.read_csv(global_right_csv)
-    global_wrongs_df = pd.read_csv(global_wrong_csv)
+    global_rights_df = _prepare_questions_df(pd.read_csv(global_right_csv), answer_lookup_df)
+    global_wrongs_df = _prepare_questions_df(pd.read_csv(global_wrong_csv), answer_lookup_df)
     prompts = _build_comparison_prompts(global_rights_df, global_wrongs_df)
 
     final_analysis["__global__"] = {}
@@ -440,8 +484,9 @@ def stage3_question_analysis(args: argparse.Namespace) -> None:
         print(f"    Wrongs CSV: {wrongs_path}")
 
         per_model_wrongs_df = pd.read_csv(wrongs_path)
-        if "Question" not in per_model_wrongs_df.columns:
-            print("    [skip] CSV has no 'Question' column.")
+        per_model_wrongs_df = _prepare_questions_df(per_model_wrongs_df, answer_lookup_df)
+        if per_model_wrongs_df.empty:
+            print("    [skip] Could not derive 'Question' values from this CSV.")
             continue
 
         prompts = _build_comparison_prompts(global_rights_df, per_model_wrongs_df)
