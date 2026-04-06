@@ -38,7 +38,7 @@ def main(args):
 
         if pd.notna(image_path) and os.path.exists(image_path):
             dest_path = os.path.join(accession_dir, os.path.basename(image_path))
-            os.system(f"cp {image_path} {dest_path}")
+            os.system(f"cp -r {image_path} {dest_path}")
         else:
             print(f"Warning: Image path for {accession_num} is invalid or missing.")
 
