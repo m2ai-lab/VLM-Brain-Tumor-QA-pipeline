@@ -271,6 +271,13 @@ class QAReviewer(tk.Tk):
                                   cursor="hand2")
         self.next_btn.pack(side="right")
 
+        self.submit_btn = tk.Button(footer, text="Submit now", command=self._submit_now,
+                                    bg=self.CARD, fg="#DC2626", relief="flat",
+                                    font=self.FONT_BTN, padx=18, pady=7,
+                                    highlightthickness=1, highlightbackground="#FECACA",
+                                    activebackground="#FEF2F2", cursor="hand2")
+        self.submit_btn.pack(side="right", padx=(0, 8))
+
     # ── screen switching ──────────────────────────────────────────────────────
 
     def _show_load_screen(self):
@@ -434,21 +441,23 @@ class QAReviewer(tk.Tk):
         else:
             self._finish()
 
+    def _submit_now(self):
+        self._save_comment()
+        unanswered = len(self.rows) - len(self.answers)
+        msg = (
+            f"Are you sure you want to submit?\n\n"
+            f"Answered:   {len(self.answers)} of {len(self.rows)}\n"
+            f"Unanswered: {unanswered}"
+        )
+        if messagebox.askyesno("Confirm submission", msg, icon="warning"):
+            self._finish()
+
     # ── finish & save ─────────────────────────────────────────────────────────
 
     def _finish(self):
+        self._save_comment()
         self._stop_timer()
         total_elapsed = time.time() - self.start_time
-
-        unanswered = [i + 1 for i in range(len(self.rows)) if i not in self.answers]
-        if unanswered:
-            proceed = messagebox.askyesno(
-                "Unanswered questions",
-                f"Questions {', '.join(map(str, unanswered[:10]))} have no answer selected.\n\n"
-                "Save results anyway?"
-            )
-            if not proceed:
-                return
 
         # build results
         records = []
