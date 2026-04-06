@@ -25,7 +25,9 @@ def main(args):
     freq_series  = dataset['Deidentified_Accession_Number'].value_counts(ascending=False)
 
     total = 250
+    path_cnt = 0
     for accession_num, count in freq_series.items():
+        path_cnt += 1
         output_ds = pd.concat([output_ds, dataset[dataset['Deidentified_Accession_Number'] == accession_num]].head(total - count), ignore_index=True)
         total -= count
         # Create a directory for this accession number
@@ -42,7 +44,7 @@ def main(args):
         else:
             print(f"Warning: Image path for accession number {accession_num} is invalid or does not exist.")
         if total <= 0:
-            print("Reached 250 entries, stopping the copying process.")
+            print(f"Reached 250 entries, stopping the copying process.{path_cnt} unique accession numbers processed.")
             break
 
     output_ds['image_path'] = output_ds['Deidentified_Accession_Number'].apply(lambda x: os.path.join(args.output_dir, str(x)))
