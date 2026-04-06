@@ -5,7 +5,6 @@ import os
 def load_datasets(args):
     qa_data = pd.read_csv(args.qa_path, index_col=0)
 
-    #Origionally qa_data = pd.read_excel(args.qa_path, index_col=0)
     seq_type_data = pd.read_csv(args.seq_type_path,
                                 usecols=['preferred', 'seq_dir', 'sequence'],
                                 dtype=str)
@@ -113,7 +112,7 @@ if __name__ == "__main__":
                         type=str, 
                         required=False, 
                         help='Path to QA data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv")
+                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
     parser.add_argument('--output_path', 
                         type=str, 
                         required=False, 
