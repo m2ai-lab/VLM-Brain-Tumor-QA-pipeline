@@ -9,7 +9,7 @@ from PIL import Image
 
 def argument_handler():
     parser = argparse.ArgumentParser(description="Creating blank Nifti Pipeline")
-    parser.add_argument('--dicom_dataset_path', type=str, default="")
+    parser.add_argument('--dicom_dataset_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/dicom_dataset.csv")
     parser.add_argument('--output_dir', type=str, default="/mnt/fac/CX000019_DS1/brain_vlm_human_ds")
     return parser.parse_args()
 
