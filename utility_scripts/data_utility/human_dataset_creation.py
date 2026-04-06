@@ -45,10 +45,11 @@ def main(args):
         if total <= 0:
             print(f"Reached 250 entries. {path_cnt} unique accession numbers processed.")
 
-    orig_paths = dataset.set_index('Deidentified_Accession_Number')['image_path']
+    orig_paths = dataset.groupby('Deidentified_Accession_Number')['image_path'].first()
+
     output_ds['image_path'] = output_ds['Deidentified_Accession_Number'].apply(
         lambda x: os.path.join(args.output_dir, str(x), os.path.basename(str(orig_paths[x])))
-        if pd.notna(orig_paths.get(x)) else None
+        if x in orig_paths.index and pd.notna(orig_paths[x]) else None
     )
 
     output_ds.to_csv(os.path.join(args.output_dir, "human_dataset.csv"), index=False)
