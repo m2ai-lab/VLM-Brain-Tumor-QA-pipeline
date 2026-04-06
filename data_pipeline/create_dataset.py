@@ -102,6 +102,9 @@ def main(args):
     print("Get subset of total for formatting dataset")
     # found_flair = found_flair.head(args.num_entries)
 
+    #Replacing the image path with the new 'nuroimaging_refresh' path
+    found_flair['image_path'] = found_flair['image_path'].str.replace('neuroimaging_data', 'neuroimaging_refresh', regex=False)
+
     print(f'Output shape {found_flair.shape[0]} x {found_flair.shape[1]}')
     found_flair.to_csv(args.output_path, index=False)
 
