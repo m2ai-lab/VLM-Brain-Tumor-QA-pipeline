@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=20G
+#SBATCH --mem=128G
 #SBATCH --output=/home/remote/%u/logs/MedFusion_full_volume.out
 #SBATCH --error=/home/remote/%u/logs/MedFusion_full_volume.err
 
