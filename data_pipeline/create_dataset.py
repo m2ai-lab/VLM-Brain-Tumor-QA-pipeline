@@ -70,48 +70,46 @@ def main(args):
 
     seq_type_data['Accession_number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
-    # Replace dict mapping with pd.merge to preserve multiple series per accession number, adding sequence type
-    qa_data = pd.merge(qa_data, seq_type_data[['Accession_number', 'seq_dir', 'sequence']], on='Accession_number', how='left')
+    # Replaced 'accession_num' with 'Accession Num'
+    qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
 
+    # 1. Output the distinct questions
+    # Get accessions that actually have sequences
+    valid_accessions = seq_type_data['Accession_number'].unique()
+    
+    # Filter questions that exist in valid_accessions
+    found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
+    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number"]]
+
+    print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
+    final_data.to_csv(args.output_path, index=False)
+
+    # 2. Output the mapping list
     if args.single_dicom:
         def get_first_dcm(path):
-            # Check if the path is valid and exists
             if pd.isna(path) or str(path) == 'nan' or not os.path.exists(str(path)):
                 return None
-            
-            # Return the full path of the first .dcm file found
             for file in os.listdir(path):
                 if file.endswith(".dcm"):
                     return os.path.join(path, file)
-                    
             return None
-        
-
-        # Apply it to create your new column
-        qa_data['image_path'] = qa_data['seq_dir'].apply(get_first_dcm)
-    
+        seq_type_data['image_path'] = seq_type_data['seq_dir'].apply(get_first_dcm)
     else:
-        qa_data['image_path'] = qa_data['seq_dir']
+        seq_type_data['image_path'] = seq_type_data['seq_dir']
 
-    # Clean up the temporary column
-    qa_data = qa_data.drop(columns=['seq_dir'])
+    seq_type_data['image_path'] = seq_type_data['image_path'].str.replace('neuroimaging_data', 'neuroimaging_refresh', regex=False)
+    seq_type_data = seq_type_data.dropna(subset=['image_path'])
 
-    #Replaced 'accession_num' with 'Accession Num'
-    qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
-
-    final_data = qa_data[["Question", "Answer", "image_path","Deidentified_Accession_Number", "sequence"]]
-
-    print("Selected only QA pairs with valid sequences found")
-    found_flair = final_data.dropna(subset=['image_path'])
-
-    print("Get subset of total for formatting dataset")
-    # found_flair = found_flair.head(args.num_entries)
-
-    #Replacing the image path with the new 'nuroimaging_refresh' path
-    found_flair.loc[:, 'image_path'] = found_flair['image_path'].str.replace('neuroimaging_data', 'neuroimaging_refresh', regex=False)
-
-    print(f'Output shape {found_flair.shape[0]} x {found_flair.shape[1]}')
-    found_flair.to_csv(args.output_path, index=False)
+    # Only map ones relevant to QA data
+    scan_mapping = seq_type_data[seq_type_data['Accession_number'].isin(found_qs['Accession_number'])].copy()
+    
+    rev_id_look_up = {v: k for k, v in id_look_up.items()}
+    scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Accession_number'].map(rev_id_look_up)
+    
+    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path']]
+    
+    print(f'Scan Mapping Output shape {scan_mapping.shape[0]} x {scan_mapping.shape[1]}')
+    scan_mapping.to_csv(args.scan_mapping_path, index=False)
 
 
 if __name__ == "__main__":
@@ -126,6 +124,11 @@ if __name__ == "__main__":
                         required=False, 
                         help='Path to output data',
                         default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/dicom_dataset.csv")
+    parser.add_argument('--scan_mapping_path', 
+                        type=str, 
+                        required=False, 
+                        help='Path to output scan mapping data',
+                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/scan_mapping.csv")
     parser.add_argument('--deid_to_newID_path', 
                         type=str, 
                         required=False, 
