@@ -62,12 +62,16 @@ def main(args):
     #Replace 'accession_num' with 'Accession Num'
     qa_data['Accession_number'] = qa_data['Accession Num'].map(id_look_up)
 
-    seq_type_data = seq_type_data[(seq_type_data['preferred'] == 'True') & (seq_type_data['sequence'].isin(args.filter_types))]
+    if args.preferred_only:
+        seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']
+
+    if args.filter_types:
+        seq_type_data = seq_type_data[seq_type_data['sequence'].isin(args.filter_types)]
 
     seq_type_data['Accession_number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
-    # Replace dict mapping with pd.merge to preserve multiple series per accession number
-    qa_data = pd.merge(qa_data, seq_type_data[['Accession_number', 'seq_dir']], on='Accession_number', how='left')
+    # Replace dict mapping with pd.merge to preserve multiple series per accession number, adding sequence type
+    qa_data = pd.merge(qa_data, seq_type_data[['Accession_number', 'seq_dir', 'sequence']], on='Accession_number', how='left')
 
     if args.single_dicom:
         def get_first_dcm(path):
@@ -95,9 +99,9 @@ def main(args):
     #Replaced 'accession_num' with 'Accession Num'
     qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
 
-    final_data = qa_data[["Question", "Answer", "image_path","Deidentified_Accession_Number"]]
+    final_data = qa_data[["Question", "Answer", "image_path","Deidentified_Accession_Number", "sequence"]]
 
-    print("Selected only QA paris with FLAIR scans found")
+    print("Selected only QA pairs with valid sequences found")
     found_flair = final_data.dropna(subset=['image_path'])
 
     print("Get subset of total for formatting dataset")
@@ -138,10 +142,16 @@ if __name__ == "__main__":
                         help='Path to where sequence type data is stored',
                         default="/mnt/fac/CX000019_DS1/neuroimaging_seqtype.csv")
     parser.add_argument('--filter_types',
-                        nargs='+',
+                        nargs='*',
                         required=False, 
-                        help='Type of scan you would like to get a subset of from data',
-                        default=["FLAIR"])
+                        help='Type of scan you would like to get a subset of from data. Leave empty for all sequence types.',
+                        default=[])
+
+    parser.add_argument('--preferred_only',
+                        type=bool, 
+                        required=False, 
+                        help='If True, only retains sequences explicitly marked as preferred',
+                        default=False)
 
     parser.add_argument('--num_entries',
                         type=int, 

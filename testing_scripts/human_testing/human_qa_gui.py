@@ -110,12 +110,22 @@ class QAReviewer(tk.Tk):
         tk.Label(inner, text="Select the CSV file exported by the data pipeline.",
                  bg=self.CARD, fg=self.MUTED, font=self.FONT_SMALL).pack(pady=(0, 24))
 
-        self.load_btn = tk.Button(inner, text="Browse…", command=self._open_csv,
+        btn_frame = tk.Frame(inner, bg=self.CARD)
+        btn_frame.pack()
+
+        self.load_btn = tk.Button(btn_frame, text="Start New Exam...", command=self._open_csv,
                                   bg=self.ACC, fg="white", relief="flat",
                                   font=self.FONT_BTN, padx=24, pady=8,
                                   activebackground="#1D4ED8", activeforeground="white",
                                   cursor="hand2")
-        self.load_btn.pack()
+        self.load_btn.pack(side="left", padx=5)
+
+        self.resume_btn = tk.Button(btn_frame, text="Resume Save...", command=self._open_save,
+                                  bg=self.CARD, fg=self.TXT, relief="flat",
+                                  font=self.FONT_BTN, padx=24, pady=8,
+                                  highlightthickness=1, highlightbackground=self.BORDER,
+                                  activebackground=self.BG, cursor="hand2")
+        self.resume_btn.pack(side="left", padx=5)
 
         self.load_err = tk.Label(inner, text="", bg=self.CARD, fg="#DC2626",
                                  font=self.FONT_SMALL)
@@ -160,11 +170,20 @@ class QAReviewer(tk.Tk):
                  bg=self.CARD, fg=self.MUTED, font=self.FONT_SMALL,
                  justify="center").pack(pady=(0, 28))
 
-        tk.Button(inner, text="Start exam", command=self._start_exam,
+        btn_frame2 = tk.Frame(inner, bg=self.CARD)
+        btn_frame2.pack()
+
+        tk.Button(btn_frame2, text="Start exam", command=self._start_exam,
                   bg=self.ACC, fg="white", relief="flat",
                   font=("Helvetica Neue", 13, "bold"), padx=32, pady=10,
                   activebackground="#1D4ED8", activeforeground="white",
-                  cursor="hand2").pack()
+                  cursor="hand2").pack(side="left", padx=5)
+
+        tk.Button(btn_frame2, text="Resume Save...", command=self._open_save,
+                  bg=self.CARD, fg=self.TXT, relief="flat",
+                  font=("Helvetica Neue", 13, "bold"), padx=32, pady=10,
+                  highlightthickness=1, highlightbackground=self.BORDER,
+                  activebackground=self.BG, cursor="hand2").pack(side="left", padx=5)
 
     def _build_quiz_screen(self):
         self.quiz_frame = tk.Frame(self.main, bg=self.BG)
@@ -276,7 +295,14 @@ class QAReviewer(tk.Tk):
                                     font=self.FONT_BTN, padx=18, pady=7,
                                     highlightthickness=1, highlightbackground="#FECACA",
                                     activebackground="#FEF2F2", cursor="hand2")
-        self.submit_btn.pack(side="right", padx=(0, 8))
+        self.submit_btn.pack(side="right")
+
+        self.pause_btn = tk.Button(footer, text="Pause & Save", command=self._pause_now,
+                                    bg=self.CARD, fg=self.TXT, relief="flat",
+                                    font=self.FONT_BTN, padx=18, pady=7,
+                                    highlightthickness=1, highlightbackground=self.BORDER,
+                                    activebackground=self.BG, cursor="hand2")
+        self.pause_btn.pack(side="right", padx=(0, 8))
 
     # ── screen switching ──────────────────────────────────────────────────────
 
@@ -305,6 +331,50 @@ class QAReviewer(tk.Tk):
         if not path:
             return
         self._load_csv(path)
+
+    def _open_save(self):
+        path = filedialog.askopenfilename(
+            title="Open Progress Save",
+            filetypes=[("JSON Save files", "*.json"), ("All files", "*.*")]
+        )
+        if not path:
+            return
+        
+        try:
+            with open(path, "r") as f:
+                state = json.load(f)
+            
+            self.csv_path = state.get("csv_path")
+            self.rows = state.get("rows", [])
+            self.current = state.get("current", 0)
+            self.elapsed = state.get("elapsed", 0.0)
+            
+            raw_ans = state.get("answers", {})
+            self.answers = {int(k): v for k, v in raw_ans.items()}
+            
+            raw_com = state.get("comments", {})
+            self.comments = {int(k): v for k, v in raw_com.items()}
+
+            n_q = len(self.rows)
+            n_acc = len(set([r.get("Deidentified_Accession_Number") for r in self.rows]))
+            fname = os.path.basename(self.csv_path or "Unknown")
+
+            self._landing_n_questions_lbl.config(text=str(n_q))
+            self._landing_n_accessions_lbl.config(text=str(n_acc))
+            self._landing_filename_lbl.config(text=fname, font=self.FONT_SMALL)
+            
+            # Format time
+            m, s = divmod(int(self.elapsed), 60)
+            h, m = divmod(m, 60)
+            t_str = f"{h}h {m:02d}m {s:02d}s" if h else f"{m}m {s:02d}s"
+
+            self.landing_subtitle.config(text=f"Resuming saved progress from: {os.path.basename(path)}\nTime spent so far: {t_str}")
+
+            self._show_landing_screen()
+
+        except Exception as e:
+            self.load_err.config(text=f"Could not load save: {e}")
+            self._show_load_screen()
 
     def _load_csv(self, path: str):
         try:
@@ -339,10 +409,11 @@ class QAReviewer(tk.Tk):
         self._show_landing_screen()
 
     def _start_exam(self):
-        self.start_time = time.time()
+        # adjust start_time so that time.time() - start_time = self.elapsed
+        self.start_time = time.time() - self.elapsed
         self._start_timer()
         self._show_quiz_screen()
-        self._render_question(0)
+        self._render_question(self.current)
 
     # ── timer ─────────────────────────────────────────────────────────────────
 
@@ -451,6 +522,43 @@ class QAReviewer(tk.Tk):
         )
         if messagebox.askyesno("Confirm submission", msg, icon="warning"):
             self._finish()
+
+    def _pause_now(self):
+        self._save_comment()
+        self._stop_timer()
+        self.elapsed = time.time() - self.start_time
+
+        save_path = filedialog.asksaveasfilename(
+            title="Save Progress",
+            defaultextension=".json",
+            initialfile="qa_progress_save.json",
+            filetypes=[("JSON files", "*.json")]
+        )
+
+        if not save_path:
+            self.start_time = time.time() - self.elapsed
+            self._start_timer()
+            return
+
+        state = {
+            "csv_path": self.csv_path,
+            "rows": self.rows,
+            "current": self.current,
+            "elapsed": self.elapsed,
+            "answers": self.answers,
+            "comments": self.comments
+        }
+
+        try:
+            with open(save_path, "w") as f:
+                json.dump(state, f, indent=2)
+            
+            messagebox.showinfo("Paused", f"Progress successfully saved to:\n{save_path}\n\nYou can safely close the app.")
+            self.destroy()
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not save progress:\n{e}")
+            self.start_time = time.time() - self.elapsed
+            self._start_timer()
 
     # ── finish & save ─────────────────────────────────────────────────────────
 

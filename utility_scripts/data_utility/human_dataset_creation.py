@@ -34,12 +34,25 @@ def main(args):
         accession_dir = os.path.join(args.output_dir, str(accession_num))
         os.makedirs(accession_dir, exist_ok=True)
 
-        # Iterate over all unique paths instead of just grabbing the 0th index
-        image_paths = rows['image_path'].dropna().unique()
+        # Iterate over all unique paths and sequence types
+        has_seq = 'sequence' in rows.columns
+        if has_seq:
+            seq_paths = rows[['sequence', 'image_path']].dropna().drop_duplicates()
+        else:
+            # Fallback if someone uses an old CSV
+            seq_paths = pd.DataFrame({'sequence': ['Unknown_Series'] * len(rows), 'image_path': rows['image_path']}).dropna().drop_duplicates()
 
-        for image_path in image_paths:
+        for _, row_item in seq_paths.iterrows():
+            image_path = row_item['image_path']
+            # Sanitize the sequence string to be safe for filenames
+            seq_name = str(row_item['sequence']).replace('/', '_').replace('\\', '_')
+            
             if os.path.exists(image_path):
-                dest_path = os.path.join(accession_dir, os.path.basename(image_path))
+                # Create a sequence subdirectory inside the accession directory
+                seq_dir = os.path.join(accession_dir, seq_name)
+                os.makedirs(seq_dir, exist_ok=True)
+                dest_path = os.path.join(seq_dir, os.path.basename(image_path))
+                
                 # Using shutil is safer and avoids the nested folder issue when ran multiple times
                 if os.path.isdir(image_path):
                     shutil.copytree(image_path, dest_path, dirs_exist_ok=True)
@@ -54,7 +67,8 @@ def main(args):
     # Reformat how new output_ds paths are updated to accommodate multiple rows
     def construct_new_path(row):
         if pd.notna(row['image_path']):
-            return os.path.join(args.output_dir, str(row['Deidentified_Accession_Number']), os.path.basename(str(row['image_path'])))
+            seq_name = str(row.get('sequence', 'Unknown_Series')).replace('/', '_').replace('\\', '_')
+            return os.path.join(args.output_dir, str(row['Deidentified_Accession_Number']), seq_name, os.path.basename(str(row['image_path'])))
         return None
 
     output_ds['image_path'] = output_ds.apply(construct_new_path, axis=1)
