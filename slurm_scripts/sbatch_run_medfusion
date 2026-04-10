@@ -7,8 +7,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=20G
-#SBATCH --output=/home/remote/%u/logs/%x_%j.out
-#SBATCH --error=/home/remote/%u/logs/%x_%j.err
+#SBATCH --output=/home/remote/%u/logs/MedFusion_full_volume.out
+#SBATCH --error=/home/remote/%u/logs/MedFusion_full_volume.err
 
 # 1. Load the cluster's Conda module
 module load miniforge3
