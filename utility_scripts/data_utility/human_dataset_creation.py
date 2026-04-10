@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 import os
-from collections import defaultdict
+import shutil
 import json
 import numpy as np
 import nibabel as nib
@@ -34,23 +34,30 @@ def main(args):
         accession_dir = os.path.join(args.output_dir, str(accession_num))
         os.makedirs(accession_dir, exist_ok=True)
 
-        image_path = dataset.loc[dataset['Deidentified_Accession_Number'] == accession_num, 'image_path'].values[0]
+        # Iterate over all unique paths instead of just grabbing the 0th index
+        image_paths = rows['image_path'].dropna().unique()
 
-        if pd.notna(image_path) and os.path.exists(image_path):
-            dest_path = os.path.join(accession_dir, os.path.basename(image_path))
-            os.system(f"cp -r {image_path} {dest_path}")
-        else:
-            print(f"Warning: Image path for {accession_num} is invalid or missing.")
+        for image_path in image_paths:
+            if os.path.exists(image_path):
+                dest_path = os.path.join(accession_dir, os.path.basename(image_path))
+                # Using shutil is safer and avoids the nested folder issue when ran multiple times
+                if os.path.isdir(image_path):
+                    shutil.copytree(image_path, dest_path, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(image_path, dest_path)
+            else:
+                print(f"Warning: Image path for {accession_num} is invalid or missing.")
 
         if total <= 0:
             print(f"Reached 250 entries. {path_cnt} unique accession numbers processed.")
 
-    orig_paths = dataset.groupby('Deidentified_Accession_Number')['image_path'].first()
+    # Reformat how new output_ds paths are updated to accommodate multiple rows
+    def construct_new_path(row):
+        if pd.notna(row['image_path']):
+            return os.path.join(args.output_dir, str(row['Deidentified_Accession_Number']), os.path.basename(str(row['image_path'])))
+        return None
 
-    output_ds['image_path'] = output_ds['Deidentified_Accession_Number'].apply(
-        lambda x: os.path.join(args.output_dir, str(x), os.path.basename(str(orig_paths[x])))
-        if x in orig_paths.index and pd.notna(orig_paths[x]) else None
-    )
+    output_ds['image_path'] = output_ds.apply(construct_new_path, axis=1)
 
     output_ds.to_csv(os.path.join(args.output_dir, "human_dataset.csv"), index=False)
 

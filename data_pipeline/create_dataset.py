@@ -66,15 +66,13 @@ def main(args):
 
     seq_type_data['Accession_number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
-    accession_to_path = dict(zip(seq_type_data['Accession_number'], seq_type_data['seq_dir']))
-
-    # 2. Map the paths to a temporary variable
-    folder_paths = qa_data['Accession_number'].map(accession_to_path)
+    # Replace dict mapping with pd.merge to preserve multiple series per accession number
+    qa_data = pd.merge(qa_data, seq_type_data[['Accession_number', 'seq_dir']], on='Accession_number', how='left')
 
     if args.single_dicom:
         def get_first_dcm(path):
             # Check if the path is valid and exists
-            if pd.isna(path) or not os.path.exists(path):
+            if pd.isna(path) or str(path) == 'nan' or not os.path.exists(str(path)):
                 return None
             
             # Return the full path of the first .dcm file found
@@ -85,11 +83,14 @@ def main(args):
             return None
         
 
-        # 4. Apply it to create your new column
-        qa_data['image_path'] = folder_paths.apply(get_first_dcm)
+        # Apply it to create your new column
+        qa_data['image_path'] = qa_data['seq_dir'].apply(get_first_dcm)
     
     else:
-        qa_data['image_path'] = folder_paths
+        qa_data['image_path'] = qa_data['seq_dir']
+
+    # Clean up the temporary column
+    qa_data = qa_data.drop(columns=['seq_dir'])
 
     #Replaced 'accession_num' with 'Accession Num'
     qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
