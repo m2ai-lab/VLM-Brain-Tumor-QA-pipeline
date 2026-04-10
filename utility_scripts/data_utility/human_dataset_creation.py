@@ -57,6 +57,9 @@ def main(args):
                 seq_dir = os.path.join(accession_dir, seq_name)
                 os.makedirs(seq_dir, exist_ok=True)
                 dest_path = os.path.join(seq_dir, os.path.basename(str(image_path)))
+
+                if os.path.exists(dest_path):
+                    continue  # Skip to save time if already populated
                 
                 # Using shutil is safer and avoids the nested folder issue when ran multiple times
                 if os.path.isdir(str(image_path)):
