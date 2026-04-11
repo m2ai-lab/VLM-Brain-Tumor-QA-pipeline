@@ -68,7 +68,7 @@ def argument_handler() -> argparse.Namespace:
     )
     parser.add_argument(
         "--answer_path",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv",
+        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv",
         help="Master ground-truth Q&A CSV.",
     )
     parser.add_argument(

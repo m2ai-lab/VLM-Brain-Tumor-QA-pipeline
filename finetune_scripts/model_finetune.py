@@ -10,11 +10,27 @@ from PIL import Image
 import os.path as path
 from peft import LoraConfig, get_peft_model
 from datasets import Dataset
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 IMAGE_DIR="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices"
 
 MODEL_PATHS = {'Med3DVLM': "/mnt/fac/CX000019_DS1/UCSF-PGDM/PKG_-_UCSF-PDGM_Version_5/UCSF-PDGM-v5",
             'MedGemma' : "/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-1.5-4b-it"}
+
+SLICE_NAMES = ["Axial", "Coronal", "Sagittal"]
+
+FEW_SHOT_EXAMPLE = """
+Example Request:
+Question: Based on the T2/FLAIR hyperintensity, what is the most likely grade? 1) Low Grade 2) High Grade
+
+Example Response:
+{
+  "reasoning": "The slices show significant mass effect and central necrosis within the T1-contrast enhancing lesion, which is highly suggestive of aggressive growth.",
+  "answer": "2) High Grade"
+}
+"""
 
 def clean_json_string(raw_str):
     # Remove markdown code blocks if present
@@ -31,13 +47,12 @@ class MedResponse(BaseModel):
 def process_slices(image_dir: str):
     """Loads specific PNG slices from a directory into a list of PIL Images."""
     slices = []
-    for i in slice_names:
+    for i in SLICE_NAMES:
         slice_path = path.join(image_dir, f'{i}.png')
-        print(slice_path)
+        
         if path.exists(slice_path):
             # PIL requires Image.open() and it's best practice to ensure RGB format
             slices.append(Image.open(slice_path).convert("RGB"))
-            print("slice loaded")
         else:
             print(f"Warning: {slice_path} not found.")
     
@@ -55,6 +70,9 @@ def finetune (model_name: str, dataset):
     #Split the dataset into train, validate, test 
     qa_train, qa_eval = train_test_split(dataset, train_size=0.7)
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
     if model_name == 'MedGemma':
         #Place all the related code for finetuning Med3DVLM
         #Set up the model
@@ -66,6 +84,7 @@ def finetune (model_name: str, dataset):
             device_map="auto",
             trust_remote_code=True
         )
+        model.to(device)
 
         #With the model set up, we can now freeze all layers out side of the vision projector and LLM (set up LoRA for LLM)
         for param in model.parameters(): #Freeze all layers
@@ -93,12 +112,8 @@ def finetune (model_name: str, dataset):
             """
             #Get the predictions based on the generated output
             predictions, labels = eval_pred
-            print(predictions)
-            prediction = np.argmax(predictions, axis=-1)
 
-            print(prediction)
-
-            decoded_preds = processor.decode(prediction, skip_special_tokens=False).strip()
+            decoded_preds = processor.decode(prediction, skip_special_tokens=True).strip()
             decoded_labels = processor.decode(labels, skip_special_tokens=True).strip()
 
             print(decoded_preds)
@@ -116,8 +131,6 @@ def finetune (model_name: str, dataset):
                 response = clean_json_string(pred) 
                 label = label.strip()
 
-                print(response)
-                print(label)
 
                 # Extract only the answer portion
                 try:
@@ -130,10 +143,9 @@ def finetune (model_name: str, dataset):
                     validated_data = MedResponse.model_validate_json(json_match.group(0))
 
                     response = validated_data.model_dump()
-                    print(validated_data)
 
                 except ValidationError as e:
-                    print(f"Pydantic Validation Error: {e}")
+                    #logger.info(f"Pydantic Validation Error: {e}")
                     return {"reasoning": "Schema mismatch", "answer": "Error", "raw": cleaned_response}
                 except Exception as e:
                     return {"reasoning": f"Parsing error: {str(e)}", "answer": "Error"}
@@ -141,7 +153,7 @@ def finetune (model_name: str, dataset):
                 if label in response['answer']:
                     correct += 1
 
-            print(round(float(correct / total), 2), "%")
+            #logger.info(round(float(correct / total), 2), "%")
             return {"exact_match": float(correct / total)}
 
         class BrainCollator:
@@ -153,23 +165,21 @@ def finetune (model_name: str, dataset):
                 self.processor = processor
 
             def __call__(self, batch):
-                #create lists for both the prompts and images (idecies map images to prompts)
+                #create lists for both the prompts and images (indecies map images to prompts)
                 prompts = []
                 imgs = []
 
-                print("doing prompt creation")
-                print(len(batch))
                 for entry in batch:
                      # Assume the PNGs are stored in a folder named after the patient ID
                     patient_image_dir = path.join(IMAGE_DIR, str(entry["Assigned ID"]))
-                    print(patient_image_dir)
+
                     if not path.exists(patient_image_dir):
                         return {"reasoning": f"Error: Directory {patient_image_dir} not found.", "answer": "Error"}
 
                     # 1. Get processed PIL images
                     images = process_slices(patient_image_dir)
                     num_loaded_slices = len(images)
-                    print(num_loaded_slices)
+
 
                     if num_loaded_slices == 0:
                          return {"reasoning": "Error: No slices found to process.", "answer": "Error"}
@@ -177,35 +187,50 @@ def finetune (model_name: str, dataset):
                     imgs.append(images)
 
                     # More aggressive prompt with a clear JSON schema
-                    print("Creating prompt text")
                     prompt_text = (
                         "Instruction: You are a neuroradiologist. Analyze the MRI slices and provide a structured JSON response.\n"
                         f"{FEW_SHOT_EXAMPLE}"
                         "---\n"
                         f"Actual Question: {entry['Question']}\n"
-                        f"Response: {entry['Answer']}"
                     )
                     prompts.append(prompt_text)
-                print("prompts all made")
+
                 # Build messages
-                content = [{"type": "image"}] * 3
+                content = [{"type": "image"}] * 3 
                 content.append({"type": "text", "text": prompt_text})
-                messages = [{"role": "user", "content": content}]
+                asst_content = [{"type": "text", "text": f"Actual Answer: {entry['Answer']}"}]
+                messages = [{"role": "user", "content": content}, {"role": "assistant", "content": asst_content}]
 
                 # Use add_generation_prompt=False because we are manually adding the "{"
                 input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
-                print("Template loaded")
+
                 # Encode multimodal input
-                inputs = processor(
-                    text=prompts,
+                inputs = self.processor(
+                    text=input_text,
                     images=images,
                     padding=True,
+                    truncation=True,
                     return_tensors="pt"
-                ).to(model.device, dtype=model.dtype)
+                )
 
-                # Causal LM setup
-                inputs["labels"] = inputs["input_ids"].copy()
-                print("Done")
+                labels = inputs["input_ids"].clone()
+
+                # Mask image tokens
+                image_token_id = [
+                    processor.tokenizer.convert_tokens_to_ids(
+                        processor.tokenizer.special_tokens_map["boi_token"]
+                    )
+                ]
+                # Mask tokens that are not used in the loss computation
+                labels[labels == processor.tokenizer.pad_token_id] = -100
+                labels[labels == image_token_id] = -100
+                labels[labels == 262144] = -100
+
+                inputs["labels"] = labels
+
+                print(inputs["input_ids"])
+                print(inputs["labels"])
+
                 return inputs
 
         #convert to Dataset objects then preprocess 
@@ -215,21 +240,26 @@ def finetune (model_name: str, dataset):
         qa_train = Dataset.from_pandas(qa_train)
         qa_eval = Dataset.from_pandas(qa_eval)
 
+        col = BrainCollator(processor)
+        t = col(qa_train[0])
+
+        """
         #Initialize the training arguments for the Trainer object
         training_args = TrainingArguments(
-                output_dir="./brain_qa_evaluater",
+                output_dir="../brain_qa_evaluater",
                 per_device_train_batch_size=1,
                 per_device_eval_batch_size=1,
                 eval_strategy="steps",
                 eval_steps=500,
-                logging_steps=100,
+                logging_steps=10,
+                log_level="info",
                 save_steps=500,
                 num_train_epochs=3,
                 learning_rate=2e-5,
                 fp16=True,
                 report_to="none",
                 remove_unused_columns=False,
-                load_best_model_at_end=True
+                load_best_model_at_end=True,
             )
 
 
@@ -246,11 +276,14 @@ def finetune (model_name: str, dataset):
         #Run the model trainer and then save it once finetuned
         trainer.train()
         trainer.save_model("/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-finetuned")
+        """
+        
 
 
 def main():
     model='MedGemma'
     data = pd.read_csv("/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
+    data = data.iloc[:100]
     
     finetune(model, data)
 
