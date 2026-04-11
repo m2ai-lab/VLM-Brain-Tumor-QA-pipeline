@@ -82,9 +82,9 @@ def argument_handler() -> argparse.Namespace:
         "--stages",
         nargs="+",
         type=int,
-        choices=[1, 2, 3],
-        default=[1, 2, 3],
-        help="Which stages to run (1=accuracy, 2=aggregate, 3=analysis).",
+        choices=[1, 2],
+        default=[1, 2],
+        help="Which stages to run (1=accuracy, 2=aggregate).",
     )
 
     # ── Stage 2: filtering ────────────────────────────────────────────────────
@@ -155,10 +155,43 @@ def iter_wrongs_csvs(qa_path: str, exclude: list[str], include: list[str]):
 # ──────────────────────────────────────────────────────────────────────────────
 # STAGE 1 — Per-model accuracy
 # ──────────────────────────────────────────────────────────────────────────────
+def _normalize_question(text) -> str | None:
+    """Normalize question text for robust matching across CSVs."""
+    if pd.isna(text):
+        return None
+    s = str(text).strip().lower()
+    if not s:
+        return None
+    s = re.sub(r"\s+", " ", s)  # collapse repeated whitespace
+    return s
+
+
+def _find_results_question_col(df: pd.DataFrame) -> str:
+    """Find the question text column in results_df."""
+    candidates = [
+        "Question",
+        "question",
+        "question_text",
+        "prompt",
+        "Prompt",
+        "query",
+        "text",
+    ]
+    by_lower = {c.lower(): c for c in df.columns}
+    for c in candidates:
+        if c.lower() in by_lower:
+            return by_lower[c.lower()]
+    raise ValueError(
+        "Could not find a question column in results_df. "
+        f"Columns seen: {list(df.columns)}"
+    )
+
+
 def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     """
     For every *_results*.csv found under qa_path:
-      - compare predicted_answer against the master answer sheet
+      - match rows by normalized QUESTION TEXT 
+      - ignore predictions whose question does not exist in answer_df
       - save a *_wrongs.csv alongside the results file
       - return a {test_name: accuracy} dict and write it to metrics_dir/Evals.json
     """
@@ -167,7 +200,25 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     print("=" * 60)
 
     answer_df = pd.read_csv(args.answer_path)
-    question_idx_col = answer_df.iloc[:, 0]
+    answer_idx_col = answer_df.columns[0]
+
+    required = {"Question", "Answer"}
+    missing = required - set(answer_df.columns)
+    if missing:
+        raise ValueError(
+            f"answer_df is missing required column(s): {sorted(missing)}. "
+            f"Columns: {list(answer_df.columns)}"
+        )
+
+    answer_key = answer_df[[answer_idx_col, "Question", "Answer"]].copy()
+    answer_key = answer_key.rename(columns={answer_idx_col: "Question Index"})
+    answer_key["__qnorm"] = answer_key["Question"].map(_normalize_question)
+    answer_key = answer_key.dropna(subset=["__qnorm"])
+
+    if answer_key["__qnorm"].duplicated().any():
+        dup_n = int(answer_key["__qnorm"].duplicated().sum())
+        print(f"  [warn] answer_df has {dup_n} duplicate questions after normalization; keeping first.")
+        answer_key = answer_key.drop_duplicates(subset=["__qnorm"], keep="first")
 
     accuracy: dict[str, float] = {}
 
@@ -175,30 +226,63 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
         results_df = pd.read_csv(read_path)
         print(f"  Evaluating [{test_name}]  ←  {read_path}")
 
-        total_right = 0
-        wrong_indexes, wrong_answers, wrong_preds = [], [], []
+        if "predicted_answer" not in results_df.columns:
+            print("    [warn] missing 'predicted_answer' column; skipping file.")
+            continue
 
-        for idx, (ans, pred) in enumerate(
-            zip(answer_df["Answer"], results_df["predicted_answer"])
-        ):
-            if str(ans) in str(pred):
-                total_right += 1
-            else:
-                wrong_indexes.append(question_idx_col.iloc[idx])
-                wrong_answers.append(str(ans))
-                wrong_preds.append(str(pred))
+        try:
+            result_q_col = _find_results_question_col(results_df)
+        except ValueError as e:
+            print(f"    [warn] {e} Skipping file.")
+            continue
 
-        pd.DataFrame(
-            {
-                "Question Index": wrong_indexes,
-                "Correct_Answer": wrong_answers,
-                "Predicted_Answer": wrong_preds,
-            }
-        ).to_csv(write_path, index=False)
+        results_key = results_df[[result_q_col, "predicted_answer"]].copy()
+        results_key = results_key.rename(columns={result_q_col: "Question"})
+        results_key["__qnorm"] = results_key["Question"].map(_normalize_question)
+        results_key = results_key.dropna(subset=["__qnorm"])
 
-        acc = total_right / len(results_df)
+        if results_key["__qnorm"].duplicated().any():
+            dup_n = int(results_key["__qnorm"].duplicated().sum())
+            print(f"    [warn] results_df has {dup_n} duplicate questions after normalization; keeping first.")
+            results_key = results_key.drop_duplicates(subset=["__qnorm"], keep="first")
+
+        merged = results_key.merge(
+            answer_key[["__qnorm", "Question Index", "Answer"]],
+            on="__qnorm",
+            how="inner",
+        )
+
+        valid_preds = len(results_key)
+        matched = len(merged)
+        ignored_not_in_answer = valid_preds - matched
+
+        if matched == 0:
+            print("    [warn] no overlapping questions with answer_df; accuracy set to 0.0")
+            pd.DataFrame(
+                columns=["Question Index", "Correct_Answer", "Predicted_Answer"]
+            ).to_csv(write_path, index=False)
+            accuracy[test_name] = 0.0
+            continue
+
+        is_right = merged.apply(
+            lambda r: str(r["Answer"]) in str(r["predicted_answer"]),
+            axis=1,
+        )
+
+        wrong_df = merged.loc[~is_right, ["Question Index", "Answer", "predicted_answer"]].copy()
+        wrong_df = wrong_df.rename(
+            columns={"Answer": "Correct_Answer", "predicted_answer": "Predicted_Answer"}
+        )
+        wrong_df.to_csv(write_path, index=False)
+
+        total_right = int(is_right.sum())
+        acc = total_right / matched
         accuracy[test_name] = acc
-        print(f"    accuracy = {acc:.4f}  |  wrongs saved → {write_path}")
+
+        print(
+            f"    matched={matched}, ignored_not_in_answer={ignored_not_in_answer}, "
+            f"accuracy={acc:.4f}  |  wrongs saved → {write_path}"
+        )
 
     os.makedirs(args.metrics_dir, exist_ok=True)
     evals_path = os.path.join(args.metrics_dir, "Evals.json")
@@ -303,224 +387,6 @@ def stage2_aggregate_rw(args: argparse.Namespace) -> tuple[Counter, Counter]:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# STAGE 3 — Qwen contrastive question analysis
-# ──────────────────────────────────────────────────────────────────────────────
-class QwenResponse(BaseModel):
-    success_patterns: str = Field(...)
-    failure_patterns: str = Field(...)
-    key_differences: str = Field(...)
-    insightful_conclusion: str = Field(...)
-
-    @field_validator(
-        "success_patterns",
-        "failure_patterns",
-        "key_differences",
-        "insightful_conclusion",
-        mode="before",
-    )
-    @classmethod
-    def coerce_to_string(cls, v):
-        if v is None:
-            return ""
-        if isinstance(v, str):
-            return v
-        if isinstance(v, list):
-            # Convert list outputs into one readable string
-            return " | ".join(str(x).strip() for x in v if str(x).strip())
-        if isinstance(v, dict):
-            return json.dumps(v, ensure_ascii=False)
-        return str(v)
-
-
-def _clean_json_string(raw: str) -> str:
-    clean = re.sub(r"```json|```", "", raw).strip()
-    match = re.search(r"\{.*\}", clean, re.DOTALL)
-    return match.group(0) if match else clean
-
-
-def _query_model(model, tokenizer, user_prompt: str) -> dict:
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": user_prompt},
-    ]
-    text = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
-    )
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
-
-    generated = model.generate(
-        **inputs, max_new_tokens=1024, temperature=0.2, do_sample=True
-    )
-    new_tokens = generated[0][inputs["input_ids"].shape[1]:]
-    raw_output = tokenizer.decode(new_tokens, skip_special_tokens=True)
-    cleaned = _clean_json_string(raw_output)
-
-    try:
-        if not cleaned:
-            raise ValueError("No JSON-like content found in model output.")
-        validated = QwenResponse.model_validate_json(cleaned)
-        return validated.model_dump()
-    except ValidationError as e:
-        print(f"    [warn] Pydantic validation error: {e}")
-        return {"error": "Schema mismatch", "raw": raw_output}
-    except Exception as e:
-        print(f"    [warn] Parsing error: {e}")
-        return {"error": str(e), "raw": raw_output}
-
-
-def _prepare_questions_df(df: pd.DataFrame, answer_lookup: pd.DataFrame | None = None) -> pd.DataFrame:
-    """
-    Ensure DataFrame has:
-      - Question (string)
-      - Count (numeric)
-    If Question is missing, try to recover via Question Index using answer_lookup.
-    """
-    out = df.copy()
-
-    if "Question" not in out.columns:
-        idx_col = None
-        for c in ["Question Index", "Question_Idx", "question_index", "question_idx"]:
-            if c in out.columns:
-                idx_col = c
-                break
-
-        if idx_col is not None and answer_lookup is not None and "Question" in answer_lookup.columns:
-            idx_vals = pd.to_numeric(out[idx_col], errors="coerce")
-            out["Question"] = idx_vals.map(answer_lookup["Question"])
-        else:
-            out["Question"] = pd.NA
-
-    if "Count" not in out.columns:
-        out["Count"] = 1
-
-    out["Question"] = out["Question"].astype(str).str.strip()
-    out["Count"] = pd.to_numeric(out["Count"], errors="coerce").fillna(1)
-    out = out[out["Question"].notna() & (out["Question"] != "nan") & (out["Question"] != "")]
-    return out
-
-
-def _build_comparison_prompts(rights_df: pd.DataFrame, wrongs_df: pd.DataFrame) -> dict:
-    """Return broad + extreme contrastive prompts from two question DataFrames."""
-    rights_df = rights_df.copy()
-    wrongs_df = wrongs_df.copy()
-
-    rights_df["Question"] = rights_df["Question"].astype(str).str.strip()
-    wrongs_df["Question"] = wrongs_df["Question"].astype(str).str.strip()
-
-    if "Count" not in rights_df.columns:
-        rights_df["Count"] = 1
-    if "Count" not in wrongs_df.columns:
-        wrongs_df["Count"] = 1
-
-    all_right = ", ".join(sorted(rights_df["Question"].dropna().unique()))
-    all_wrong = ", ".join(sorted(wrongs_df["Question"].dropna().unique()))
-
-    max_right_count = rights_df["Count"].max()
-    max_wrong_count = wrongs_df["Count"].max()
-    most_right = ", ".join(
-        sorted(rights_df[rights_df["Count"] == max_right_count]["Question"].dropna().unique())
-    )
-    most_wrong = ", ".join(
-        sorted(wrongs_df[wrongs_df["Count"] == max_wrong_count]["Question"].dropna().unique())
-    )
-
-    return {
-        "Broad Analysis": (
-            f"SUCCESSFUL QUESTIONS:\n{all_right}\n\nFAILED QUESTIONS:\n{all_wrong}"
-        ),
-        "Extreme Analysis": (
-            f"MOST SUCCESSFUL QUESTIONS:\n{most_right}\n\nMOST FAILED QUESTIONS:\n{most_wrong}"
-        ),
-    }
-
-
-def stage3_question_analysis(args: argparse.Namespace) -> None:
-    """
-    Run Qwen contrastive analysis in two passes:
-      A) Global  — using the aggregate Top_right.csv / Top_wrong.csv from Stage 2
-      B) Per-model — one analysis per model using its own wrongs CSV paired with the
-                     global rights CSV (best proxy without re-running Stage 2 per model)
-
-    Results are saved to metrics_dir/QA_Analysis.json.
-    """
-    print("\n" + "=" * 60)
-    print("STAGE 3 — Qwen contrastive question analysis")
-    print("=" * 60)
-
-    global_right_csv = os.path.join(args.metrics_dir, "Top_right.csv")
-    global_wrong_csv = os.path.join(args.metrics_dir, "Top_wrong.csv")
-
-    if not os.path.exists(global_right_csv) or not os.path.exists(global_wrong_csv):
-        raise FileNotFoundError(
-            "Stage 3 requires the aggregate CSVs produced by Stage 2. "
-            "Run Stage 2 first (or include stage 2 in --stages)."
-        )
-
-    print(f"\n  Loading Qwen model from {args.model_path} …")
-    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_path, torch_dtype=torch.bfloat16, device_map="auto"
-    )
-
-    # Build answer lookup for fallback Question mapping
-    answer_lookup_df = pd.read_csv(args.answer_path)
-    answer_idx_col = answer_lookup_df.columns[0]
-    answer_lookup_df = answer_lookup_df.rename(columns={answer_idx_col: "Question_Idx"}).set_index("Question_Idx")
-
-    final_analysis: dict = {}
-
-    # ── A) Global analysis ────────────────────────────────────────────────────
-    print("\n  [A] Global analysis across all models …")
-    global_rights_df = _prepare_questions_df(pd.read_csv(global_right_csv), answer_lookup_df)
-    global_wrongs_df = _prepare_questions_df(pd.read_csv(global_wrong_csv), answer_lookup_df)
-    prompts = _build_comparison_prompts(global_rights_df, global_wrongs_df)
-
-    final_analysis["__global__"] = {}
-    for label, prompt in prompts.items():
-        print(f"    Running '{label}' …")
-        final_analysis["__global__"][label] = _query_model(model, tokenizer, prompt)
-
-    # ── B) Per-model analysis ──────────────────────────────────────────────────
-    print("\n  [B] Per-model analysis …")
-    for wrongs_path in iter_wrongs_csvs(args.qa_path, args.exclude, args.include):
-        model_name = os.path.basename(os.path.dirname(wrongs_path))
-        file_name = os.path.basename(wrongs_path)
-
-        # Derive a readable sub-level label from the filename
-        sub_level = file_name.replace("_wrongs.csv", "")
-        if sub_level.lower().startswith(model_name.lower() + "_"):
-            sub_level = sub_level[len(model_name) + 1:]
-        sub_level = sub_level or "general"
-
-        print(f"\n    Model: {model_name} | Config: {sub_level}")
-        print(f"    Wrongs CSV: {wrongs_path}")
-
-        per_model_wrongs_df = pd.read_csv(wrongs_path)
-        per_model_wrongs_df = _prepare_questions_df(per_model_wrongs_df, answer_lookup_df)
-        if per_model_wrongs_df.empty:
-            print("    [skip] Could not derive 'Question' values from this CSV.")
-            continue
-
-        prompts = _build_comparison_prompts(global_rights_df, per_model_wrongs_df)
-
-        if model_name not in final_analysis:
-            final_analysis[model_name] = {}
-
-        final_analysis[model_name][sub_level] = {}
-        for label, prompt in prompts.items():
-            print(f"      Running '{label}' …")
-            final_analysis[model_name][sub_level][label] = _query_model(
-                model, tokenizer, prompt
-            )
-
-    os.makedirs(args.metrics_dir, exist_ok=True)
-    output_path = os.path.join(args.metrics_dir, "QA_Analysis.json")
-    with open(output_path, "w") as f:
-        json.dump(final_analysis, f, indent=4)
-    print(f"\n  ✓ Analysis saved → {output_path}")
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 # MAIN
 # ──────────────────────────────────────────────────────────────────────────────
 def main() -> None:
@@ -532,9 +398,6 @@ def main() -> None:
 
     if 2 in args.stages:
         stage2_aggregate_rw(args)
-
-    if 3 in args.stages:
-        stage3_question_analysis(args)
 
     print("\n" + "=" * 60)
     print("Pipeline complete.")
