@@ -84,6 +84,19 @@ def argument_handler() -> argparse.Namespace:
         help="Which stages to run (1=accuracy, 2=aggregate).",
     )
 
+    # ── Stage 1: Dataset Collection ────────────────────────────────────────────────────
+
+    parser.add_argument(
+        "--original_test_path",
+        default="/mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv",
+        required=True,
+        help=(
+            "Optional CSV path for the original test dataset. "
+            "Used in Stage 1 when a results CSV has question index but not question text."
+        ),
+    )
+
+
     # ── Stage 2: filtering ────────────────────────────────────────────────────
     parser.add_argument(
         "--exclude",
@@ -99,13 +112,6 @@ def argument_handler() -> argparse.Namespace:
             "If non-empty, only wrongs CSVs whose full path appears in this list are used. "
             "Leave empty to include everything not excluded."
         ),
-    )
-
-    # ── Stage 3: model ────────────────────────────────────────────────────────
-    parser.add_argument(
-        "--model_path",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri/Qwen2.5-7B-Instruct",
-        help="Local path (or HF hub name) of the Qwen model used for Stage 3.",
     )
 
     return parser.parse_args()
@@ -163,6 +169,22 @@ def _normalize_question(text) -> str | None:
     return s
 
 
+def _normalize_qidx(val) -> str | None:
+    """Normalize question index values so 1, 1.0, '1 ' match."""
+    if pd.isna(val):
+        return None
+    s = str(val).strip()
+    if not s:
+        return None
+    try:
+        f = float(s)
+        if f.is_integer():
+            return str(int(f))
+    except ValueError:
+        pass
+    return s
+
+
 def _find_results_question_col(df: pd.DataFrame) -> str:
     """Find the question text column in results_df."""
     candidates = [
@@ -182,6 +204,27 @@ def _find_results_question_col(df: pd.DataFrame) -> str:
         "Could not find a question column in results_df. "
         f"Columns seen: {list(df.columns)}"
     )
+
+
+def _find_results_question_index_col(df: pd.DataFrame) -> str:
+    """Find a question-index column in a dataframe."""
+    candidates = [
+        "Question Index",
+        "Question_Idx",
+        "question_index",
+        "question_idx",
+        "QuestionIndex",
+        "idx",
+        "index",
+        "qid",
+        "QID",
+    ]
+    by_lower = {c.lower(): c for c in df.columns}
+    for c in candidates:
+        if c.lower() in by_lower:
+            return by_lower[c.lower()]
+    # fallback to first column if nothing obvious is found
+    return df.columns[0]
 
 
 def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
@@ -212,6 +255,23 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     answer_key["__qnorm"] = answer_key["Question"].map(_normalize_question)
     answer_key = answer_key.dropna(subset=["__qnorm"])
 
+    # optional lookup: original test index -> original question text
+    testset_lookup: dict[str, str] = {}
+    if args.original_test_path:
+        if not os.path.exists(args.original_test_path):
+            raise FileNotFoundError(f"--original_test_path not found: {args.original_test_path}")
+
+        test_df = pd.read_csv(args.original_test_path)
+        test_q_col = _find_results_question_col(test_df)
+        test_idx_col = _find_results_question_index_col(test_df)
+
+        test_map_df = test_df[[test_idx_col, test_q_col]].copy()
+        test_map_df["__idxnorm"] = test_map_df[test_idx_col].map(_normalize_qidx)
+        test_map_df = test_map_df.dropna(subset=["__idxnorm"])
+        test_map_df = test_map_df.drop_duplicates(subset=["__idxnorm"], keep="first")
+        testset_lookup = dict(zip(test_map_df["__idxnorm"], test_map_df[test_q_col]))
+        print(f"  Loaded original test lookup: {len(testset_lookup)} index→question entries")
+
     if answer_key["__qnorm"].duplicated().any():
         dup_n = int(answer_key["__qnorm"].duplicated().sum())
         print(f"  [warn] answer_df has {dup_n} duplicate questions after normalization; keeping first.")
@@ -227,14 +287,31 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
             print("    [warn] missing 'predicted_answer' column; skipping file.")
             continue
 
+        # Case A: results already has question text
         try:
             result_q_col = _find_results_question_col(results_df)
-        except ValueError as e:
-            print(f"    [warn] {e} Skipping file.")
-            continue
+            results_key = results_df[[result_q_col, "predicted_answer"]].copy()
+            results_key = results_key.rename(columns={result_q_col: "Question"})
+        except ValueError:
+            # Case B: no question text in results; try index -> question via original test dataset
+            result_idx_col = _find_results_question_index_col(results_df)
 
-        results_key = results_df[[result_q_col, "predicted_answer"]].copy()
-        results_key = results_key.rename(columns={result_q_col: "Question"})
+            if not testset_lookup:
+                print(
+                    "    [warn] results has no question text and no usable --original_test_path lookup; skipping file."
+                )
+                continue
+
+            results_key = results_df[[result_idx_col, "predicted_answer"]].copy()
+            results_key["__idxnorm"] = results_key[result_idx_col].map(_normalize_qidx)
+            results_key["Question"] = results_key["__idxnorm"].map(testset_lookup)
+
+            recovered = int(results_key["Question"].notna().sum())
+            total = len(results_key)
+            print(f"    recovered question text via index lookup: {recovered}/{total}")
+
+            results_key = results_key.drop(columns=["__idxnorm"])
+
         results_key["__qnorm"] = results_key["Question"].map(_normalize_question)
         results_key = results_key.dropna(subset=["__qnorm"])
 
