@@ -31,7 +31,82 @@ Example Response:
   "answer": "2) High Grade"
 }
 """
+class BrainCollator:
+            """
+            This is a data collator used to transform the inputs into of each entry into
+            a prompt that the LLM can respond to.
+            """
+            def __init__(self, processor):
+                self.processor = processor
 
+            def __call__(self, batch):
+                #create lists for both the prompts and images (indecies map images to prompts)
+                prompts = []
+                imgs = []
+
+                for entry in batch:
+                     # Assume the PNGs are stored in a folder named after the patient ID
+                    patient_image_dir = path.join(IMAGE_DIR, str(entry["Assigned ID"]))
+
+                    if not path.exists(patient_image_dir):
+                        return {"reasoning": f"Error: Directory {patient_image_dir} not found.", "answer": "Error"}
+
+                    # 1. Get processed PIL images
+                    images = process_slices(patient_image_dir)
+                    num_loaded_slices = len(images)
+
+
+                    if num_loaded_slices == 0:
+                         return {"reasoning": "Error: No slices found to process.", "answer": "Error"}
+                    #if there are images then append to images
+                    imgs.append(images)
+
+                    # More aggressive prompt with a clear JSON schema
+                    prompt_text = (
+                        "Instruction: You are a neuroradiologist. Analyze the MRI slices and provide a structured JSON response.\n"
+                        f"{FEW_SHOT_EXAMPLE}"
+                        "---\n"
+                        f"Actual Question: {entry['Question']}\n"
+                    )
+                    prompts.append(prompt_text)
+
+                # Build messages
+                content = [{"type": "image"}] * 3 
+                content.append({"type": "text", "text": prompt_text})
+                asst_content = [{"type": "text", "text": f"Actual Answer: {entry['Answer']}"}]
+                messages = [{"role": "user", "content": content}, {"role": "assistant", "content": asst_content}]
+
+                # Use add_generation_prompt=False because we are manually adding the "{"
+                input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
+
+                # Encode multimodal input
+                inputs = self.processor(
+                    text=input_text,
+                    images=images,
+                    padding=True,
+                    truncation=True,
+                    return_tensors="pt"
+                )
+
+                labels = inputs["input_ids"].clone()
+
+                # Mask image tokens
+                image_token_id = [
+                    self.processor.tokenizer.convert_tokens_to_ids(
+                        self.processor.tokenizer.special_tokens_map["boi_token"]
+                    )
+                ]
+                # Mask tokens that are not used in the loss computation
+                labels[labels == self.processor.tokenizer.pad_token_id] = -100
+                labels[labels == image_token_id] = -100
+                labels[labels == 262144] = -100
+
+                inputs["labels"] = labels
+
+                print(inputs["input_ids"])
+                print(inputs["labels"])
+
+                return inputs
 def clean_json_string(raw_str):
     # Remove markdown code blocks if present
     clean_str = re.sub(r'```json|```', '', raw_str).strip()
@@ -156,82 +231,7 @@ def finetune (model_name: str, dataset):
             #logger.info(round(float(correct / total), 2), "%")
             return {"exact_match": float(correct / total)}
 
-        class BrainCollator:
-            """
-            This is a data collator used to transform the inputs into of each entry into
-            a prompt that the LLM can respond to.
-            """
-            def __init__(self, processor):
-                self.processor = processor
-
-            def __call__(self, batch):
-                #create lists for both the prompts and images (indecies map images to prompts)
-                prompts = []
-                imgs = []
-
-                for entry in batch:
-                     # Assume the PNGs are stored in a folder named after the patient ID
-                    patient_image_dir = path.join(IMAGE_DIR, str(entry["Assigned ID"]))
-
-                    if not path.exists(patient_image_dir):
-                        return {"reasoning": f"Error: Directory {patient_image_dir} not found.", "answer": "Error"}
-
-                    # 1. Get processed PIL images
-                    images = process_slices(patient_image_dir)
-                    num_loaded_slices = len(images)
-
-
-                    if num_loaded_slices == 0:
-                         return {"reasoning": "Error: No slices found to process.", "answer": "Error"}
-                    #if there are images then append to images
-                    imgs.append(images)
-
-                    # More aggressive prompt with a clear JSON schema
-                    prompt_text = (
-                        "Instruction: You are a neuroradiologist. Analyze the MRI slices and provide a structured JSON response.\n"
-                        f"{FEW_SHOT_EXAMPLE}"
-                        "---\n"
-                        f"Actual Question: {entry['Question']}\n"
-                    )
-                    prompts.append(prompt_text)
-
-                # Build messages
-                content = [{"type": "image"}] * 3 
-                content.append({"type": "text", "text": prompt_text})
-                asst_content = [{"type": "text", "text": f"Actual Answer: {entry['Answer']}"}]
-                messages = [{"role": "user", "content": content}, {"role": "assistant", "content": asst_content}]
-
-                # Use add_generation_prompt=False because we are manually adding the "{"
-                input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
-
-                # Encode multimodal input
-                inputs = self.processor(
-                    text=input_text,
-                    images=images,
-                    padding=True,
-                    truncation=True,
-                    return_tensors="pt"
-                )
-
-                labels = inputs["input_ids"].clone()
-
-                # Mask image tokens
-                image_token_id = [
-                    processor.tokenizer.convert_tokens_to_ids(
-                        processor.tokenizer.special_tokens_map["boi_token"]
-                    )
-                ]
-                # Mask tokens that are not used in the loss computation
-                labels[labels == processor.tokenizer.pad_token_id] = -100
-                labels[labels == image_token_id] = -100
-                labels[labels == 262144] = -100
-
-                inputs["labels"] = labels
-
-                print(inputs["input_ids"])
-                print(inputs["labels"])
-
-                return inputs
+        
 
         #convert to Dataset objects then preprocess 
         #(only grab necessary information, such as question, answer, image_path)
@@ -277,6 +277,11 @@ def finetune (model_name: str, dataset):
         trainer.train()
         trainer.save_model("/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-finetuned")
         """
+
+    if model_name == 'Med3DVLM':
+        #Place all the related code for finetuning Med3DVLM
+        
+        pass
         
 
 

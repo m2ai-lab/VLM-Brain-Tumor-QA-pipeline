@@ -23,9 +23,6 @@ from collections import Counter, defaultdict
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import torch
-from pydantic import BaseModel, Field, ValidationError, field_validator
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # ──────────────────────────────────────────────────────────────────────────────
 # SYSTEM PROMPT (used in Stage 3)
