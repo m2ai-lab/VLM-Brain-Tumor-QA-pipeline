@@ -28,6 +28,75 @@ def format_elapsed(seconds: float) -> str:
     return f"{m}m {s:02d}s"
 
 
+# ── custom widgets ────────────────────────────────────────────────────────────
+
+class ModernSlider(tk.Canvas):
+    def __init__(self, parent, variable, from_=1, to=10, command=None, **kwargs):
+        super().__init__(parent, height=24, bg="#FFFFFF", highlightthickness=0, bd=0, **kwargs)
+        self.variable = variable
+        self.from_ = from_
+        self.to = to
+        self.command = command
+        
+        self.track_color = "#E5E7EB"
+        self.fill_color = "#2563EB"
+        self.thumb_color = "#FFFFFF"
+        self.thumb_outline = "#2563EB"
+        
+        self.bind("<Configure>", self.draw)
+        self.bind("<Button-1>", self.click)
+        self.bind("<B1-Motion>", self.drag)
+        self.bind("<ButtonRelease-1>", self.release)
+
+    def set_val_from_x(self, x):
+        w = self.winfo_width()
+        padding = 12
+        if w <= 2 * padding: return
+        
+        if x < padding: x = padding
+        if x > w - padding: x = w - padding
+        
+        ratio = (x - padding) / (w - 2 * padding)
+        val = self.from_ + ratio * (self.to - self.from_)
+        val = int(round(val))
+        
+        if self.variable.get() != val:
+            self.variable.set(val)
+            self.draw()
+            if self.command:
+                self.command(val)
+
+    def draw(self, event=None):
+        self.delete("all")
+        w = self.winfo_width()
+        h = self.winfo_height()
+        padding = 12
+        
+        # Track
+        self.create_line(padding, h//2, w - padding, h//2, fill=self.track_color, width=6, capstyle=tk.ROUND)
+        
+        val = self.variable.get()
+        ratio = (val - self.from_) / (self.to - self.from_)
+        x = padding + ratio * (w - 2 * padding)
+        
+        # Fill
+        if x > padding:
+            self.create_line(padding, h//2, x, h//2, fill=self.fill_color, width=6, capstyle=tk.ROUND)
+            
+        # Thumb
+        r = 8
+        self.create_oval(x - r, h//2 - r, x + r, h//2 + r, fill=self.thumb_color, outline=self.thumb_outline, width=2)
+        
+    def click(self, event):
+        self.set_val_from_x(event.x)
+        
+    def drag(self, event):
+        self.set_val_from_x(event.x)
+
+    def release(self, event):
+        self.set_val_from_x(event.x)
+
+
 # ── main app ──────────────────────────────────────────────────────────────────
 
 class QAReviewer(tk.Tk):
@@ -60,11 +129,14 @@ class QAReviewer(tk.Tk):
         self.answers   = {}          # idx -> full option string e.g. "1) Answer text"
         self.can_answer = {}         # idx -> "Yes"/"No"
         self.clinically_relevant = {}# idx -> "Yes"/"No"
+        self.confidence  = {}        # idx -> float (0.0 to 1.0)
         self.comments  = {}          # idx -> free-text comment string
         self.start_time= None
         self.elapsed   = 0.0
         self._timer_id = None
         self.csv_path  = None
+
+        self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
         self._build_ui()
 
@@ -190,9 +262,9 @@ class QAReviewer(tk.Tk):
     def _build_quiz_screen(self):
         self.quiz_frame = tk.Frame(self.main, bg=self.BG)
 
-        # ── header row ────────────────────────────────────────────────────────
+        # ── header row (pinned top) ───────────────────────────────────────────
         hdr = tk.Frame(self.quiz_frame, bg=self.BG, padx=self.PAD, pady=14)
-        hdr.pack(fill="x")
+        hdr.pack(fill="x", side="top")
 
         # accession number
         acc_box = tk.Frame(hdr, bg=self.BG)
@@ -214,81 +286,7 @@ class QAReviewer(tk.Tk):
         self.prog_bar = ttk.Progressbar(prog_box, length=160, mode="determinate")
         self.prog_bar.pack(anchor="e", pady=(4, 0))
 
-        # ── question card ─────────────────────────────────────────────────────
-        qcard = tk.Frame(self.quiz_frame, bg=self.CARD,
-                         highlightthickness=1, highlightbackground=self.BORDER,
-                         padx=24, pady=20)
-        qcard.pack(fill="x", padx=self.PAD, pady=(0, 14))
-
-        tk.Label(qcard, text="Question", bg=self.CARD, fg=self.MUTED,
-                 font=self.FONT_HEAD).pack(anchor="w", pady=(0, 8))
-
-        self.q_text = tk.Text(qcard, bg=self.CARD, fg=self.TXT,
-                              font=self.FONT_BODY, wrap="word",
-                              relief="flat", bd=0, height=4,
-                              state="disabled", cursor="arrow")
-        self.q_text.pack(fill="x")
-
-        # ── options ───────────────────────────────────────────────────────────
-        opts_outer = tk.Frame(self.quiz_frame, bg=self.BG,
-                              padx=self.PAD)
-        opts_outer.pack(fill="x")
-
-        self.selected_var = tk.StringVar(value="")
-        self.option_frames = []   # (frame, radio) per option
-        for _ in range(4):        # up to 4 options
-            f = tk.Frame(opts_outer, bg=self.CARD,
-                         highlightthickness=1, highlightbackground=self.BORDER,
-                         padx=16, pady=12)
-            f.pack(fill="x", pady=(0, 8))
-            rb = tk.Radiobutton(f, variable=self.selected_var, value="",
-                                bg=self.CARD, activebackground=self.SEL_BG,
-                                fg=self.TXT, font=self.FONT_BODY,
-                                anchor="w", wraplength=580, justify="left",
-                                relief="flat", bd=0, cursor="hand2",
-                                command=self._on_select)
-            rb.pack(fill="x")
-            self.option_frames.append((f, rb))
-
-        # ── additional questions ─────────────────────────────────────────────
-        add_outer = tk.Frame(self.quiz_frame, bg=self.BG, padx=self.PAD)
-        add_outer.pack(fill="x")
-
-        self.can_answer_var = tk.StringVar(value="")
-        f1 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
-        f1.pack(fill="x", pady=(0, 8))
-        tk.Label(f1, text="Could the question be answered using the image?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
-        tk.Radiobutton(f1, text="Yes", variable=self.can_answer_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
-        tk.Radiobutton(f1, text="No", variable=self.can_answer_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
-
-        self.clinically_relevant_var = tk.StringVar(value="")
-        f2 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
-        f2.pack(fill="x", pady=(0, 8))
-        tk.Label(f2, text="Was the question clinically relevant?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
-        tk.Radiobutton(f2, text="Yes", variable=self.clinically_relevant_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
-        tk.Radiobutton(f2, text="No", variable=self.clinically_relevant_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
-
-        # ── comments ─────────────────────────────────────────────────────────
-        ccard = tk.Frame(self.quiz_frame, bg=self.CARD,
-                         highlightthickness=1, highlightbackground=self.BORDER,
-                         padx=24, pady=16)
-        ccard.pack(fill="x", padx=self.PAD, pady=(0, 8))
-
-        tk.Label(ccard, text="Additional comments", bg=self.CARD, fg=self.MUTED,
-                 font=self.FONT_HEAD).pack(anchor="w", pady=(0, 8))
-
-        self.comment_box = tk.Text(ccard, bg=self.BG, fg=self.TXT,
-                                   font=self.FONT_SMALL, wrap="word",
-                                   relief="flat", bd=0, height=3,
-                                   highlightthickness=1,
-                                   highlightbackground=self.BORDER,
-                                   insertbackground=self.TXT,
-                                   padx=8, pady=6)
-        self.comment_box.pack(fill="x")
-        self.comment_box.bind("<FocusOut>", self._save_comment)
-        self.comment_box.bind("<KeyRelease>", self._save_comment)
-
-        # ── footer ────────────────────────────────────────────────────────────
+        # ── footer (pinned bottom) ────────────────────────────────────────────
         footer = tk.Frame(self.quiz_frame, bg=self.BG, padx=self.PAD, pady=16)
         footer.pack(fill="x", side="bottom")
 
@@ -323,6 +321,125 @@ class QAReviewer(tk.Tk):
                                     highlightthickness=1, highlightbackground=self.BORDER,
                                     activebackground=self.BG, cursor="hand2")
         self.pause_btn.pack(side="right", padx=(0, 8))
+
+        # ── scrollable area (middle) ──────────────────────────────────────────
+        self.scroll_canvas = tk.Canvas(self.quiz_frame, bg=self.BG, highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(self.quiz_frame, orient="vertical", command=self.scroll_canvas.yview)
+        self.scroll_canvas.configure(yscrollcommand=self.scrollbar.set)
+        
+        self.scrollbar.pack(side="right", fill="y")
+        self.scroll_canvas.pack(side="left", fill="both", expand=True)
+
+        self.scrollable_frame = tk.Frame(self.scroll_canvas, bg=self.BG)
+        self.canvas_window = self.scroll_canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        def _configure_frame(event):
+            self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox("all"))
+        self.scrollable_frame.bind("<Configure>", _configure_frame)
+
+        def _configure_canvas(event):
+            self.scroll_canvas.itemconfig(self.canvas_window, width=event.width)
+        self.scroll_canvas.bind("<Configure>", _configure_canvas)
+
+        def _on_mousewheel(event):
+            if self.scrollable_frame.winfo_reqheight() > self.scroll_canvas.winfo_height():
+                self.scroll_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        self.scroll_canvas.bind('<Enter>', lambda e: self.scroll_canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        self.scroll_canvas.bind('<Leave>', lambda e: self.scroll_canvas.unbind_all("<MouseWheel>"))
+
+        # ── question card ─────────────────────────────────────────────────────
+        qcard = tk.Frame(self.scrollable_frame, bg=self.CARD,
+                         highlightthickness=1, highlightbackground=self.BORDER,
+                         padx=24, pady=20)
+        qcard.pack(fill="x", padx=self.PAD, pady=(0, 14))
+
+        tk.Label(qcard, text="Question", bg=self.CARD, fg=self.MUTED,
+                 font=self.FONT_HEAD).pack(anchor="w", pady=(0, 8))
+
+        self.q_text = tk.Text(qcard, bg=self.CARD, fg=self.TXT,
+                              font=self.FONT_BODY, wrap="word",
+                              relief="flat", bd=0, height=4,
+                              state="disabled", cursor="arrow")
+        self.q_text.pack(fill="x")
+
+        # ── options ───────────────────────────────────────────────────────────
+        opts_outer = tk.Frame(self.scrollable_frame, bg=self.BG,
+                              padx=self.PAD)
+        opts_outer.pack(fill="x")
+
+        self.selected_var = tk.StringVar(value="")
+        self.option_frames = []   # (frame, radio) per option
+        for _ in range(4):        # up to 4 options
+            f = tk.Frame(opts_outer, bg=self.CARD,
+                         highlightthickness=1, highlightbackground=self.BORDER,
+                         padx=16, pady=12)
+            f.pack(fill="x", pady=(0, 8))
+            rb = tk.Radiobutton(f, variable=self.selected_var, value="",
+                                bg=self.CARD, activebackground=self.SEL_BG,
+                                fg=self.TXT, font=self.FONT_BODY,
+                                anchor="w", wraplength=580, justify="left",
+                                relief="flat", bd=0, cursor="hand2",
+                                command=self._on_select)
+            rb.pack(fill="x")
+            self.option_frames.append((f, rb))
+
+        # ── confidence slider ────────────────────────────────────────────────
+        conf_outer = tk.Frame(self.scrollable_frame, bg=self.BG, padx=self.PAD)
+        conf_outer.pack(fill="x")
+
+        self.confidence_var = tk.DoubleVar(value=5.0)
+        cf = tk.Frame(conf_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
+        cf.pack(fill="x", pady=(0, 8))
+        tk.Label(cf, text="Confidence in your answer:", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
+        
+        self.conf_val_lbl = tk.Label(cf, text="50%", bg=self.ACC_L, fg=self.ACC, font=("Helvetica Neue", 12, "bold"), padx=8)
+        self.conf_val_lbl.pack(side="right", padx=(10, 0))
+        
+        def _on_scale_slide(v):
+            self.conf_val_lbl.config(text=f"{int(v)*10}%")
+            self._on_conf_select()
+
+        self.conf_slider = ModernSlider(cf, variable=self.confidence_var, from_=0, to=10, command=_on_scale_slide)
+        self.conf_slider.pack(side="right", fill="x", expand=True, padx=(20, 0))
+
+        # ── additional questions ─────────────────────────────────────────────
+        add_outer = tk.Frame(self.scrollable_frame, bg=self.BG, padx=self.PAD)
+        add_outer.pack(fill="x")
+
+        self.can_answer_var = tk.StringVar(value="")
+        f1 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
+        f1.pack(fill="x", pady=(0, 8))
+        tk.Label(f1, text="Could the question be answered using the image?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
+        tk.Radiobutton(f1, text="Yes", variable=self.can_answer_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+        tk.Radiobutton(f1, text="No", variable=self.can_answer_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+
+        self.clinically_relevant_var = tk.StringVar(value="")
+        f2 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
+        f2.pack(fill="x", pady=(0, 8))
+        tk.Label(f2, text="Was the question clinically relevant?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
+        tk.Radiobutton(f2, text="Yes", variable=self.clinically_relevant_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+        tk.Radiobutton(f2, text="No", variable=self.clinically_relevant_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+
+        # ── comments ─────────────────────────────────────────────────────────
+        ccard = tk.Frame(self.scrollable_frame, bg=self.CARD,
+                         highlightthickness=1, highlightbackground=self.BORDER,
+                         padx=24, pady=16)
+        ccard.pack(fill="x", padx=self.PAD, pady=(0, 8))
+
+        tk.Label(ccard, text="Additional comments", bg=self.CARD, fg=self.MUTED,
+                 font=self.FONT_HEAD).pack(anchor="w", pady=(0, 8))
+
+        self.comment_box = tk.Text(ccard, bg=self.BG, fg=self.TXT,
+                                   font=self.FONT_SMALL, wrap="word",
+                                   relief="flat", bd=0, height=3,
+                                   highlightthickness=1,
+                                   highlightbackground=self.BORDER,
+                                   insertbackground=self.TXT,
+                                   padx=8, pady=6)
+        self.comment_box.pack(fill="x")
+        self.comment_box.bind("<FocusOut>", self._save_comment)
+        self.comment_box.bind("<KeyRelease>", self._save_comment)
 
     # ── screen switching ──────────────────────────────────────────────────────
 
@@ -378,6 +495,14 @@ class QAReviewer(tk.Tk):
             raw_cr = state.get("clinically_relevant", {})
             self.clinically_relevant = {int(k): v for k, v in raw_cr.items()}
             
+            raw_conf = state.get("confidence", {})
+            self.confidence = {}
+            for k, v in raw_conf.items():
+                val = float(v)
+                if val > 1.0:
+                    val = val / 10.0  # legacy conversion
+                self.confidence[int(k)] = val
+            
             raw_com = state.get("comments", {})
             self.comments = {int(k): v for k, v in raw_com.items()}
 
@@ -423,6 +548,7 @@ class QAReviewer(tk.Tk):
         self.answers = {}
         self.can_answer = {}
         self.clinically_relevant = {}
+        self.confidence = {}
         self.comments = {}
 
         # populate landing stats
@@ -493,6 +619,14 @@ class QAReviewer(tk.Tk):
         self._refresh_option_colors()
         self._update_hint()
 
+        # restore confidence
+        sv_dec = float(self.confidence.get(idx, 0.5))
+        sv = int(round(sv_dec * 10))
+        self.confidence_var.set(sv)
+        self.conf_val_lbl.config(text=f"{sv * 10}%")
+        if hasattr(self, 'conf_slider'):
+            self.conf_slider.draw()
+
         # restore additional questions
         self.can_answer_var.set(self.can_answer.get(idx, ""))
         self.clinically_relevant_var.set(self.clinically_relevant.get(idx, ""))
@@ -523,6 +657,10 @@ class QAReviewer(tk.Tk):
     def _on_extra_select(self):
         self.can_answer[self.current] = self.can_answer_var.get()
         self.clinically_relevant[self.current] = self.clinically_relevant_var.get()
+
+    def _on_conf_select(self):
+        val = int(self.confidence_var.get())
+        self.confidence[self.current] = round(val / 10.0, 1)
 
     def _save_comment(self, event=None):
         self.comments[self.current] = self.comment_box.get("1.0", "end").strip()
@@ -584,6 +722,7 @@ class QAReviewer(tk.Tk):
             "answers": self.answers,
             "can_answer": self.can_answer,
             "clinically_relevant": self.clinically_relevant,
+            "confidence": self.confidence,
             "comments": self.comments
         }
 
@@ -600,6 +739,23 @@ class QAReviewer(tk.Tk):
 
     # ── finish & save ─────────────────────────────────────────────────────────
 
+    def _on_closing(self):
+        if not getattr(self, 'rows', None):
+            self.destroy()
+            return
+            
+        unanswered = len(self.rows) - len(self.answers)
+        if unanswered == len(self.rows) and getattr(self, 'elapsed', 0) < 5:
+            # Just loaded, no progress
+            self.destroy()
+            return
+            
+        res = messagebox.askyesnocancel("Wait!", "Do you want to save your progress before quitting?\n\nIf you select 'No', all unsaved answers will be lost.")
+        if res is True:
+            self._pause_now()
+        elif res is False:
+            self.destroy()
+
     def _finish(self):
         self._save_comment()
         self._stop_timer()
@@ -615,6 +771,7 @@ class QAReviewer(tk.Tk):
                 "selected_answer":               self.answers.get(i, ""),
                 "can_answer_from_image":         self.can_answer.get(i, ""),
                 "clinically_relevant":           self.clinically_relevant.get(i, ""),
+                "confidence_score":              self.confidence.get(i, ""),
                 "comments":                      self.comments.get(i, ""),
             })
 
