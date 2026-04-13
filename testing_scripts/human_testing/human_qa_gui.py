@@ -58,6 +58,8 @@ class QAReviewer(tk.Tk):
         self.rows      = []
         self.current   = 0
         self.answers   = {}          # idx -> full option string e.g. "1) Answer text"
+        self.can_answer = {}         # idx -> "Yes"/"No"
+        self.clinically_relevant = {}# idx -> "Yes"/"No"
         self.comments  = {}          # idx -> free-text comment string
         self.start_time= None
         self.elapsed   = 0.0
@@ -248,6 +250,24 @@ class QAReviewer(tk.Tk):
             rb.pack(fill="x")
             self.option_frames.append((f, rb))
 
+        # ── additional questions ─────────────────────────────────────────────
+        add_outer = tk.Frame(self.quiz_frame, bg=self.BG, padx=self.PAD)
+        add_outer.pack(fill="x")
+
+        self.can_answer_var = tk.StringVar(value="")
+        f1 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
+        f1.pack(fill="x", pady=(0, 8))
+        tk.Label(f1, text="Could the question be answered using the image?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
+        tk.Radiobutton(f1, text="Yes", variable=self.can_answer_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+        tk.Radiobutton(f1, text="No", variable=self.can_answer_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+
+        self.clinically_relevant_var = tk.StringVar(value="")
+        f2 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
+        f2.pack(fill="x", pady=(0, 8))
+        tk.Label(f2, text="Was the question clinically relevant?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
+        tk.Radiobutton(f2, text="Yes", variable=self.clinically_relevant_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+        tk.Radiobutton(f2, text="No", variable=self.clinically_relevant_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
+
         # ── comments ─────────────────────────────────────────────────────────
         ccard = tk.Frame(self.quiz_frame, bg=self.CARD,
                          highlightthickness=1, highlightbackground=self.BORDER,
@@ -352,6 +372,12 @@ class QAReviewer(tk.Tk):
             raw_ans = state.get("answers", {})
             self.answers = {int(k): v for k, v in raw_ans.items()}
             
+            raw_ca = state.get("can_answer", {})
+            self.can_answer = {int(k): v for k, v in raw_ca.items()}
+            
+            raw_cr = state.get("clinically_relevant", {})
+            self.clinically_relevant = {int(k): v for k, v in raw_cr.items()}
+            
             raw_com = state.get("comments", {})
             self.comments = {int(k): v for k, v in raw_com.items()}
 
@@ -395,6 +421,8 @@ class QAReviewer(tk.Tk):
         self.rows = df.to_dict("records")
         self.current = 0
         self.answers = {}
+        self.can_answer = {}
+        self.clinically_relevant = {}
         self.comments = {}
 
         # populate landing stats
@@ -465,6 +493,10 @@ class QAReviewer(tk.Tk):
         self._refresh_option_colors()
         self._update_hint()
 
+        # restore additional questions
+        self.can_answer_var.set(self.can_answer.get(idx, ""))
+        self.clinically_relevant_var.set(self.clinically_relevant.get(idx, ""))
+
         # restore comment
         self.comment_box.delete("1.0", "end")
         self.comment_box.insert("1.0", self.comments.get(idx, ""))
@@ -487,6 +519,10 @@ class QAReviewer(tk.Tk):
         self.answers[self.current] = self.selected_var.get()
         self._refresh_option_colors()
         self._update_hint()
+
+    def _on_extra_select(self):
+        self.can_answer[self.current] = self.can_answer_var.get()
+        self.clinically_relevant[self.current] = self.clinically_relevant_var.get()
 
     def _save_comment(self, event=None):
         self.comments[self.current] = self.comment_box.get("1.0", "end").strip()
@@ -546,6 +582,8 @@ class QAReviewer(tk.Tk):
             "current": self.current,
             "elapsed": self.elapsed,
             "answers": self.answers,
+            "can_answer": self.can_answer,
+            "clinically_relevant": self.clinically_relevant,
             "comments": self.comments
         }
 
@@ -575,6 +613,8 @@ class QAReviewer(tk.Tk):
                 "Deidentified_Accession_Number": row.get("Deidentified_Accession_Number", ""),
                 "Question":                      row.get("Question", ""),
                 "selected_answer":               self.answers.get(i, ""),
+                "can_answer_from_image":         self.can_answer.get(i, ""),
+                "clinically_relevant":           self.clinically_relevant.get(i, ""),
                 "comments":                      self.comments.get(i, ""),
             })
 
