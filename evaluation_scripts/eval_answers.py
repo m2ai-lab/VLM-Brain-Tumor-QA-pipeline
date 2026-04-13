@@ -84,19 +84,6 @@ def argument_handler() -> argparse.Namespace:
         help="Which stages to run (1=accuracy, 2=aggregate).",
     )
 
-    # ── Stage 1: Dataset Collection ────────────────────────────────────────────────────
-
-    parser.add_argument(
-        "--original_test_path",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv",
-        required=True,
-        help=(
-            "Optional CSV path for the original test dataset. "
-            "Used in Stage 1 when a results CSV has question index but not question text."
-        ),
-    )
-
-
     # ── Stage 2: filtering ────────────────────────────────────────────────────
     parser.add_argument(
         "--exclude",
@@ -158,17 +145,6 @@ def iter_wrongs_csvs(qa_path: str, exclude: list[str], include: list[str]):
 # ──────────────────────────────────────────────────────────────────────────────
 # STAGE 1 — Per-model accuracy
 # ──────────────────────────────────────────────────────────────────────────────
-def _normalize_question(text) -> str | None:
-    """Normalize question text for robust matching across CSVs."""
-    if pd.isna(text):
-        return None
-    s = str(text).strip().lower()
-    if not s:
-        return None
-    s = re.sub(r"\s+", " ", s)  # collapse repeated whitespace
-    return s
-
-
 def _normalize_qidx(val) -> str | None:
     """Normalize question index values so 1, 1.0, '1 ' match."""
     if pd.isna(val):
@@ -183,27 +159,6 @@ def _normalize_qidx(val) -> str | None:
     except ValueError:
         pass
     return s
-
-
-def _find_results_question_col(df: pd.DataFrame) -> str:
-    """Find the question text column in results_df."""
-    candidates = [
-        "Question",
-        "question",
-        "question_text",
-        "prompt",
-        "Prompt",
-        "query",
-        "text",
-    ]
-    by_lower = {c.lower(): c for c in df.columns}
-    for c in candidates:
-        if c.lower() in by_lower:
-            return by_lower[c.lower()]
-    raise ValueError(
-        "Could not find a question column in results_df. "
-        f"Columns seen: {list(df.columns)}"
-    )
 
 
 def _find_results_question_index_col(df: pd.DataFrame) -> str:
@@ -252,30 +207,13 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
 
     answer_key = answer_df[[answer_idx_col, "Question", "Answer"]].copy()
     answer_key = answer_key.rename(columns={answer_idx_col: "Question Index"})
-    answer_key["__qnorm"] = answer_key["Question"].map(_normalize_question)
-    answer_key = answer_key.dropna(subset=["__qnorm"])
+    answer_key["__idxnorm"] = answer_key["Question Index"].map(_normalize_qidx)
+    answer_key = answer_key.dropna(subset=["__idxnorm"])
 
-    # optional lookup: original test index -> original question text
-    testset_lookup: dict[str, str] = {}
-    if args.original_test_path:
-        if not os.path.exists(args.original_test_path):
-            raise FileNotFoundError(f"--original_test_path not found: {args.original_test_path}")
-
-        test_df = pd.read_csv(args.original_test_path)
-        test_q_col = _find_results_question_col(test_df)
-        test_idx_col = _find_results_question_index_col(test_df)
-
-        test_map_df = test_df[[test_idx_col, test_q_col]].copy()
-        test_map_df["__idxnorm"] = test_map_df[test_idx_col].map(_normalize_qidx)
-        test_map_df = test_map_df.dropna(subset=["__idxnorm"])
-        test_map_df = test_map_df.drop_duplicates(subset=["__idxnorm"], keep="first")
-        testset_lookup = dict(zip(test_map_df["__idxnorm"], test_map_df[test_q_col]))
-        print(f"  Loaded original test lookup: {len(testset_lookup)} index→question entries")
-
-    if answer_key["__qnorm"].duplicated().any():
-        dup_n = int(answer_key["__qnorm"].duplicated().sum())
-        print(f"  [warn] answer_df has {dup_n} duplicate questions after normalization; keeping first.")
-        answer_key = answer_key.drop_duplicates(subset=["__qnorm"], keep="first")
+    if answer_key["__idxnorm"].duplicated().any():
+        dup_n = int(answer_key["__idxnorm"].duplicated().sum())
+        print(f"  [warn] answer_df has {dup_n} duplicate indices after normalization; keeping first.")
+        answer_key = answer_key.drop_duplicates(subset=["__idxnorm"], keep="first")
 
     accuracy: dict[str, float] = {}
 
@@ -287,42 +225,20 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
             print("    [warn] missing 'predicted_answer' column; skipping file.")
             continue
 
-        # Case A: results already has question text
-        try:
-            result_q_col = _find_results_question_col(results_df)
-            results_key = results_df[[result_q_col, "predicted_answer"]].copy()
-            results_key = results_key.rename(columns={result_q_col: "Question"})
-        except ValueError:
-            # Case B: no question text in results; try index -> question via original test dataset
-            result_idx_col = _find_results_question_index_col(results_df)
+        result_idx_col = _find_results_question_index_col(results_df)
 
-            if not testset_lookup:
-                print(
-                    "    [warn] results has no question text and no usable --original_test_path lookup; skipping file."
-                )
-                continue
+        results_key = results_df[[result_idx_col, "predicted_answer"]].copy()
+        results_key["__idxnorm"] = results_key[result_idx_col].map(_normalize_qidx)
+        results_key = results_key.dropna(subset=["__idxnorm"])
 
-            results_key = results_df[[result_idx_col, "predicted_answer"]].copy()
-            results_key["__idxnorm"] = results_key[result_idx_col].map(_normalize_qidx)
-            results_key["Question"] = results_key["__idxnorm"].map(testset_lookup)
-
-            recovered = int(results_key["Question"].notna().sum())
-            total = len(results_key)
-            print(f"    recovered question text via index lookup: {recovered}/{total}")
-
-            results_key = results_key.drop(columns=["__idxnorm"])
-
-        results_key["__qnorm"] = results_key["Question"].map(_normalize_question)
-        results_key = results_key.dropna(subset=["__qnorm"])
-
-        if results_key["__qnorm"].duplicated().any():
-            dup_n = int(results_key["__qnorm"].duplicated().sum())
-            print(f"    [warn] results_df has {dup_n} duplicate questions after normalization; keeping first.")
-            results_key = results_key.drop_duplicates(subset=["__qnorm"], keep="first")
+        if results_key["__idxnorm"].duplicated().any():
+            dup_n = int(results_key["__idxnorm"].duplicated().sum())
+            print(f"    [warn] results_df has {dup_n} duplicate internal indices; keeping first.")
+            results_key = results_key.drop_duplicates(subset=["__idxnorm"], keep="first")
 
         merged = results_key.merge(
-            answer_key[["__qnorm", "Question Index", "Answer"]],
-            on="__qnorm",
+            answer_key[["__idxnorm", "Question Index", "Question", "Answer"]],
+            on="__idxnorm",
             how="inner",
         )
 
