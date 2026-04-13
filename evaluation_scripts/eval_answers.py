@@ -142,56 +142,16 @@ def iter_wrongs_csvs(qa_path: str, exclude: list[str], include: list[str]):
             yield full_path
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# STAGE 1 — Per-model accuracy
-# ──────────────────────────────────────────────────────────────────────────────
-def _normalize_qidx(val) -> str | None:
-    """Normalize question index values so 1, 1.0, '1 ' match."""
-    if pd.isna(val):
-        return None
-    s = str(val).strip()
-    if not s:
-        return None
-    try:
-        f = float(s)
-        if f.is_integer():
-            return str(int(f))
-    except ValueError:
-        pass
-    return s
-
-
-def _find_results_question_index_col(df: pd.DataFrame) -> str:
-    """Find a question-index column in a dataframe."""
-    candidates = [
-        "Question Index",
-        "Question_Idx",
-        "question_index",
-        "question_idx",
-        "QuestionIndex",
-        "idx",
-        "index",
-        "qid",
-        "QID",
-    ]
-    by_lower = {c.lower(): c for c in df.columns}
-    for c in candidates:
-        if c.lower() in by_lower:
-            return by_lower[c.lower()]
-    # fallback to first column if nothing obvious is found
-    return df.columns[0]
-
-
 def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     """
     For every *_results*.csv found under qa_path:
-      - match rows by normalized QUESTION TEXT 
-      - ignore predictions whose question does not exist in answer_df
+      - Assume rows perfectly match answer_df order
+      - check if Answer string is in predicted_answer
       - save a *_wrongs.csv alongside the results file
       - return a {test_name: accuracy} dict and write it to metrics_dir/Evals.json
     """
     print("\n" + "=" * 60)
-    print("STAGE 1 — Evaluating per-model accuracy")
+    print("STAGE 1 — Evaluating per-model accuracy (row-by-row)")
     print("=" * 60)
 
     answer_df = pd.read_csv(args.answer_path)
@@ -205,16 +165,6 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
             f"Columns: {list(answer_df.columns)}"
         )
 
-    answer_key = answer_df[[answer_idx_col, "Question", "Answer"]].copy()
-    answer_key = answer_key.rename(columns={answer_idx_col: "Question Index"})
-    answer_key["__idxnorm"] = answer_key["Question Index"].map(_normalize_qidx)
-    answer_key = answer_key.dropna(subset=["__idxnorm"])
-
-    if answer_key["__idxnorm"].duplicated().any():
-        dup_n = int(answer_key["__idxnorm"].duplicated().sum())
-        print(f"  [warn] answer_df has {dup_n} duplicate indices after normalization; keeping first.")
-        answer_key = answer_key.drop_duplicates(subset=["__idxnorm"], keep="first")
-
     accuracy: dict[str, float] = {}
 
     for test_name, read_path, write_path in iter_result_csvs(args.qa_path):
@@ -222,57 +172,35 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
         print(f"  Evaluating [{test_name}]  ←  {read_path}")
 
         if "predicted_answer" not in results_df.columns:
-            print("    [warn] missing 'predicted_answer' column; skipping file.")
-            continue
+            raise ValueError(
+                f"No predicted_answer column found in {read_path}. "
+                f"Columns: {list(results_df.columns)}"
+            )
 
-        result_idx_col = _find_results_question_index_col(results_df)
+        if len(results_df) != len(answer_df):
+            raise ValueError(
+                f"result length ({len(results_df)}) != answer length ({len(answer_df)}). "
+                f"Columns: {list(results_df.columns)}"
+            )
 
-        results_key = results_df[[result_idx_col, "predicted_answer"]].copy()
-        results_key["__idxnorm"] = results_key[result_idx_col].map(_normalize_qidx)
-        results_key = results_key.dropna(subset=["__idxnorm"])
+        is_right = []
+        for ans, pred in zip(answer_df["Answer"], results_df["predicted_answer"]):
+            is_right.append(str(ans) in str(pred))
 
-        if results_key["__idxnorm"].duplicated().any():
-            dup_n = int(results_key["__idxnorm"].duplicated().sum())
-            print(f"    [warn] results_df has {dup_n} duplicate internal indices; keeping first.")
-            results_key = results_key.drop_duplicates(subset=["__idxnorm"], keep="first")
-
-        merged = results_key.merge(
-            answer_key[["__idxnorm", "Question Index", "Question", "Answer"]],
-            on="__idxnorm",
-            how="inner",
-        )
-
-        valid_preds = len(results_key)
-        matched = len(merged)
-        ignored_not_in_answer = valid_preds - matched
-
-        if matched == 0:
-            print("    [warn] no overlapping questions with answer_df; accuracy set to 0.0")
-            pd.DataFrame(
-                columns=["Question Index", "Correct_Answer", "Predicted_Answer"]
-            ).to_csv(write_path, index=False)
-            accuracy[test_name] = 0.0
-            continue
-
-        is_right = merged.apply(
-            lambda r: str(r["Answer"]) in str(r["predicted_answer"]),
-            axis=1,
-        )
-
-        wrong_df = merged.loc[~is_right, ["Question Index", "Answer", "predicted_answer"]].copy()
-        wrong_df = wrong_df.rename(
-            columns={"Answer": "Correct_Answer", "predicted_answer": "Predicted_Answer"}
-        )
+        wrong_df = pd.DataFrame({
+            "Question Index": answer_df[answer_idx_col].iloc[:len(is_right)].values,
+            "Question": answer_df["Question"].iloc[:len(is_right)].values,
+            "Correct_Answer": answer_df["Answer"].iloc[:len(is_right)].values,
+            "Predicted_Answer": results_df["predicted_answer"].iloc[:len(is_right)].values
+        })
+        wrong_df = wrong_df[~pd.Series(is_right)]
         wrong_df.to_csv(write_path, index=False)
 
-        total_right = int(is_right.sum())
-        acc = total_right / matched
+        total_right = sum(is_right)
+        acc = total_right / len(results_df) if len(results_df) > 0 else 0.0
         accuracy[test_name] = acc
 
-        print(
-            f"    matched={matched}, ignored_not_in_answer={ignored_not_in_answer}, "
-            f"accuracy={acc:.4f}  |  wrongs saved → {write_path}"
-        )
+        print(f"    evaluated {len(is_right)} rows, accuracy={acc:.4f}  |  wrongs saved → {write_path}")
 
     os.makedirs(args.metrics_dir, exist_ok=True)
     evals_path = os.path.join(args.metrics_dir, "Evals.json")
