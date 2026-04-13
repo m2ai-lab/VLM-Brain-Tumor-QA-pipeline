@@ -130,6 +130,7 @@ class QAReviewer(tk.Tk):
         self.can_answer = {}         # idx -> "Yes"/"No"
         self.clinically_relevant = {}# idx -> "Yes"/"No"
         self.confidence  = {}        # idx -> float (0.0 to 1.0)
+        self.necessary_sequences = {}# idx -> string
         self.comments  = {}          # idx -> free-text comment string
         self.start_time= None
         self.elapsed   = 0.0
@@ -421,6 +422,15 @@ class QAReviewer(tk.Tk):
         tk.Radiobutton(f2, text="Yes", variable=self.clinically_relevant_var, value="Yes", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
         tk.Radiobutton(f2, text="No", variable=self.clinically_relevant_var, value="No", bg=self.CARD, fg=self.TXT, cursor="hand2", command=self._on_extra_select).pack(side="right", padx=5)
 
+        self.sequences_var = tk.StringVar(value="")
+        f3 = tk.Frame(add_outer, bg=self.CARD, highlightthickness=1, highlightbackground=self.BORDER, padx=16, pady=8)
+        f3.pack(fill="x", pady=(0, 8))
+        tk.Label(f3, text="Which imaging sequences were necessary to answer the question?", bg=self.CARD, fg=self.TXT, font=self.FONT_SMALL).pack(side="left")
+        self.seq_entry = tk.Entry(f3, textvariable=self.sequences_var, bg=self.BG, fg=self.TXT, font=self.FONT_SMALL, relief="flat", highlightthickness=1, highlightbackground=self.BORDER, width=25)
+        self.seq_entry.pack(side="right", padx=5)
+        self.seq_entry.bind("<FocusOut>", self._save_text_fields)
+        self.seq_entry.bind("<KeyRelease>", self._save_text_fields)
+
         # ── comments ─────────────────────────────────────────────────────────
         ccard = tk.Frame(self.scrollable_frame, bg=self.CARD,
                          highlightthickness=1, highlightbackground=self.BORDER,
@@ -438,8 +448,8 @@ class QAReviewer(tk.Tk):
                                    insertbackground=self.TXT,
                                    padx=8, pady=6)
         self.comment_box.pack(fill="x")
-        self.comment_box.bind("<FocusOut>", self._save_comment)
-        self.comment_box.bind("<KeyRelease>", self._save_comment)
+        self.comment_box.bind("<FocusOut>", self._save_text_fields)
+        self.comment_box.bind("<KeyRelease>", self._save_text_fields)
 
     # ── screen switching ──────────────────────────────────────────────────────
 
@@ -495,6 +505,9 @@ class QAReviewer(tk.Tk):
             raw_cr = state.get("clinically_relevant", {})
             self.clinically_relevant = {int(k): v for k, v in raw_cr.items()}
             
+            raw_seq = state.get("necessary_sequences", {})
+            self.necessary_sequences = {int(k): v for k, v in raw_seq.items()}
+            
             raw_conf = state.get("confidence", {})
             self.confidence = {}
             for k, v in raw_conf.items():
@@ -549,6 +562,7 @@ class QAReviewer(tk.Tk):
         self.can_answer = {}
         self.clinically_relevant = {}
         self.confidence = {}
+        self.necessary_sequences = {}
         self.comments = {}
 
         # populate landing stats
@@ -630,6 +644,7 @@ class QAReviewer(tk.Tk):
         # restore additional questions
         self.can_answer_var.set(self.can_answer.get(idx, ""))
         self.clinically_relevant_var.set(self.clinically_relevant.get(idx, ""))
+        self.sequences_var.set(self.necessary_sequences.get(idx, ""))
 
         # restore comment
         self.comment_box.delete("1.0", "end")
@@ -662,8 +677,9 @@ class QAReviewer(tk.Tk):
         val = int(self.confidence_var.get())
         self.confidence[self.current] = round(val / 10.0, 1)
 
-    def _save_comment(self, event=None):
+    def _save_text_fields(self, event=None):
         self.comments[self.current] = self.comment_box.get("1.0", "end").strip()
+        self.necessary_sequences[self.current] = self.sequences_var.get().strip()
 
     def _update_hint(self):
         sel = self.answers.get(self.current, "")
@@ -675,19 +691,19 @@ class QAReviewer(tk.Tk):
     # ── navigation ────────────────────────────────────────────────────────────
 
     def _prev(self):
-        self._save_comment()
+        self._save_text_fields()
         if self.current > 0:
             self._render_question(self.current - 1)
 
     def _next(self):
-        self._save_comment()
+        self._save_text_fields()
         if self.current < len(self.rows) - 1:
             self._render_question(self.current + 1)
         else:
             self._finish()
 
     def _submit_now(self):
-        self._save_comment()
+        self._save_text_fields()
         unanswered = len(self.rows) - len(self.answers)
         msg = (
             f"Are you sure you want to submit?\n\n"
@@ -698,7 +714,7 @@ class QAReviewer(tk.Tk):
             self._finish()
 
     def _pause_now(self):
-        self._save_comment()
+        self._save_text_fields()
         self._stop_timer()
         self.elapsed = time.time() - self.start_time
 
@@ -723,6 +739,7 @@ class QAReviewer(tk.Tk):
             "can_answer": self.can_answer,
             "clinically_relevant": self.clinically_relevant,
             "confidence": self.confidence,
+            "necessary_sequences": self.necessary_sequences,
             "comments": self.comments
         }
 
@@ -757,7 +774,7 @@ class QAReviewer(tk.Tk):
             self.destroy()
 
     def _finish(self):
-        self._save_comment()
+        self._save_text_fields()
         self._stop_timer()
         total_elapsed = time.time() - self.start_time
 
@@ -772,6 +789,7 @@ class QAReviewer(tk.Tk):
                 "can_answer_from_image":         self.can_answer.get(i, ""),
                 "clinically_relevant":           self.clinically_relevant.get(i, ""),
                 "confidence_score":              self.confidence.get(i, ""),
+                "necessary_sequences":           self.necessary_sequences.get(i, ""),
                 "comments":                      self.comments.get(i, ""),
             })
 
