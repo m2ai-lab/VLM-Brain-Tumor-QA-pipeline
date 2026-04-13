@@ -88,7 +88,7 @@ def argument_handler() -> argparse.Namespace:
 
     parser.add_argument(
         "--original_test_path",
-        default="/mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/UCSF_PDGM_QAPairs_Sample.csv",
+        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv",
         required=True,
         help=(
             "Optional CSV path for the original test dataset. "
