@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=MedGemma_blank_test
-#SBATCH --time=6:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --partition=gpu
 #SBATCH --ntasks-per-node=1
 #SBATCH --nodes=1

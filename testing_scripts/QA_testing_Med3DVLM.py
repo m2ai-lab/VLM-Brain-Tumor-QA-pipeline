@@ -92,7 +92,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Medgemma QA testing")
     parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Results.csv")
+    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Full_nifti_results.csv")
     parser.add_argument('--image_dir', type=str, default="/scratch/user/shghosh/UCSF-PDGM-v5/")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B")
     
