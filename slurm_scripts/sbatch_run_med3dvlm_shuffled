@@ -24,7 +24,7 @@ export LD_LIBRARY_PATH="/home/remote/shghosh/.conda/envs/Med3DVLM/lib:$LD_LIBRAR
 
 # 4. Use the full path to your python (as you did before)
 /home/remote/shghosh/.conda/envs/Med3DVLM/bin/python /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/testing_scripts/QA_testing_Med3DVLM.py \
-                                                        --qa_path /scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_updated_ucsf_pdgm_pairs.csv \
+                                                        --qa_path /scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_finalized_ucsf_pdgm_pairs.csv \
                                                         --output_path /scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Reshuffled_results.csv
 
 echo "------------------------------------------------------------"
