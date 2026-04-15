@@ -10,12 +10,12 @@ def argument_parser():
                         type=str, 
                         required=False, 
                         help='Path to QA data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
+                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
     parser.add_argument('--output_path', 
                         type=str, 
                         required=False, 
                         help='Path to output data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_updated_ucsf_pdgm_pairs.csv")
+                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_finalized_ucsf_pdgm_pairs.csv")
     return parser.parse_args()
 
 def reshuffle_question(mc_question):

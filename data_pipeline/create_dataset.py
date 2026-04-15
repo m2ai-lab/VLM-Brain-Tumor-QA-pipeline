@@ -118,7 +118,7 @@ if __name__ == "__main__":
                         type=str, 
                         required=False, 
                         help='Path to QA data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
+                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
     parser.add_argument('--output_path', 
                         type=str, 
                         required=False, 
