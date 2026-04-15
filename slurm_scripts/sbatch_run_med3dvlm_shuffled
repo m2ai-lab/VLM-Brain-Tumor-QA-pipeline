@@ -1,0 +1,31 @@
+#!/bin/bash
+#SBATCH --job-name=Med3DVLM_full_nifti_test_shuffled
+#SBATCH --time=2-00:00:00
+#SBATCH --partition=gpu
+#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=20G
+#SBATCH --output=/home/remote/%u/logs/%j_%x.out
+#SBATCH --error=/home/remote/%u/logs/%j_%x.err
+#SBATCH --mail-user=shiv.ghosh@berkeley.edu
+#SBATCH --mail-type=ALL
+
+# 1. Load the cluster's Conda module
+module load miniforge3
+
+# 1. Complete isolation
+export PYTHONNOUSERSITE=1
+export PYTHONPATH=""
+
+# 2. Force library priority
+export LD_LIBRARY_PATH="/home/remote/shghosh/.conda/envs/Med3DVLM/lib:$LD_LIBRARY_PATH"
+
+# 4. Use the full path to your python (as you did before)
+/home/remote/shghosh/.conda/envs/Med3DVLM/bin/python /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/testing_scripts/QA_testing_Med3DVLM.py \
+                                                        --qa_path /scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_updated_ucsf_pdgm_pairs.csv \
+                                                        --output_path /scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Reshuffled_results.csv
+
+echo "------------------------------------------------------------"
+echo "Job finished at $(date)"
