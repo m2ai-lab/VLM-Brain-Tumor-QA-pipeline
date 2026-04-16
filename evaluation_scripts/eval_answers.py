@@ -64,9 +64,9 @@ def argument_handler() -> argparse.Namespace:
         help="Root directory that contains all model result CSVs.",
     )
     parser.add_argument(
-        "--answer_path",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv",
-        help="Master ground-truth Q&A CSV.",
+        "--answer_dir",
+        default="/scratch/group/CX000019_DS1/vlm-brain-mri",
+        help="Directory containing the ground-truth Q&A CSVs.",
     )
     parser.add_argument(
         "--metrics_dir",
@@ -107,6 +107,16 @@ def argument_handler() -> argparse.Namespace:
 # ──────────────────────────────────────────────────────────────────────────────
 # SHARED HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
+def _resolve_answer_csv(answer_dir: str, result_filename: str) -> str:
+    """
+    Pick the correct ground-truth CSV based on whether the results file
+    name contains 'shuffled'.
+    """
+    if "shuffled" in result_filename.lower():
+        return os.path.join(answer_dir, "reshuffled_finalized_ucsf_pdgm_pairs_matched.csv")
+    return os.path.join(answer_dir, "finalized_ucsf_pdgm_pairs_matched.csv")
+
+
 def iter_result_csvs(qa_path: str):
     """
     Walk qa_path and yield (test_name, read_path, write_path) for every
@@ -145,6 +155,8 @@ def iter_wrongs_csvs(qa_path: str, exclude: list[str], include: list[str]):
 def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     """
     For every *_results*.csv found under qa_path:
+      - Dynamically choose the answer CSV (reshuffled vs. standard)
+        based on whether the results filename contains 'shuffled'
       - Assume rows perfectly match answer_df order
       - check if Answer string is in predicted_answer
       - save a *_wrongs.csv alongside the results file
@@ -154,22 +166,26 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     print("STAGE 1 — Evaluating per-model accuracy (row-by-row)")
     print("=" * 60)
 
-    answer_df = pd.read_csv(args.answer_path)
-    answer_idx_col = answer_df.columns[0]
-
-    required = {"Question", "Answer"}
-    missing = required - set(answer_df.columns)
-    if missing:
-        raise ValueError(
-            f"answer_df is missing required column(s): {sorted(missing)}. "
-            f"Columns: {list(answer_df.columns)}"
-        )
-
     accuracy: dict[str, float] = {}
 
     for test_name, read_path, write_path in iter_result_csvs(args.qa_path):
-        results_df = pd.read_csv(read_path)
+        # ── pick the correct ground-truth CSV for this result file ──
+        result_filename = os.path.basename(read_path)
+        answer_path = _resolve_answer_csv(args.answer_dir, result_filename)
+        answer_df = pd.read_csv(answer_path)
+        answer_idx_col = answer_df.columns[0]
         print(f"  Evaluating [{test_name}]  ←  {read_path}")
+        print(f"    answer key: {answer_path}")
+
+        required = {"Question", "Answer"}
+        missing = required - set(answer_df.columns)
+        if missing:
+            raise ValueError(
+                f"answer_df is missing required column(s): {sorted(missing)}. "
+                f"Columns: {list(answer_df.columns)}"
+            )
+
+        results_df = pd.read_csv(read_path)
 
         if "predicted_answer" not in results_df.columns:
             raise ValueError(
@@ -268,7 +284,9 @@ def stage2_aggregate_rw(args: argparse.Namespace) -> tuple[Counter, Counter]:
     print("STAGE 2 — Aggregating rights/wrongs across models")
     print("=" * 60)
 
-    answer_df = pd.read_csv(args.answer_path)
+    # Use the standard (non-shuffled) answer key for aggregation indexing
+    answer_path = os.path.join(args.answer_dir, "finalized_ucsf_pdgm_pairs_matched.csv")
+    answer_df = pd.read_csv(answer_path)
     answer_df = answer_df.rename(columns={answer_df.columns[0]: "Question_Idx"})
     answer_df = answer_df.set_index("Question_Idx")
     all_questions = set(answer_df.index)
