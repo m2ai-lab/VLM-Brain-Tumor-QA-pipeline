@@ -34,7 +34,11 @@ def main(args):
         else:
             output_rows.append(response_df.loc[response_df['Question'] == row["Question"]])
 
-    output_df = pd.DataFrame(output_rows)
+    # Check if the list is empty to prevent a ValueError from pd.concat
+    if output_rows:
+        output_df = pd.concat(output_rows, ignore_index=True)
+    else:
+        output_df = pd.DataFrame() # Create an empty dataframe if no matches were found
     output_dir = os.path.dirname(args.response_path)
     output_filename = os.path.basename(args.response_path)
     output_filename = output_filename.replace(".csv", "_matched.csv")
