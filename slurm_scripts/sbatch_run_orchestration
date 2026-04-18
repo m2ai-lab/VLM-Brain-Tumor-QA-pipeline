@@ -4,7 +4,6 @@
 #SBATCH --partition=cpu
 #SBATCH --ntasks-per-node=1
 #SBATCH --nodes=1
-#SBATCH --gres=cpu:16
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=20G
 #SBATCH --output=/home/remote/%u/logs/Orchestration_%j.out
