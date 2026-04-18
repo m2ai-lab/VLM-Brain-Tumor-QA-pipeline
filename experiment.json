@@ -33,6 +33,10 @@
     "medfusion": {
       "type": "static_path",
       "python_path": "/home/remote/shghosh/lg_fusion/bin/python"
+    },
+    "medimageinsight": {
+      "type": "venv",
+      "activate_path": "/scratch/user/shghosh/medimageinsight/bin/activate"
     }
   },
 
@@ -115,6 +119,27 @@
           "name": "full_volume",
           "variant": "default",
           "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedFusion/results.csv"
+        }
+      ]
+    },
+
+    "MedImageInsight": {
+      "enabled": true,
+      "adapter": "medimageinsight",
+      "environment": "medimageinsight",
+      "model_path": "/mnt/scratch/group/CX000019_DS1/vlm-brain-mri/MedImageInsights",
+      "image_dir": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices",
+      "tests": [
+        {
+          "name": "single_slice",
+          "variant": "single_slice",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedImageInsight/single_slice_results.csv"
+        },
+        {
+          "name": "blank",
+          "variant": "blank",
+          "image_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.png",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedImageInsight/blank_results.csv"
         }
       ]
     }

@@ -9,12 +9,14 @@ from experiment_orchestrator.adapters.medgemma import MedGemmaAdapter
 from experiment_orchestrator.adapters.med3dvlm import Med3DVLMAdapter
 from experiment_orchestrator.adapters.qwen import QwenAdapter
 from experiment_orchestrator.adapters.medfusion import MedFusionAdapter
+from experiment_orchestrator.adapters.medimageinsight import MedImageInsightAdapter
 
 ADAPTER_REGISTRY: dict[str, ModelAdapter] = {
     "medgemma": MedGemmaAdapter(),
     "med3dvlm": Med3DVLMAdapter(),
     "qwen": QwenAdapter(),
     "medfusion": MedFusionAdapter(),
+    "medimageinsight": MedImageInsightAdapter(),
 }
 
 
