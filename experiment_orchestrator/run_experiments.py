@@ -19,6 +19,12 @@ import logging
 import os
 import sys
 
+# Ensure the project root is on sys.path so this script works when invoked
+# directly (e.g., `python run_experiments.py`) rather than as a module.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
 from experiment_orchestrator.config_schema import ExperimentSuite
 from experiment_orchestrator.config_resolver import resolve_all
 from experiment_orchestrator.adapters import get_adapter
