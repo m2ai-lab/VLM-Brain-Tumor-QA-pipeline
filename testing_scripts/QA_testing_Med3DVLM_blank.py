@@ -38,15 +38,12 @@ def query_the_model(model, tokenizer, question, patient_id, image_path, temperat
     input_txt = image_tokens + question
     input_id = tokenizer(input_txt, return_tensors="pt")["input_ids"].to(device=device)
 
-    # 6. GENERATE
-    do_sample = temperature > 0
     generation = model.generate(
         images=image_pt,
         inputs=input_id,
         max_new_tokens=512,
-        do_sample=do_sample,
-        top_p=0.9 if do_sample else 1.0,
-        temperature=temperature if do_sample else 1.0,
+        do_sample=False,
+        temperature=0,
     )
 
     generated_texts = tokenizer.batch_decode(generation, skip_special_tokens=True)

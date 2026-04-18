@@ -39,7 +39,7 @@ def clean_json_string(raw_str):
     match = re.search(r'\{.*\}', clean_str, re.DOTALL)
     return match.group(0) if match else clean_str
 
-def query_the_model(model, tokenizer, question, temperature=0.0):
+def query_the_model(model, tokenizer, question):
     # Use a system prompt to strongly enforce JSON
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -49,12 +49,10 @@ def query_the_model(model, tokenizer, question, temperature=0.0):
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    do_sample = temperature > 0
     generated_ids = model.generate(
         **inputs,
         max_new_tokens=1024,
-        do_sample=do_sample,
-        temperature=temperature if do_sample else None,
+        do_sample=False,
     )
     
     # CRITICAL FIX: Slice the output to ignore the input prompt tokens!
@@ -103,7 +101,7 @@ def main(args):
         print(f'Processing {idx+1}/{total} (ID: {row_id})...')
         
         # Passed tokenizer to the function
-        response = query_the_model(model, tokenizer, row["Question"], args.temperature)
+        response = query_the_model(model, tokenizer, row["Question"])
         
         generated_answer.append(response.get('answer', 'Error'))
         generated_reasoning.append(response.get('reasoning', 'Error'))
@@ -123,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
     parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Qwen/text_only_results.csv")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Qwen2.5-7B-Instruct") 
-    parser.add_argument('--temperature', type=float, default=0.0)
+
     
     args = parser.parse_args()
     main(args)

@@ -80,7 +80,7 @@ SBATCH_TEMPLATE = textwrap.dedent("""\
     echo "Job Name:      {job_name}"
     echo "User:          $USER"
     echo "Using Python:  $DYNAMIC_PYTHON"
-    echo "Temperature:   {temperature}"
+
     echo "Run:           {run_number}/{total_runs}"
     echo "------------------------------------------------------------"
 
@@ -159,7 +159,7 @@ def generate_sbatch(
         mail_lines=mail_lines,
         env_block=env_block,
         command=command,
-        temperature=job.temperature,
+
         run_number=job.run_number,
         total_runs=job.total_runs,
     )

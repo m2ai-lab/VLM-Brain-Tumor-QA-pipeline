@@ -29,7 +29,6 @@ class Med3DVLMAdapter(ModelAdapter):
                 f" --output_path {job.output_path}"
                 f" --model_path {job.model_path}"
                 f" --image_path {job.image_path}"
-                f" --temperature {job.temperature}"
             )
         else:
             script = posixpath.join(
@@ -41,7 +40,6 @@ class Med3DVLMAdapter(ModelAdapter):
                 f" --output_path {job.output_path}"
                 f" --model_path {job.model_path}"
                 f" --image_dir {job.image_dir}"
-                f" --temperature {job.temperature}"
             )
 
     def validate(self, job: ResolvedJob) -> None:

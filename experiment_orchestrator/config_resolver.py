@@ -3,7 +3,7 @@ config_resolver.py — Flatten the hierarchical experiment.json into individual 
 
 Applies the inheritance chain:
     global → model → test
-for temperature, runs_per_experiment, qa_path, image_dir, and slurm params.
+for runs_per_experiment, qa_path, image_dir, and slurm params.
 """
 from __future__ import annotations
 
@@ -31,19 +31,8 @@ class ResolvedJob:
     image_path: Optional[str]
     qa_path: str
     output_path: str        # with _runN suffix
-    temperature: float
     slurm_params: dict = field(default_factory=dict)
 
-
-def _resolve_temperature(
-    test: TestConfig, model: ModelConfig, global_temp: float
-) -> float:
-    """Pick the most specific temperature (test > model > global)."""
-    if test.temperature is not None:
-        return test.temperature
-    if model.temperature is not None:
-        return model.temperature
-    return global_temp
 
 
 def _resolve_runs(
@@ -84,9 +73,6 @@ def resolve_all(suite: ExperimentSuite) -> list[ResolvedJob]:
                 continue
 
             # --- Resolve inherited values ---
-            temperature = _resolve_temperature(
-                test, model_cfg, suite.global_config.temperature
-            )
             num_runs = _resolve_runs(
                 test, model_cfg, suite.global_config.runs_per_experiment
             )
@@ -119,7 +105,6 @@ def resolve_all(suite: ExperimentSuite) -> list[ResolvedJob]:
                         image_path=image_path,
                         qa_path=qa_path,
                         output_path=output_path,
-                        temperature=temperature,
                         slurm_params=slurm,
                     )
                 )

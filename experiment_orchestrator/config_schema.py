@@ -21,10 +21,7 @@ class GlobalConfig(BaseModel):
         default=3,
         description="Number of times each test is repeated for averaging.",
     )
-    temperature: float = Field(
-        default=0.0,
-        description="Default generation temperature. Overridable per model/test.",
-    )
+
     partition: str = "gpu"
     gpus_per_node: int = 1
     cpus_per_task: int = 16
@@ -82,7 +79,7 @@ class TestConfig(BaseModel):
     qa_path: Optional[str] = None
     image_path: Optional[str] = None
     image_dir: Optional[str] = None
-    temperature: Optional[float] = None
+
     runs_per_experiment: Optional[int] = None
     slurm_overrides: dict = {}
     enabled: bool = True
@@ -103,7 +100,7 @@ class ModelConfig(BaseModel):
 
     # Shared defaults for all tests under this model
     image_dir: Optional[str] = None
-    temperature: Optional[float] = None
+
     runs_per_experiment: Optional[int] = None
     slurm_overrides: dict = {}
 
