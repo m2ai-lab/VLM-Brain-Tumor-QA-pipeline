@@ -79,9 +79,9 @@ def argument_handler() -> argparse.Namespace:
         "--stages",
         nargs="+",
         type=int,
-        choices=[1, 2],
-        default=[1, 2],
-        help="Which stages to run (1=accuracy, 2=aggregate).",
+        choices=[1, 2, 3],
+        default=[1, 2, 3],
+        help="Which stages to run (1=accuracy, 2=aggregate, 3=average across runs).",
     )
 
     # ── Stage 2: filtering ────────────────────────────────────────────────────
@@ -323,6 +323,121 @@ def stage2_aggregate_rw(args: argparse.Namespace) -> tuple[Counter, Counter]:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# STAGE 3 — Average accuracy across multi-run experiments per model type
+# ──────────────────────────────────────────────────────────────────────────────
+def _parse_run_info(test_name: str) -> tuple[str, str, int | None]:
+    """
+    Parse a test_name like 'MedGemma1.5_multi_slice_run2' into
+    (model_name, base_test, run_number).  If no _runN suffix, returns None.
+
+    Heuristic: the model dir name is the first path component, and
+    _runN is stripped from the stem.  E.g.:
+        'MedGemma1.5_multi_slice_results_run2'
+      → model_dir='MedGemma1.5', base='multi_slice_results', run=2
+    """
+    import re as _re
+    run_match = _re.search(r'_run(\d+)$', test_name)
+    if run_match:
+        run_num = int(run_match.group(1))
+        base = test_name[:run_match.start()]
+    else:
+        run_num = None
+        base = test_name
+    return base, run_num
+
+
+def stage3_average_runs(args: argparse.Namespace) -> dict[str, dict]:
+    """
+    Average accuracy across multi-run results for each model type.
+
+    Reads Evals.json (from Stage 1), groups entries by model type and
+    base test name (stripping _runN), and produces:
+      - Per-test averaged accuracy
+      - Per-model-type averaged accuracy (mean across all tests)
+    """
+    print("\n" + "=" * 60)
+    print("STAGE 3 — Averaging accuracy across runs per model type")
+    print("=" * 60)
+
+    evals_path = os.path.join(args.metrics_dir, "Evals.json")
+    if not os.path.exists(evals_path):
+        print("  [warn] Evals.json not found — run Stage 1 first.")
+        return {}
+
+    with open(evals_path, "r") as f:
+        accuracy = json.load(f)
+
+    # Group by base test name (stripping _runN)
+    from collections import defaultdict
+    test_runs: dict[str, list[float]] = defaultdict(list)
+    model_tests: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
+
+    for test_name, acc in accuracy.items():
+        base, run_num = _parse_run_info(test_name)
+        test_runs[base].append(acc)
+
+        # Try to extract model name from the directory structure
+        # test_name format is typically "ModelDir_testname" from iter_result_csvs
+        # The model dir is the parent folder name baked into test_name
+        parts = test_name.split("_")
+        # Walk the result CSVs to find the model directory
+        # For simplicity, use the first component before the base test name
+        # e.g., 'MedGemma1.5_multi_slice_run1' → model='MedGemma1.5'
+        for tname, read_path, _ in iter_result_csvs(args.qa_path):
+            if tname == test_name:
+                model_dir = read_path.split('/')[-2]  # parent directory name
+                base_test = base.replace(f"{model_dir}_", "", 1)
+                model_tests[model_dir][base_test].append(acc)
+                break
+
+    # Compute averages
+    averaged_results: dict[str, dict] = {}
+
+    for model_name, tests in model_tests.items():
+        test_averages = {}
+        all_test_means = []
+
+        for test_base, accs in tests.items():
+            mean_acc = sum(accs) / len(accs)
+            test_averages[test_base] = {
+                "runs": len(accs),
+                "individual_accuracies": [round(a, 4) for a in accs],
+                "mean_accuracy": round(mean_acc, 4),
+            }
+            all_test_means.append(mean_acc)
+            print(f"  {model_name}/{test_base}: {len(accs)} runs, mean={mean_acc:.4f}")
+
+        model_mean = sum(all_test_means) / len(all_test_means) if all_test_means else 0.0
+        averaged_results[model_name] = {
+            "model_mean_accuracy": round(model_mean, 4),
+            "num_tests": len(tests),
+            "tests": test_averages,
+        }
+        print(f"  → {model_name} overall mean: {model_mean:.4f} ({len(tests)} tests)")
+
+    # Also compute simple per-test averages (without model grouping) as fallback
+    simple_averages = {}
+    for base, accs in test_runs.items():
+        simple_averages[base] = {
+            "runs": len(accs),
+            "mean_accuracy": round(sum(accs) / len(accs), 4),
+        }
+
+    # Write results
+    os.makedirs(args.metrics_dir, exist_ok=True)
+
+    averaged_path = os.path.join(args.metrics_dir, "Averaged_Evals.json")
+    output = {
+        "per_model": averaged_results,
+        "per_test": simple_averages,
+    }
+    with open(averaged_path, "w") as f:
+        json.dump(output, f, indent=4)
+    print(f"\n  ✓ Averaged results saved → {averaged_path}")
+
+    return averaged_results
+
+# ──────────────────────────────────────────────────────────────────────────────
 # MAIN
 # ──────────────────────────────────────────────────────────────────────────────
 def main() -> None:
@@ -334,6 +449,9 @@ def main() -> None:
 
     if 2 in args.stages:
         stage2_aggregate_rw(args)
+
+    if 3 in args.stages:
+        stage3_average_runs(args)
 
     print("\n" + "=" * 60)
     print("Pipeline complete.")

@@ -1,0 +1,123 @@
+{
+  "global": {
+    "max_concurrent_jobs": 4,
+    "runs_per_experiment": 3,
+    "temperature": 0.0,
+    "partition": "gpu",
+    "gpus_per_node": 1,
+    "cpus_per_task": 16,
+    "mem": "20G",
+    "time": "2-00:00:00",
+    "mail_user": "shiv.ghosh@berkeley.edu",
+    "mail_type": "ALL",
+    "log_dir": "/home/remote/%u/logs",
+    "qa_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv",
+    "output_base": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs",
+    "project_root": "/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-",
+    "poll_interval_seconds": 30
+  },
+
+  "environments": {
+    "medgemma": {
+      "type": "conda_dynamic",
+      "env_name": "medgemma"
+    },
+    "med3dvlm": {
+      "type": "static_path",
+      "python_path": "/home/remote/shghosh/.conda/envs/Med3DVLM/bin/python",
+      "ld_library_path": "/home/remote/shghosh/.conda/envs/Med3DVLM/lib"
+    },
+    "llava-med": {
+      "type": "conda_dynamic",
+      "env_name": "llava-med"
+    },
+    "medfusion": {
+      "type": "static_path",
+      "python_path": "/home/remote/shghosh/lg_fusion/bin/python"
+    }
+  },
+
+  "models": {
+    "MedGemma1.5": {
+      "enabled": true,
+      "adapter": "medgemma",
+      "environment": "medgemma",
+      "model_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-1.5-4b-it",
+      "image_dir": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices",
+      "tests": [
+        {
+          "name": "multi_slice",
+          "variant": "multi_slice",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/multi_slice_results.csv"
+        },
+        {
+          "name": "single_slice",
+          "variant": "single_slice",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/single_slice_results.csv"
+        },
+        {
+          "name": "blank",
+          "variant": "blank",
+          "image_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.png",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/blank_results.csv"
+        },
+        {
+          "name": "multi_slice_shuffled",
+          "variant": "multi_slice",
+          "qa_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_finalized_ucsf_pdgm_pairs.csv",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/Reshuffled_results.csv"
+        }
+      ]
+    },
+
+    "Med3DVLM": {
+      "enabled": true,
+      "adapter": "med3dvlm",
+      "environment": "med3dvlm",
+      "model_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B",
+      "image_dir": "/scratch/user/shghosh/UCSF-PDGM-v5/",
+      "tests": [
+        {
+          "name": "full_nifti",
+          "variant": "full_nifti",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Full_nifti_results.csv"
+        },
+        {
+          "name": "blank",
+          "variant": "blank",
+          "image_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.nii.gz",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/blank_results.csv"
+        }
+      ]
+    },
+
+    "Qwen2.5": {
+      "enabled": true,
+      "adapter": "qwen",
+      "environment": "medgemma",
+      "model_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/Qwen2.5-7B-Instruct",
+      "tests": [
+        {
+          "name": "text_only",
+          "variant": "text_only",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Qwen/text_only_results.csv"
+        }
+      ]
+    },
+
+    "MedFusion": {
+      "enabled": false,
+      "adapter": "medfusion",
+      "environment": "medfusion",
+      "model_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/LG-Fusion",
+      "slurm_overrides": { "mem": "128G" },
+      "tests": [
+        {
+          "name": "full_volume",
+          "variant": "default",
+          "output_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedFusion/results.csv"
+        }
+      ]
+    }
+  }
+}

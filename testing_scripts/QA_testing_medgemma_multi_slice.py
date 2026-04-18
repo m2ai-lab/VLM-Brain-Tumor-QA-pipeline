@@ -48,7 +48,7 @@ def process_slices(image_dir: str):
     
     return slices
 
-def query_the_model(model, processor, question, patient_id, base_image_dir):
+def query_the_model(model, processor, question, patient_id, base_image_dir, temperature=0.0):
     # Assume the PNGs are stored in a folder named after the patient ID
     patient_image_dir = path.join(base_image_dir, str(patient_id))
     
@@ -91,10 +91,12 @@ def query_the_model(model, processor, question, patient_id, base_image_dir):
 
     # 4. Generate
     input_len = inputs["input_ids"].shape[1]
+    do_sample = temperature > 0
     with torch.inference_mode():
         generated_sequence = model.generate(
             **inputs, 
-            do_sample=False, 
+            do_sample=do_sample, 
+            temperature=temperature if do_sample else None,
             max_new_tokens=512,
             stop_strings=["}"], # Stop as soon as the JSON closes
             tokenizer=processor.tokenizer
@@ -149,7 +151,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_dir)
+        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_dir, args.temperature)
         generated_answer.append(response['answer'])
         generated_reasoning.append(response['reasoning'])
         print(f"Response: {response}\n{'-'*30}")
@@ -165,6 +167,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/multi_slice_results.csv")
     parser.add_argument('--image_dir', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-1.5-4b-it")
+    parser.add_argument('--temperature', type=float, default=0.0)
     
     args = parser.parse_args()
     main(args)

@@ -7,7 +7,7 @@ import argparse
 import SimpleITK as sitk
 import torch.nn.functional as F
 
-def query_the_model(model, tokenizer, question, patient_id, image_dir):
+def query_the_model(model, tokenizer, question, patient_id, image_dir, temperature=1.0):
     full_image_path = path.join(image_dir, f'{patient_id}_nifti', f'{patient_id}_FLAIR.nii.gz')
     
     if not path.exists(full_image_path):
@@ -39,13 +39,14 @@ def query_the_model(model, tokenizer, question, patient_id, image_dir):
     input_id = tokenizer(input_txt, return_tensors="pt")["input_ids"].to(device=device)
 
     # 6. GENERATE
+    do_sample = temperature > 0
     generation = model.generate(
         images=image_pt,
         inputs=input_id,
         max_new_tokens=512,
-        do_sample=True,
-        top_p=0.9,
-        temperature=1.0,
+        do_sample=do_sample,
+        top_p=0.9 if do_sample else 1.0,
+        temperature=temperature if do_sample else 1.0,
     )
 
     generated_texts = tokenizer.batch_decode(generation, skip_special_tokens=True)
@@ -80,7 +81,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_dir)
+        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_dir, args.temperature)
         responses.append(response)
         print(f"Response: {response}\n{'-'*30}")
         
@@ -95,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/Full_nifti_results.csv")
     parser.add_argument('--image_dir', type=str, default="/scratch/user/shghosh/UCSF-PDGM-v5/")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B")
+    parser.add_argument('--temperature', type=float, default=0.0)
     
     args = parser.parse_args()
     main(args)
