@@ -7,7 +7,7 @@
     "cpus_per_task": 16,
     "mem": "20G",
     "time": "2-00:00:00",
-    "mail_user": "shiv.ghosh@berkeley.edu",
+    "mail_user": "shiv.ghosh@ucsf.edu",
     "mail_type": "ALL",
     "log_dir": "/home/remote/%u/logs",
     "qa_path": "/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv",
