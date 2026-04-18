@@ -7,8 +7,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=20G
-#SBATCH --output=/home/remote/%u/logs/%j_%x.out
-#SBATCH --error=/home/remote/%u/logs/%j_%x.err
+#SBATCH --output=/home/remote/%u/logs/Qwen_%j.out
+#SBATCH --error=/home/remote/%u/logs/Qwen_%j.err
 #SBATCH --mail-user=shiv.ghosh@berkeley.edu
 #SBATCH --mail-type=ALL
 
