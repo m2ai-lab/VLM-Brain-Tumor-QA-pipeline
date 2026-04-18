@@ -21,11 +21,11 @@ unset PYTHONPATH
 
 # 3. DYNAMIC ENVIRONMENT DETECTION
 # This command finds the path to 'medgemma' for whoever is running the script
-ENV_PATH=$(conda env list | grep -E '^medgemma\s' | awk '{print $NF}')
+ENV_PATH=$(conda env list | grep -E '^format\s' | awk '{print $NF}')
 
 if [ -z "$ENV_PATH" ]; then
-    echo "ERROR: Environment 'medgemma' not found for user $USER."
-    echo "Please create it using: conda create -n medgemma python=3.10"
+    echo "ERROR: Environment 'format' not found for user $USER."
+    echo "Please create it using: conda create -n format python=3.10"
     exit 1
 fi
 
@@ -40,7 +40,7 @@ echo "Using Python:  $DYNAMIC_PYTHON"
 echo "------------------------------------------------------------"
 
 # 4. RUN (Using the direct path to bypass activation bugs)
-$DYNAMIC_PYTHON /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/testing_scripts/QA_testing_medgemma_blank.py
+$DYNAMIC_PYTHON /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/experiment_orchestrator/run_experiments.py --dry-run
 
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"
