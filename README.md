@@ -142,11 +142,53 @@ python experiment_orchestrator/run_experiments.py --config custom_experiment.jso
 
 ### Adding a New Model
 
-1. Create a testing script in `testing_scripts/`
-2. Create an adapter in `experiment_orchestrator/adapters/new_model.py`
-3. Register it in `experiment_orchestrator/adapters/__init__.py`
-4. Add the environment to `experiment.json` under `environments`
-5. Add the model + tests to `experiment.json` under `models`
+The central tenet of the orchestrator is the **Adapter Pattern**. To add a new model, you need to write a script that can run the model, write an adapter that constructs the CLI arguments for it, and then register both in the central config.
+
+**Step 1: Write the testing script**
+Create your script in `testing_scripts/` (e.g., `QA_testing_NewModel.py`).
+* **CLI Requirements**: It must accept `--qa_path`, `--output_path`, `--model_path`, and an image path argument (`--image_dir` or `--image_path`).
+* **Output Requirements**: It must save the results as a CSV to `--output_path` containing the exact same number of rows as `--qa_path` and a column named `predicted_answer` formatted like `1) Answer Text`.
+
+**Step 2: Create an Adapter**
+Create a new python file in `experiment_orchestrator/adapters/new_model.py`. Inherit from `ModelAdapter` and implement `build_command()` and `validate()`:
+
+```python
+import posixpath
+from experiment_orchestrator.adapters.base import ModelAdapter
+from experiment_orchestrator.config_resolver import ResolvedJob
+
+class NewModelAdapter(ModelAdapter):
+    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+        script = posixpath.join(project_root, "testing_scripts/QA_testing_NewModel.py")
+        args = [
+            f"--qa_path {job.qa_path}",
+            f"--output_path {job.output_path}",
+            f"--model_path {job.model_path}"
+        ]
+        if job.image_dir:
+            args.append(f"--image_dir {job.image_dir}")
+        return f"{script} {' '.join(args)}"
+
+    def validate(self, job: ResolvedJob) -> None:
+        if not job.image_dir and not job.variant == 'text_only':
+            raise ValueError("NewModel requires an image_dir")
+```
+
+**Step 3: Register the Adapter**
+In `experiment_orchestrator/adapters/__init__.py`, import and add your adapter to the `ADAPTER_REGISTRY` dict:
+```python
+from experiment_orchestrator.adapters.new_model import NewModelAdapter
+ADAPTER_REGISTRY = {
+    ...
+    "newmodel": NewModelAdapter(),
+}
+```
+
+**Step 4: Update `experiment.json`**
+Add the new environment and model entry:
+1. Define the python environment in the `"environments"` block (e.g., `"new_env": {"type": "conda_dynamic", "env_name": "my_env"}`).
+2. Create a new model block in `"models"` with `"adapter": "newmodel"` and `"environment": "new_env"`.
+3. Specify the `"tests"` list (e.g., `multi_slice`).
 
 ---
 
