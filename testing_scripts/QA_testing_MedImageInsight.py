@@ -54,9 +54,14 @@ def parse_answer_options(question: str) -> tuple[str, list[str]]:
 
 
 def read_image_as_base64(image_path: str) -> str:
-    """Read an image file and return its base64-encoded string."""
-    with open(image_path, "rb") as f:
-        return base64.encodebytes(f.read()).decode("utf-8")
+    """Read an image file, force RGB, and return its base64-encoded string."""
+    from PIL import Image
+    import io
+
+    img = Image.open(image_path).convert("RGB")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return base64.encodebytes(buf.getvalue()).decode("utf-8")
 
 
 def query_the_model(classifier, question: str, patient_id: str, base_image_dir: str):
