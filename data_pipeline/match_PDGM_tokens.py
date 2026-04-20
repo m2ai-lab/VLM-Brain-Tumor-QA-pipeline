@@ -59,36 +59,22 @@ def main(args):
     #Replace 'accession_num' with 'Accession Num'
     qa_data['Accession_number'] = qa_data['Accession Num'].map(id_look_up)
 
-    if args.preferred_only:
-        seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']
-
-    if args.filter_types:
-        seq_type_data = seq_type_data[seq_type_data['sequence'].isin(args.filter_types)]
-
-    seq_type_data['Accession_number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
     # Replaced 'accession_num' with 'Accession Num'
     qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
 
-    # 1. Output the distinct questions
-    # Get accessions that actually have sequences
-    valid_accessions = seq_type_data['Accession_number'].unique()
-    
-    # Filter questions that exist in valid_accessions
-    found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Assigned ID", "Deidentified_Accession_Number"]]
-    final_data = final_data.drop_duplicates(subset=["Assigned ID"])
-
-    print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
+    print(f'QA Output shape (Unique Questions) {qa_data.shape[0]} x {qa_data.shape[1]}')
 
     # Find how many of the origional Assigned IDs i mapped
     origional_ids = qa_data["Assigned ID"].unique()
-    mapped_ids = final_data["Assigned ID"].unique()
+    mapped_ids = qa_data["Assigned ID"].unique()
     unmapped_ids = set(origional_ids) - set(mapped_ids)
     print(f'Number of unmapped IDs: {len(unmapped_ids)}')
     print(f'Unmapped IDs: {unmapped_ids}')
-
-    final_data.to_csv(args.output_path, index=False)
+    
+    mapped_ids = qa_data[["Assigned ID","Accession_number"]]
+    mapped_ids = mapped_ids.drop_duplicates(subset=["Assigned ID"])
+    mapped_ids.to_csv(args.output_path, index=False)
 
 
 if __name__ == "__main__":
