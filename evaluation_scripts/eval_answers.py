@@ -285,7 +285,7 @@ def stage2_aggregate_rw(args: argparse.Namespace) -> tuple[Counter, Counter]:
     print("=" * 60)
 
     # Use the standard (non-shuffled) answer key for aggregation indexing
-    answer_path = os.path.join(args.answer_dir, "finalized_ucsf_pdgm_pairs_matched.csv")
+    answer_path = os.path.join(args.answer_dir, "finalized_ucsf_pdgm_pairs.csv")
     answer_df = pd.read_csv(answer_path)
     answer_df = answer_df.rename(columns={answer_df.columns[0]: "Question_Idx"})
     answer_df = answer_df.set_index("Question_Idx")
