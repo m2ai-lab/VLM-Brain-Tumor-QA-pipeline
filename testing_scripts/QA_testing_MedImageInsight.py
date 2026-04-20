@@ -150,9 +150,13 @@ def main(args):
 
     from medimageinsightmodel import MedImageInsight
 
-    print(f"Loading MedImageInsight from {args.model_path}...")
+    # model_dir must be absolute — the model code uses it in os.path.join
+    # for config.yaml, vision weights, and tokenizer paths.
+    model_dir = os.path.join(args.model_path, "2024.09.27")
+
+    print(f"Loading MedImageInsight from {model_dir}...")
     classifier = MedImageInsight(
-        model_dir="2024.09.27",
+        model_dir=model_dir,
         vision_model_name="medimageinsigt-v1.0.0.pt",
         language_model_name="language_model.pth",
     )

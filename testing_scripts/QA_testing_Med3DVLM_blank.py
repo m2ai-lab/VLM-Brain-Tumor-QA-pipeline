@@ -7,7 +7,7 @@ import argparse
 import SimpleITK as sitk
 import torch.nn.functional as F
 
-def query_the_model(model, tokenizer, question, patient_id, image_path, temperature=1.0):
+def query_the_model(model, tokenizer, question, image_path):
     full_image_path = image_path
     
     if not path.exists(full_image_path):
@@ -78,7 +78,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_path, args.temperature)
+        response = query_the_model(model,tokenizer, row["Question"], args.image_path)
         responses.append(response)
         print(f"Response: {response}\n{'-'*30}")
         
@@ -93,7 +93,6 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/blank_results.csv")
     parser.add_argument('--image_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.nii.gz")
     parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B")
-    parser.add_argument('--temperature', type=float, default=0.0)
     
     args = parser.parse_args()
     main(args)

@@ -78,7 +78,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_dir, args.temperature)
+        response = query_the_model(model,tokenizer, row["Question"], row["Assigned ID"], args.image_dir)
         responses.append(response)
         print(f"Response: {response}\n{'-'*30}")
         
