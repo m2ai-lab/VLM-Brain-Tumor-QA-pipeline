@@ -1,3 +1,10 @@
 .idea/*
 generated_slurm/
 __pycache__/
+
+# User-specific config — copy config.example.yaml → config.yaml and fill in your paths
+config.yaml
+
+# Large data directories — populated automatically, never committed
+models/
+QApairs/

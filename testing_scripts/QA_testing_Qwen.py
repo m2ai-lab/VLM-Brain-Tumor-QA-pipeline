@@ -1,10 +1,17 @@
 import os
+import sys
 import torch
 import pandas as pd
 from transformers import AutoModelForCausalLM, AutoTokenizer   
 import argparse
 from pydantic import BaseModel, Field, ValidationError
-import re 
+import re
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 # Added a strong system prompt to enforce JSON output
 SYSTEM_PROMPT = """
@@ -118,10 +125,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Qwen Text Inference")
-    parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Qwen/text_only_results.csv")
-    parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Qwen2.5-7B-Instruct") 
+    parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
+    parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/Qwen/text_only_results.csv")
+    parser.add_argument('--model_path', type=str, default=_cfg.get("qwen_model_path"))
 
-    
     args = parser.parse_args()
     main(args)

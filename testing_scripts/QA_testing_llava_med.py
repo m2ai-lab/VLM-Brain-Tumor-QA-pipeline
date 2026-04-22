@@ -4,6 +4,13 @@ import argparse
 import tempfile
 import subprocess
 import os
+import sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 def main(args):
     print(f"Loading QA CSV from: {args.qa_path}")
@@ -72,12 +79,23 @@ def main(args):
     # 3. Parse JSONL outputs back into CSV
     print(f"Parsing answers from {temp_a} and converting back to CSV format...")
     responses = {}
+    bad_lines = 0
     with open(temp_a, "r") as f:
-        for line in f:
-            if not line.strip():
+        for i, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
                 continue
-            data = json.loads(line)
-            responses[data["question_id"]] = data.get("text", "Error")
+            try:
+                data = json.loads(line)
+                responses[data["question_id"]] = data.get("text", "Error")
+            except json.JSONDecodeError:
+                bad_lines += 1
+                # Likely a tqdm progress bar or status print — skip silently
+                print(f"  [warn] Skipped non-JSON line {i}: {line[:80]!r}")
+
+    if bad_lines:
+        print(f"  [warn] Skipped {bad_lines} non-JSON lines in answer file.")
+    print(f"  Parsed {len(responses)} answers.")
             
     generated_answer = []
     for idx in df.index:
@@ -103,8 +121,8 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, required=True)
     parser.add_argument('--image_dir', type=str, required=True)
     parser.add_argument('--image_path', type=str, default=None, help="Not used for full test, here for blank compatibility")
-    parser.add_argument('--model_path', type=str, required=True)
-    parser.add_argument('--llava_repo_dir', type=str, default="/mnt/scratch/group/CX000019_DS1/vlm-brain-mri/catherine/LLaVA-Med")
-    
+    parser.add_argument('--model_path', type=str, default=_cfg.get("llavamed_model_path"))
+    parser.add_argument('--llava_repo_dir', type=str, default=_cfg.get("llavamed_repo_dir"))
+
     args = parser.parse_args()
     main(args)

@@ -39,7 +39,10 @@ echo "Using Python:  $DYNAMIC_PYTHON"
 echo "------------------------------------------------------------"
 
 # 4. RUN (Using the direct path to bypass activation bugs)
-$DYNAMIC_PYTHON /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/experiment_orchestrator/run_experiments.py --only LLaVA-Med
+# Resolve the project root dynamically from config.yaml so this script is portable
+PROJECT_ROOT=$("$DYNAMIC_PYTHON" -c "import sys; sys.path.insert(0, '$(pwd)'); from config_utils import load_config; print(load_config()['project_root'])")
+echo "Project Root: $PROJECT_ROOT"
+"$DYNAMIC_PYTHON" "$PROJECT_ROOT/experiment_orchestrator/run_experiments.py" --only LLaVA-Med
 
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"

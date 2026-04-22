@@ -26,7 +26,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from experiment_orchestrator.config_schema import ExperimentSuite
-from experiment_orchestrator.config_resolver import resolve_all
+from experiment_orchestrator.config_resolver import resolve_all, expand_suite_raw
 from experiment_orchestrator.adapters import get_adapter
 from experiment_orchestrator.slurm_template import write_sbatch_file
 from experiment_orchestrator.slurm_scheduler import SlurmScheduler
@@ -99,11 +99,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def load_config(config_path: str) -> ExperimentSuite:
-    """Load and validate experiment.json through Pydantic."""
+    """Load, expand {variable} placeholders, and validate experiment.json through Pydantic."""
     logger.info("Loading config from %s", config_path)
 
     with open(config_path, "r") as f:
         raw = json.load(f)
+
+    # Expand {variable} placeholders from config.yaml before Pydantic validation
+    raw = expand_suite_raw(raw)
 
     suite = ExperimentSuite.model_validate(raw)
     logger.info(

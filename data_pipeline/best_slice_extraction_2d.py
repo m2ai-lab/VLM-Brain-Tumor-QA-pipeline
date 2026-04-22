@@ -5,6 +5,13 @@ import argparse
 import pandas as pd
 import os
 import torch
+import sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 # MONAI Imports for Inference
 from monai.networks.nets import SwinUNETR
@@ -192,7 +199,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Best Slice Extraction")
-    parser.add_argument('--qa_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_slice_path', type=str, required=False,default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices/")
+    parser.add_argument('--qa_path', type=str, required=False, default=_cfg.get("qa_path"))
+    parser.add_argument('--output_slice_path', type=str, required=False, default=_cfg.get("slice_dir"))
     args = parser.parse_args()
     main(args)

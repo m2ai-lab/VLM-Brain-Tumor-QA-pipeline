@@ -3,19 +3,20 @@ import pandas as pd
 import os
 import re
 import random
+import sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 def argument_parser():
     parser = argparse.ArgumentParser(description="Question Reshuffeling Script")
-    parser.add_argument('--qa_path', 
-                        type=str, 
-                        required=False, 
-                        help='Path to QA data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_path', 
-                        type=str, 
-                        required=False, 
-                        help='Path to output data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/reshuffled_finalized_ucsf_pdgm_pairs.csv")
+    parser.add_argument('--qa_path', type=str, required=False,
+                        help='Path to QA data', default=_cfg.get("qa_path"))
+    parser.add_argument('--output_path', type=str, required=False,
+                        help='Path to output data', default=_cfg.get("reshuffled_qa_path"))
     return parser.parse_args()
 
 def reshuffle_question(mc_question):

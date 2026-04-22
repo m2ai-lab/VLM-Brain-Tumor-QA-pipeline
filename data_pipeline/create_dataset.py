@@ -1,6 +1,13 @@
 import argparse
 import pandas as pd
 import os
+import sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 def load_datasets(args):
     qa_data = pd.read_csv(args.qa_path, index_col=0)
@@ -114,58 +121,34 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="QMRI Match Script")
-    parser.add_argument('--qa_path', 
-                        type=str, 
-                        required=False, 
-                        help='Path to QA data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_path', 
-                        type=str, 
-                        required=False, 
-                        help='Path to output data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/dicom_dataset.csv")
-    parser.add_argument('--scan_mapping_path', 
-                        type=str, 
-                        required=False, 
+    parser.add_argument('--qa_path', type=str, required=False, help='Path to QA data',
+                        default=_cfg.get("qa_path"))
+    parser.add_argument('--output_path', type=str, required=False, help='Path to output data',
+                        default=_cfg.get("output_base", "") + "/dicom_dataset.csv")
+    parser.add_argument('--scan_mapping_path', type=str, required=False,
                         help='Path to output scan mapping data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/scan_mapping.csv")
-    parser.add_argument('--deid_to_newID_path', 
-                        type=str, 
-                        required=False, 
+                        default=_cfg.get("output_base", "") + "/scan_mapping.csv")
+    parser.add_argument('--deid_to_newID_path', type=str, required=False,
                         help='Path to de-identified to new imaging ID mapping',
-                        default="/mnt/fac/CX000019_DS1/CTSI/Radiology/De-Identified/RITM0609393A_Patient_Cohort_De_id_20251006.csv")
-    parser.add_argument('--newID_to_accession_path', 
-                        type=str, 
-                        required=False, 
+                        default=_cfg.get("deid_to_newID_path"))
+    parser.add_argument('--newID_to_accession_path', type=str, required=False,
                         help='Path to new imaging ID to accession code mapping',
-                        default="/mnt/fac/CX000019_DS1/CTSI/Radiology/Identified/RITM0609393A_Patient_Cohort_id_20251006.csv")
-    parser.add_argument('--seq_type_path', 
-                        type=str, 
-                        required=False, 
+                        default=_cfg.get("newID_to_accession_path"))
+    parser.add_argument('--seq_type_path', type=str, required=False,
                         help='Path to where sequence type data is stored',
-                        default="/mnt/fac/CX000019_DS1/neuroimaging_seqtype.csv")
-    parser.add_argument('--filter_types',
-                        nargs='*',
-                        required=False, 
+                        default=_cfg.get("seq_type_path"))
+    parser.add_argument('--filter_types', nargs='*', required=False,
                         help='Type of scan you would like to get a subset of from data. Leave empty for all sequence types.',
                         default=[])
-
-    parser.add_argument('--preferred_only',
-                        type=bool, 
-                        required=False, 
+    parser.add_argument('--preferred_only', type=bool, required=False,
                         help='If True, only retains sequences explicitly marked as preferred',
                         default=False)
-
-    parser.add_argument('--num_entries',
-                        type=int, 
-                        required=False, 
+    parser.add_argument('--num_entries', type=int, required=False,
                         help='Limit the size of the dataset if required',
                         default=100000)
-    parser.add_argument('--single_dicom',
-                        type=bool, 
-                        required=False, 
+    parser.add_argument('--single_dicom', type=bool, required=False,
                         help='single_dicom if required',
                         default=False)
     args = parser.parse_args()
-    
+
     main(args)

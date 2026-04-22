@@ -1,0 +1,65 @@
+# =============================================================================
+# config.example.yaml — QA-BrainTumor-VLM-UCSF Project Configuration
+# =============================================================================
+# SETUP: Copy this file to config.yaml and fill in your paths.
+#   cp config.example.yaml config.yaml
+#
+# config.yaml is gitignored (never committed). This example file is tracked.
+#
+# Variables can reference other variables using {variable_name} syntax.
+# These are resolved at runtime by config_utils.py.
+# =============================================================================
+
+# ── Cluster / Repo Roots ──────────────────────────────────────────────────────
+# Absolute path to the cloned repo on your cluster
+project_root: /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-
+
+# Shared scratch space for large data that stays outside the repo
+scratch_root: /scratch/group/CX000019_DS1/vlm-brain-mri
+
+# ── Data directories ─────────────────────────────────────────────────────────
+# Root directory for raw NIfTI volumes (one subdirectory per patient, e.g. PDGM-0001_nifti/)
+nifti_root: /scratch/user/shghosh/UCSF-PDGM-v5
+
+# Root for raw DICOM data (institution-specific, used by create_dataset.py)
+raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
+
+# ── QA CSV datasets ───────────────────────────────────────────────────────────
+qa_path: "{scratch_root}/finalized_ucsf_pdgm_pairs.csv"
+reshuffled_qa_path: "{scratch_root}/reshuffled_finalized_ucsf_pdgm_pairs.csv"
+human_qa_path: "{scratch_root}/brain_vlm_human_ds/human_dataset.csv"
+
+# ── Output directories ────────────────────────────────────────────────────────
+# All model result CSVs land here (QApairs/ in the repo is a gitignored mirror)
+output_base: "{project_root}/QApairs"
+
+# Format dataset — 2D slices and blank controls
+slice_dir: "{output_base}/format_dataset/2D_slices"
+blank_png: "{output_base}/format_dataset/blank/BlackedOut.png"
+blank_nifti: "{output_base}/format_dataset/blank/BlackedOut.nii.gz"
+
+# ── Model weights ─────────────────────────────────────────────────────────────
+# models/ inside the repo is gitignored; weights can live there or on scratch.
+# Set models_base to whichever parent directory your weights live under.
+models_base: "{project_root}/models"
+
+medgemma_model_path: "{models_base}/medgemma-1.5-4b-it"
+med3dvlm_model_path: "{models_base}/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B"
+qwen_model_path: "{models_base}/Qwen2.5-7B-Instruct"
+medimageinsight_model_path: "{models_base}/MedImageInsights"
+
+# LLaVA-Med: model weights (relative path from its repo dir is typical)
+llavamed_model_path: "./llava-med-v1.5-mistral-7b"
+llavamed_repo_dir: /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/catherine/LLaVA-Med
+
+# ── SLURM defaults ────────────────────────────────────────────────────────────
+mail_user: your.email@institution.edu
+log_dir: /home/remote/%u/logs
+
+# ── Mapping files (used by create_dataset.py) ─────────────────────────────────
+deid_to_newID_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/De-Identified/RITM0609393A_Patient_Cohort_De_id_20251006.csv
+newID_to_accession_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/Identified/RITM0609393A_Patient_Cohort_id_20251006.csv
+seq_type_path: /mnt/fac/CX000019_DS1/neuroimaging_seqtype.csv
+
+# ── Segmentation model (used by best_slice_extraction_2d.py) ─────────────────
+swinunetr_weights_path: "{models_base}/model_swinvit.pt"

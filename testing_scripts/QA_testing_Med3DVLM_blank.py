@@ -6,6 +6,13 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import argparse
 import SimpleITK as sitk
 import torch.nn.functional as F
+import os, sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 def query_the_model(model, tokenizer, question, image_path):
     full_image_path = image_path
@@ -89,10 +96,10 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Medgemma QA testing")
-    parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/Med3DVLM/blank_results.csv")
-    parser.add_argument('--image_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.nii.gz")
-    parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B")
-    
+    parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
+    parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/Med3DVLM/blank_results.csv")
+    parser.add_argument('--image_path', type=str, default=_cfg.get("blank_nifti"))
+    parser.add_argument('--model_path', type=str, default=_cfg.get("med3dvlm_model_path"))
+
     args = parser.parse_args()
     main(args)

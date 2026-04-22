@@ -8,8 +8,14 @@ from transformers import AutoProcessor, AutoModelForImageTextToText
 import argparse
 from pydantic import BaseModel, Field, ValidationError
 from typing import Literal
-import re 
+import re
+import os, sys
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 
 FEW_SHOT_EXAMPLE = """
 Example Request:
@@ -144,11 +150,10 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MedGemma NIfTI Inference")
-    parser.add_argument('--qa_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
-    parser.add_argument('--output_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedGemma1.5/blank_results.csv")
-    parser.add_argument('--image_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/blank/BlackedOut.png")
-    parser.add_argument('--model_path', type=str, default="/scratch/group/CX000019_DS1/vlm-brain-mri/medgemma-1.5-4b-it")
+    parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
+    parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/MedGemma1.5/blank_results.csv")
+    parser.add_argument('--image_path', type=str, default=_cfg.get("blank_png"))
+    parser.add_argument('--model_path', type=str, default=_cfg.get("medgemma_model_path"))
 
-    
     args = parser.parse_args()
     main(args)

@@ -21,6 +21,24 @@ else
 fi
 echo "Virtual environment activated."
 
+# ── Create gitignored data directories ───────────────────────────────────────
+echo "Creating local data directories (models/ and QApairs/)..."
+mkdir -p models QApairs
+touch models/.gitkeep QApairs/.gitkeep
+echo "  models/   ✓"
+echo "  QApairs/  ✓"
+
+# ── Bootstrap config ─────────────────────────────────────────────────────────
+if [ ! -f "config.yaml" ]; then
+    cp config.example.yaml config.yaml
+    echo ""
+    echo "  ⚠️  config.yaml created from template."
+    echo "  Please open config.yaml and fill in your cluster paths before running experiments."
+    echo ""
+else
+    echo "  config.yaml already exists — skipping."
+fi
+
 cd ..
 
 

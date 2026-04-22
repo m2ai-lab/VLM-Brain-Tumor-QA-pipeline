@@ -8,10 +8,41 @@ for runs_per_experiment, qa_path, image_dir, and slurm params.
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 from experiment_orchestrator.config_schema import ExperimentSuite, ModelConfig, TestConfig
+
+# Resolve config_utils from the project root (two levels up from this file)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+from config_utils import load_config
+
+
+def _expand(value: Any, cfg: dict) -> Any:
+    """Recursively expand {variable} placeholders in strings using config.yaml values."""
+    if isinstance(value, str):
+        try:
+            return value.format_map(cfg)
+        except (KeyError, ValueError):
+            return value
+    if isinstance(value, dict):
+        return {k: _expand(v, cfg) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_expand(item, cfg) for item in value]
+    return value
+
+
+def expand_suite_raw(raw: dict) -> dict:
+    """
+    Expand all {variable} placeholders in the raw experiment.json dict
+    using values from config.yaml before Pydantic validation.
+    """
+    cfg = load_config()
+    return _expand(raw, cfg)
 
 
 @dataclass

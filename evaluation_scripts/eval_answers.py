@@ -18,12 +18,18 @@ import argparse
 import json
 import os
 import re
+import sys
 from collections import Counter, defaultdict
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 # ──────────────────────────────────────────────────────────────────────────────
 # SYSTEM PROMPT (used in Stage 3)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -60,17 +66,17 @@ def argument_handler() -> argparse.Namespace:
     # ── Shared paths ──────────────────────────────────────────────────────────
     parser.add_argument(
         "--qa_path",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs",
+        default=_cfg.get("output_base"),
         help="Root directory that contains all model result CSVs.",
     )
     parser.add_argument(
         "--answer_dir",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri",
+        default=_cfg.get("scratch_root"),
         help="Directory containing the ground-truth Q&A CSVs.",
     )
     parser.add_argument(
         "--metrics_dir",
-        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/metrics",
+        default=_cfg.get("output_base", "") + "/metrics",
         help="Directory where all output files are written.",
     )
 
