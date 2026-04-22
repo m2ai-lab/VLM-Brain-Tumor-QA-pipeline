@@ -14,6 +14,10 @@ def main(args):
     origional_qa_data = pd.read_csv(args.origional_qa_path, index_col=0)
 
     output = pd.merge(qa_data, origional_qa_data, on="Question", how="left")
+
+    print("Origional columns: ", origional_qa_data.columns, "\nOrigional shape: ", origional_qa_data.shape)
+    print("QA columns: ", qa_data.columns, "\nQA shape: ", qa_data.shape)
+    print("Output columns: ", output.columns, "\nOutput shape: ", output.shape)
     columns = list(origional_qa_data.columns) + ["Assigned_ID"] 
     output = output[columns]
 
