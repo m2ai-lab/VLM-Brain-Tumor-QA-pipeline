@@ -21,6 +21,7 @@ def main(args):
     columns = list(qa_data.columns) + ["Assigned ID"] 
     output = output[columns]
 
+    args.qa_path = args.qa_path.replace("human_dataset.csv", "human_dataset_assigned_id.csv")
     output.to_csv(args.qa_path, index=False)
 
 
