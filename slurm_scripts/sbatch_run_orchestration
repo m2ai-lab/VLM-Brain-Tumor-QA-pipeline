@@ -39,7 +39,6 @@ echo "Using Python:  $DYNAMIC_PYTHON"
 echo "------------------------------------------------------------"
 
 # 4. RUN (Using the direct path to bypass activation bugs)
-$DYNAMIC_PYTHON /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/experiment_orchestrator/run_experiments.py --name human --include MedGemma1.5:single_slice_shuffled 
 $DYNAMIC_PYTHON /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/experiment_orchestrator/run_experiments.py --only LLaVA-Med
 
 echo "------------------------------------------------------------"
