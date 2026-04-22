@@ -10,8 +10,8 @@ from config_utils import load_config
 _cfg = load_config()
 
 def main(args):
-    qa_data = pd.read_csv(args.qa_path, index_col=0)
-    origional_qa_data = pd.read_csv(args.origional_qa_path, index_col=0)
+    qa_data = pd.read_csv(args.qa_path, index=False)
+    origional_qa_data = pd.read_csv(args.origional_qa_path, index=False)
 
     output = pd.merge(qa_data, origional_qa_data, on=["Question", "Answer"], how="left")
 
