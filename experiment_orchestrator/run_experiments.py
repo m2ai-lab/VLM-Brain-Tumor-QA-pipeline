@@ -62,6 +62,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Only run experiments for these model names (e.g., MedGemma1.5 Qwen2.5).",
     )
     parser.add_argument(
+        "--name",
+        nargs="+",
+        default=[],
+        help="Only run experiments for specific test names (e.g., human, single_slice_shuffled).",
+    )
+    parser.add_argument(
+        "--variant",
+        type=str,
+        default=None,
+        help="Only run experiments for a specific variant type (e.g., blank, single_slice).",
+    )
+    parser.add_argument(
+        "--include",
+        nargs="+",
+        default=[],
+        help="Run specific model:test combinations (e.g., MedGemma1.5:single_slice_shuffled).",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Generate sbatch files but do not submit to SLURM.",
@@ -118,11 +136,37 @@ def main(argv: list[str] | None = None) -> int:
     all_jobs = resolve_all(suite)
     logger.info("Resolved %d total jobs from config", len(all_jobs))
 
-    # Filter by --only if specified
+    # Keep a copy of all jobs for the additive --include filter
+    original_all_jobs = list(all_jobs)
+
+    # Subtractive (AND) filters
     if args.only:
         only_set = set(args.only)
         all_jobs = [j for j in all_jobs if j.model_name in only_set]
         logger.info("Filtered to %d jobs matching --only %s", len(all_jobs), args.only)
+        
+    if args.name:
+        name_set = set(args.name)
+        all_jobs = [j for j in all_jobs if j.test_name in name_set]
+        logger.info("Filtered to %d jobs matching --name %s", len(all_jobs), args.name)
+
+    if args.variant:
+        all_jobs = [j for j in all_jobs if j.variant == args.variant]
+        logger.info("Filtered to %d jobs matching --variant %s", len(all_jobs), args.variant)
+        
+    # Additive (OR) filter
+    if args.include:
+        included_set = set(args.include)
+        included_jobs = {
+            j.job_name: j for j in original_all_jobs
+            if f"{j.model_name}:{j.test_name}" in included_set
+        }
+        
+        # Combine the subtractive filtered jobs AND the explicitly included jobs
+        final_jobs = {j.job_name: j for j in all_jobs}
+        final_jobs.update(included_jobs)
+        all_jobs = list(final_jobs.values())
+        logger.info("Final job list contains %d jobs after applying --include", len(all_jobs))
 
     if not all_jobs:
         logger.warning("No jobs to run. Check that models are enabled in the config.")

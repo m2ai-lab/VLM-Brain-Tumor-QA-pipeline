@@ -79,7 +79,7 @@ def main(args):
     
     # Filter questions that exist in valid_accessions
     found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number"]]
+    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number","Assigned ID"]]
 
     print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
     final_data.to_csv(args.output_path, index=False)
