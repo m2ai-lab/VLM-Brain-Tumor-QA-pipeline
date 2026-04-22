@@ -28,7 +28,7 @@
     },
     "llava-med": {
       "type": "venv",
-      "activate_path": "{project_root}/../llava-med/bin/activate"
+      "activate_path": "{project_root}/envs/llava-med/bin/activate"
     },
     "medfusion": {
       "type": "static_path",
