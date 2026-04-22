@@ -27,7 +27,7 @@ raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
 # ── QA CSV datasets ───────────────────────────────────────────────────────────
 qa_path: "{scratch_root}/finalized_ucsf_pdgm_pairs.csv"
 reshuffled_qa_path: "{scratch_root}/reshuffled_finalized_ucsf_pdgm_pairs.csv"
-human_qa_path: "{scratch_root}/brain_vlm_human_ds/human_dataset.csv"
+human_qa_path: "{scratch_root}/human_dataset.csv"
 
 # ── Output directories ────────────────────────────────────────────────────────
 # All model result CSVs land here (QApairs/ in the repo is a gitignored mirror)

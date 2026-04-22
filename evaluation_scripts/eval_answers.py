@@ -120,6 +120,8 @@ def _resolve_answer_csv(answer_dir: str, result_filename: str) -> str:
     """
     if "shuffled" in result_filename.lower():
         return os.path.join(answer_dir, "reshuffled_finalized_ucsf_pdgm_pairs.csv")
+    if "human" in result_filename.lower():
+        return os.path.join(answer_dir, "human_dataset.csv")
     return os.path.join(answer_dir, "finalized_ucsf_pdgm_pairs.csv")
 
 
