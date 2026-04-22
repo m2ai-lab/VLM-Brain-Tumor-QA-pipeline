@@ -18,7 +18,7 @@ def main(args):
     print("Origional columns: ", origional_qa_data.columns, "\nOrigional shape: ", origional_qa_data.shape)
     print("QA columns: ", qa_data.columns, "\nQA shape: ", qa_data.shape)
     print("Output columns: ", output.columns, "\nOutput shape: ", output.shape)
-    columns = list(origional_qa_data.columns) + ["Assigned ID"] 
+    columns = list(qa_data.columns) + ["Assigned ID"] 
     output = output[columns]
 
     args.qa_path = args.qa_path.replace("human_dataset.csv", "human_dataset_assigned_id.csv")
