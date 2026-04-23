@@ -23,8 +23,8 @@
     },
     "med3dvlm": {
       "type": "static_path",
-      "python_path": "{project_root}/../Med3DVLM-env/bin/python",
-      "ld_library_path": "{project_root}/../Med3DVLM-env/lib"
+      "python_path": "{project_root}/../envs/med3dvlm/bin/python",
+      "ld_library_path": "{project_root}/../envs/med3dvlm/lib"
     },
     "llava-med": {
       "type": "venv",
@@ -32,11 +32,11 @@
     },
     "medfusion": {
       "type": "static_path",
-      "python_path": "{project_root}/../lg_fusion/bin/python"
+      "python_path": "{project_root}/../envs/medfusion/bin/python"
     },
     "medimageinsight": {
       "type": "venv",
-      "activate_path": "{project_root}/../medimageinsight/bin/activate"
+      "activate_path": "{project_root}/../envs/medimageinsight/bin/activate"
     }
   },
 
