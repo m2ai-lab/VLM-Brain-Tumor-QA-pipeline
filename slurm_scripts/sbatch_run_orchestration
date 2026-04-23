@@ -42,7 +42,7 @@ echo "------------------------------------------------------------"
 # Resolve the project root dynamically from config.yaml so this script is portable
 PROJECT_ROOT=$("$DYNAMIC_PYTHON" -c "import sys; sys.path.insert(0, '$(pwd)'); from config_utils import load_config; print(load_config()['project_root'])")
 echo "Project Root: $PROJECT_ROOT"
-"$DYNAMIC_PYTHON" "$PROJECT_ROOT/experiment_orchestrator/run_experiments.py" --only LLaVA-Med
+"$DYNAMIC_PYTHON" "$PROJECT_ROOT/experiment_orchestrator/run_experiments.py" --name human
 
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"

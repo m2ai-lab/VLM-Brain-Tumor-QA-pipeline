@@ -110,7 +110,7 @@
           "output_path": "{output_base}/Med3DVLM/full_nifti_reshuffled_results.csv"
         },
         {
-          "name": "human_eval",
+          "name": "human",
           "variant": "full_nifti",
           "qa_path": "{human_qa_path}",
           "output_path": "{output_base}/Med3DVLM/human_results.csv"
