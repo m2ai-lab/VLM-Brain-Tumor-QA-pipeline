@@ -31,7 +31,7 @@ human_qa_path: "{scratch_root}/human_dataset.csv"
 
 # ── Output directories ────────────────────────────────────────────────────────
 # All model result CSVs land here (QApairs/ in the repo is a gitignored mirror)
-output_base: "{scratcj_root}/QApairs"
+output_base: "{scratch_root}/QApairs"
 
 # Format dataset — 2D slices and blank controls
 slice_dir: "{output_base}/format_dataset/2D_slices"
@@ -39,8 +39,8 @@ blank_png: "{output_base}/format_dataset/blank/BlackedOut.png"
 blank_nifti: "{output_base}/format_dataset/blank/BlackedOut.nii.gz"
 
 # ── Model weights ─────────────────────────────────────────────────────────────
-# models/ inside the repo is gitignored; weights can live there or on scratch.
-# Set models_base to whichever parent directory your weights live under.
+# Parent directory where all model weight folders live.
+# Weights are stored inside the repo's gitignored models/ directory.
 models_base: "{project_root}/models"
 
 medgemma_model_path: "{models_base}/medgemma-1.5-4b-it"
