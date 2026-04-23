@@ -31,7 +31,7 @@ human_qa_path: "{scratch_root}/human_dataset.csv"
 
 # ── Output directories ────────────────────────────────────────────────────────
 # All model result CSVs land here (QApairs/ in the repo is a gitignored mirror)
-output_base: "{project_root}/QApairs"
+output_base: "{scratcj_root}/QApairs"
 
 # Format dataset — 2D slices and blank controls
 slice_dir: "{output_base}/format_dataset/2D_slices"
