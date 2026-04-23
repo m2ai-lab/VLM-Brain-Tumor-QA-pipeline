@@ -22,9 +22,8 @@
       "env_name": "medgemma"
     },
     "med3dvlm": {
-      "type": "static_path",
-      "python_path": "{project_root}/../envs/med3dvlm/bin/python",
-      "ld_library_path": "{project_root}/../envs/med3dvlm/lib"
+      "type": "conda_dynamic",
+      "env_name": "Med3DVLM"
     },
     "llava-med": {
       "type": "venv",
