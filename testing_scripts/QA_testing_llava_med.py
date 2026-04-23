@@ -77,25 +77,43 @@ def main(args):
         exit(1)
         
     # 3. Parse JSONL outputs back into CSV
+    #    LLaVA-Med model_vqa writes JSONL in some versions, CSV in others.
+    #    Auto-detect by inspecting the first line.
     print(f"Parsing answers from {temp_a} and converting back to CSV format...")
     responses = {}
-    bad_lines = 0
-    with open(temp_a, "r") as f:
-        for i, line in enumerate(f, 1):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                data = json.loads(line)
-                responses[data["question_id"]] = data.get("text", "Error")
-            except json.JSONDecodeError:
-                bad_lines += 1
-                # Likely a tqdm progress bar or status print — skip silently
-                print(f"  [warn] Skipped non-JSON line {i}: {line[:80]!r}")
 
-    if bad_lines:
-        print(f"  [warn] Skipped {bad_lines} non-JSON lines in answer file.")
-    print(f"  Parsed {len(responses)} answers.")
+    with open(temp_a, "r") as f:
+        first_line = f.readline().strip()
+
+    if first_line.startswith("question_id,"):
+        # ── CSV format (some LLaVA-Med forks write this) ────────────────────
+        import csv as _csv
+        with open(temp_a, "r", newline="") as f:
+            reader = _csv.DictReader(f)
+            for row in reader:
+                try:
+                    responses[int(row["question_id"])] = row.get("predicted_answer", "Error")
+                except (ValueError, KeyError):
+                    pass
+        print(f"  Detected CSV format — parsed {len(responses)} answers.")
+    else:
+        # ── JSONL format ─────────────────────────────────────────────────────
+        bad_lines = 0
+        with open(temp_a, "r") as f:
+            for i, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    data = json.loads(line)
+                    responses[data["question_id"]] = data.get("text", "Error")
+                except json.JSONDecodeError:
+                    bad_lines += 1
+                    print(f"  [warn] Skipped non-JSON line {i}: {line[:80]!r}")
+        if bad_lines:
+            print(f"  [warn] Skipped {bad_lines} non-JSON lines in answer file.")
+        print(f"  Detected JSONL format — parsed {len(responses)} answers.")
+
             
     generated_answer = []
     for idx in df.index:
