@@ -84,11 +84,16 @@ def main(args):
 
     with open(temp_a, "r") as f:
         first_line = f.readline().strip()
+        temp_answer_path = args.output_path.replace(".csv", "_temp_.jsonl")
+        with open(temp_answer_path, "w") as f2:
+            f2.write(first_line + "\n")
+            for line in f:
+                f2.write(line)
 
     if first_line.startswith("question_id,"):
         # ── CSV format (some LLaVA-Med forks write this) ────────────────────
         import csv as _csv
-        with open(temp_a, "r", newline="") as f:
+        with open(temp_answer_path, "r", newline="") as f:
             reader = _csv.DictReader(f)
             for row in reader:
                 try:
@@ -130,7 +135,7 @@ def main(args):
     
     # Clean up
     os.remove(temp_q)
-    # os.remove(temp_a)
+    os.remove(temp_a)
 
 
 if __name__ == "__main__":
