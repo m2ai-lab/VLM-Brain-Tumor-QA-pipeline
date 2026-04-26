@@ -130,7 +130,7 @@ def main(args):
     
     # Clean up
     os.remove(temp_q)
-    os.remove(temp_a)
+    # os.remove(temp_a)
 
 
 if __name__ == "__main__":
