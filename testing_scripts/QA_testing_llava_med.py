@@ -48,10 +48,7 @@ def main(args):
         temp_q = f_q.name
         
     print(f"Temp questions JSONL created at {temp_q}")
-    
-    # temp file for answers
-    temp_a = temp_q.replace(".jsonl", "_answers.jsonl")
-    
+
     # 2. Call LLaVA-Med inference script
     print("Executing LLaVA-Med VQA evaluation...")
     cmd = [
@@ -60,7 +57,7 @@ def main(args):
         "--model-path", args.model_path,
         "--question-file", temp_q,
         "--image-folder", args.image_dir,
-        "--answers-file", temp_a
+        "--answers-file", args.output_path
     ]
     
     print(f"Running command: {' '.join(cmd)}")
@@ -72,70 +69,10 @@ def main(args):
         print(f"LLaVA-Med inference failed with exit code {e.returncode}")
         # Clean up and exit
         os.remove(temp_q)
-        if os.path.exists(temp_a):
-            os.remove(temp_a)
         exit(1)
-        
-    # 3. Parse JSONL outputs back into CSV
-    #    LLaVA-Med model_vqa writes JSONL in some versions, CSV in others.
-    #    Auto-detect by inspecting the first line.
-    print(f"Parsing answers from {temp_a} and converting back to CSV format...")
-    responses = {}
 
-    with open(temp_a, "r") as f:
-        first_line = f.readline().strip()
-        temp_answer_path = args.output_path.replace(".csv", "_temp_.jsonl")
-        with open(temp_answer_path, "w") as f2:
-            f2.write(first_line + "\n")
-            for line in f:
-                f2.write(line)
-
-    if first_line.startswith("question_id,"):
-        # ── CSV format (some LLaVA-Med forks write this) ────────────────────
-        import csv as _csv
-        with open(temp_answer_path, "r", newline="") as f:
-            reader = _csv.DictReader(f)
-            for row in reader:
-                try:
-                    responses[int(row["question_id"])] = row.get("predicted_answer", "Error")
-                except (ValueError, KeyError):
-                    pass
-        print(f"  Detected CSV format — parsed {len(responses)} answers.")
-    else:
-        # ── JSONL format ─────────────────────────────────────────────────────
-        bad_lines = 0
-        with open(temp_a, "r") as f:
-            for i, line in enumerate(f, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    data = json.loads(line)
-                    responses[data["question_id"]] = data.get("text", "Error")
-                except json.JSONDecodeError:
-                    bad_lines += 1
-                    print(f"  [warn] Skipped non-JSON line {i}: {line[:80]!r}")
-        if bad_lines:
-            print(f"  [warn] Skipped {bad_lines} non-JSON lines in answer file.")
-        print(f"  Detected JSONL format — parsed {len(responses)} answers.")
-
-            
-    generated_answer = []
-    for idx in df.index:
-        generated_answer.append(responses.get(idx, "No Answer Generated"))
-        
-    df["predicted_answer"] = generated_answer
-    df["LLaVA_Reasoning"] = "" # LLaVA outputs raw text, no structured reasoning split
-    
-    # Make sure output directory exists
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-    
-    df.to_csv(args.output_path, index=False)
-    print(f"Successfully saved LLaVA-Med output to {args.output_path}!")
-    
     # Clean up
     os.remove(temp_q)
-    os.remove(temp_a)
 
 
 if __name__ == "__main__":
