@@ -23,6 +23,7 @@ def load_datasets(args):
                                     dtype=str)
 
     return qa_data,seq_type_data,deid_to_newID,newID_to_accession
+
 def main(args):
 
     #Load in the QA data
@@ -33,9 +34,7 @@ def main(args):
     qa_data['DeID Note Key'] = qa_data['DeID Note Key'].astype(str).str.strip()
     print('Loaded QA data with shape:', qa_data.shape)
 
-
     deid_to_newID['deid_accession_number'] = deid_to_newID['deid_accession_number'].astype(str).str.strip()
-
     print('Loaded deid to newID mapping with shape:', deid_to_newID.shape)
 
     newID_to_accession = newID_to_accession.dropna(subset=['accession_number'])
@@ -64,10 +63,23 @@ def main(args):
     id_look_up = dict(zip(deid_to_accession['deid_accession_number'], 
                     deid_to_accession['accession_number']))
 
-    # Now map it
+    # ── DEBUG: id_look_up vs qa_data['DeID Note Key'] ───────────────────
+    print('\n[DEBUG] id_look_up size:', len(id_look_up))
+    sample_keys = list(id_look_up.keys())[:5]
+    print('[DEBUG] Sample id_look_up keys (deid_accession_number):', sample_keys)
+    print('[DEBUG] Sample qa_data DeID Note Key values:',
+          qa_data['DeID Note Key'].head(5).tolist())
+    print(f'[DEBUG] qa_data DeID Note Key dtype: {qa_data["DeID Note Key"].dtype} | '
+          f'id_look_up key type: {type(sample_keys[0]) if sample_keys else "N/A"}')
 
-    #Map DeID Note Key to Identified_Accession_Number
+    # Map DeID Note Key to Identified_Accession_Number
     qa_data['Identified_Accession_Number'] = qa_data['DeID Note Key'].map(id_look_up)
+
+    nan_count = qa_data['Identified_Accession_Number'].isna().sum()
+    print(f'\n[DEBUG] After mapping DeID Note Key -> Identified_Accession_Number: '
+          f'{nan_count}/{len(qa_data)} rows are NaN (no match in id_look_up)')
+    mapped_sample = qa_data['Identified_Accession_Number'].dropna().head(5).tolist()
+    print('[DEBUG] Sample Identified_Accession_Number values after map:', mapped_sample)
 
     if args.preferred_only:
         seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']
@@ -77,16 +89,41 @@ def main(args):
 
     seq_type_data['Identified_Accession_Number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
+    # ── DEBUG: seq_dir parsing ───────────────────────────────────────────
+    print('\n[DEBUG] Sample seq_dir values (first 3):')
+    for p in seq_type_data['seq_dir'].head(3).tolist():
+        parts = str(p).split('/')
+        print(f'  path: {p}')
+        print(f'  parts: {parts}')
+        print(f'  index 5 gives: "{parts[5] if len(parts) > 5 else "OUT OF RANGE (only " + str(len(parts)) + " parts)"}"')
+    print('[DEBUG] Sample Identified_Accession_Number extracted (index 5):',
+          seq_type_data['Identified_Accession_Number'].head(5).tolist())
+    print(f'[DEBUG] Unique Identified_Accession_Number count in seq_type_data: '
+          f'{seq_type_data["Identified_Accession_Number"].nunique()}')
 
     # 1. Output the distinct questions
     # Get accessions that actually have sequences
     valid_accessions = seq_type_data['Identified_Accession_Number'].unique()
     
+    # ── DEBUG: overlap between qa_data and seq_type_data ────────────────
+    qa_ids  = set(qa_data['Identified_Accession_Number'].dropna().unique())
+    seq_ids = set(valid_accessions)
+    overlap = qa_ids & seq_ids
+    print(f'\n[DEBUG] QA unique Identified_Accession_Number (non-NaN): {len(qa_ids)}')
+    print(f'[DEBUG] seq_type_data unique Identified_Accession_Number:  {len(seq_ids)}')
+    print(f'[DEBUG] Overlap (accessions in BOTH):                       {len(overlap)}')
+    if overlap:
+        print('[DEBUG] Sample overlapping IDs:', list(overlap)[:5])
+    else:
+        print('[DEBUG] NO OVERLAP -- this is why found_qs is empty.')
+        print('[DEBUG] Sample QA IDs:  ', list(qa_ids)[:5])
+        print('[DEBUG] Sample seq IDs:', list(seq_ids)[:5])
+
     # Filter questions that exist in valid_accessions
     found_qs = qa_data[qa_data['Identified_Accession_Number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Question", "Answer","Assigned ID","Identified_Accession_Number"]]
+    final_data = found_qs[["Question", "Answer", "Assigned ID", "Identified_Accession_Number"]]
 
-    print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
+    print(f'\nQA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
     final_data.to_csv(args.output_path, index=False)
 
     # 2. Output the mapping list
@@ -111,7 +148,7 @@ def main(args):
     rev_id_look_up = {v: k for k, v in id_look_up.items()}
     scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Identified_Accession_Number'].map(rev_id_look_up)
     
-    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path','Identified_Accession_Number']]
+    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path', 'Identified_Accession_Number']]
     
     print(f'Scan Mapping Output shape {scan_mapping.shape[0]} x {scan_mapping.shape[1]}')
     scan_mapping.to_csv(args.scan_mapping_path, index=False)
