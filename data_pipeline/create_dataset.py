@@ -67,7 +67,7 @@ def main(args):
     # Now map it
 
     #Replace 'accession_num' with 'Accession Num'
-    qa_data['Accession_number'] = qa_data['Accession Num'].map(id_look_up)
+    qa_data['Accession_number'] = qa_data['DeID Note Key'].map(id_look_up)
 
     if args.preferred_only:
         seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']
