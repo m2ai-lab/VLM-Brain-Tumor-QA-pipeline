@@ -63,23 +63,28 @@ def main(args):
     id_look_up = dict(zip(deid_to_accession['deid_accession_number'], 
                     deid_to_accession['accession_number']))
 
-    # ── DEBUG: id_look_up vs qa_data['DeID Note Key'] ───────────────────
-    print('\n[DEBUG] id_look_up size:', len(id_look_up))
-    sample_keys = list(id_look_up.keys())[:5]
-    print('[DEBUG] Sample id_look_up keys (deid_accession_number):', sample_keys)
-    print('[DEBUG] Sample qa_data DeID Note Key values:',
-          qa_data['DeID Note Key'].head(5).tolist())
-    print(f'[DEBUG] qa_data DeID Note Key dtype: {qa_data["DeID Note Key"].dtype} | '
-          f'id_look_up key type: {type(sample_keys[0]) if sample_keys else "N/A"}')
+    # ── DEBUG: show ALL qa_data columns to find the right join key ───────
+    print('\n[DEBUG] qa_data columns and sample values:')
+    for col in qa_data.columns:
+        sample = qa_data[col].dropna().head(3).tolist()
+        print(f'  {col!r:40s} -> {sample}')
+    print(f'\n[DEBUG] deid_accession_number format (lookup keys): '
+          f'{deid_to_accession["deid_accession_number"].head(3).tolist()}')
+    print('[DEBUG] ^^ Find the qa_data column whose values match this format to fix the merge key above.\n')
 
-    # Map DeID Note Key to Identified_Accession_Number
-    qa_data['Identified_Accession_Number'] = qa_data['DeID Note Key'].map(id_look_up)
+    # ── Use notes_to_acc as the working dataframe going forward ──────────
+    # After the merge, notes_to_acc already has 'accession_number' from deid_to_accession.
+    # We rename it to Identified_Accession_Number for clarity.
+    # NOTE: if the merge key above ('DeID Note Key' vs 'deid_accession_number') is wrong,
+    #       accession_number will be NaN for all rows. Fix the left_on= column to resolve.
+    notes_to_acc['Identified_Accession_Number'] = notes_to_acc['accession_number'].astype(str).str.strip()
+    notes_to_acc['Identified_Accession_Number'] = notes_to_acc['Identified_Accession_Number'].replace('nan', pd.NA)
 
-    nan_count = qa_data['Identified_Accession_Number'].isna().sum()
-    print(f'\n[DEBUG] After mapping DeID Note Key -> Identified_Accession_Number: '
-          f'{nan_count}/{len(qa_data)} rows are NaN (no match in id_look_up)')
-    mapped_sample = qa_data['Identified_Accession_Number'].dropna().head(5).tolist()
-    print('[DEBUG] Sample Identified_Accession_Number values after map:', mapped_sample)
+    nan_count = notes_to_acc['Identified_Accession_Number'].isna().sum()
+    print(f'[DEBUG] notes_to_acc Identified_Accession_Number: '
+          f'{nan_count}/{len(notes_to_acc)} rows are NaN (merge produced no match)')
+    print('[DEBUG] Sample Identified_Accession_Number from merge:',
+          notes_to_acc['Identified_Accession_Number'].dropna().head(5).tolist())
 
     if args.preferred_only:
         seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']
@@ -105,8 +110,8 @@ def main(args):
     # Get accessions that actually have sequences
     valid_accessions = seq_type_data['Identified_Accession_Number'].unique()
     
-    # ── DEBUG: overlap between qa_data and seq_type_data ────────────────
-    qa_ids  = set(qa_data['Identified_Accession_Number'].dropna().unique())
+    # ── DEBUG: overlap between notes_to_acc and seq_type_data ──────────
+    qa_ids  = set(notes_to_acc['Identified_Accession_Number'].dropna().unique())
     seq_ids = set(valid_accessions)
     overlap = qa_ids & seq_ids
     print(f'\n[DEBUG] QA unique Identified_Accession_Number (non-NaN): {len(qa_ids)}')
@@ -115,12 +120,12 @@ def main(args):
     if overlap:
         print('[DEBUG] Sample overlapping IDs:', list(overlap)[:5])
     else:
-        print('[DEBUG] NO OVERLAP -- this is why found_qs is empty.')
+        print('[DEBUG] NO OVERLAP -- fix the merge key (left_on= in notes_to_acc merge above).')
         print('[DEBUG] Sample QA IDs:  ', list(qa_ids)[:5])
         print('[DEBUG] Sample seq IDs:', list(seq_ids)[:5])
 
     # Filter questions that exist in valid_accessions
-    found_qs = qa_data[qa_data['Identified_Accession_Number'].isin(valid_accessions)].copy()
+    found_qs = notes_to_acc[notes_to_acc['Identified_Accession_Number'].isin(valid_accessions)].copy()
     final_data = found_qs[["Question", "Answer", "Assigned ID", "Identified_Accession_Number"]]
 
     print(f'\nQA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
@@ -144,10 +149,12 @@ def main(args):
 
     # Only map ones relevant to QA data
     scan_mapping = seq_type_data[seq_type_data['Identified_Accession_Number'].isin(found_qs['Identified_Accession_Number'])].copy()
-    
-    rev_id_look_up = {v: k for k, v in id_look_up.items()}
-    scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Identified_Accession_Number'].map(rev_id_look_up)
-    
+
+    # Deidentified_Accession_Number comes directly from the merge key column
+    scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Identified_Accession_Number'].map(
+        dict(zip(deid_to_accession['accession_number'], deid_to_accession['deid_accession_number']))
+    )
+
     scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path', 'Identified_Accession_Number']]
     
     print(f'Scan Mapping Output shape {scan_mapping.shape[0]} x {scan_mapping.shape[1]}')
