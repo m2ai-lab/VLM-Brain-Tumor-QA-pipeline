@@ -86,7 +86,7 @@ def main(args):
     
     # Filter questions that exist in valid_accessions
     found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number","Assigned ID"]]
+    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number","Assigned ID","Accession_number"]]
 
     print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
     final_data.to_csv(args.output_path, index=False)
@@ -113,7 +113,7 @@ def main(args):
     rev_id_look_up = {v: k for k, v in id_look_up.items()}
     scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Accession_number'].map(rev_id_look_up)
     
-    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path']]
+    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path','Accession_number']]
     
     print(f'Scan Mapping Output shape {scan_mapping.shape[0]} x {scan_mapping.shape[1]}')
     scan_mapping.to_csv(args.scan_mapping_path, index=False)
@@ -122,7 +122,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="QMRI Match Script")
     parser.add_argument('--qa_path', type=str, required=False, help='Path to QA data',
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/updated_ucsf_pdgm_pairs.csv")
+                        default=_cfg.get("qa_data_path"))
     parser.add_argument('--output_path', type=str, required=False, help='Path to output data',
                         default=_cfg.get("output_base", "") + "/dicom_dataset.csv")
     parser.add_argument('--scan_mapping_path', type=str, required=False,

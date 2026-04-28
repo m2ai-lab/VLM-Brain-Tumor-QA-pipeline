@@ -150,7 +150,7 @@ def generate_sbatch(
 
     return SBATCH_TEMPLATE.format(
         job_name=job.job_name,
-        time=job.slurm_params.get("time", "2-00:00:00"),
+        time=job.slurm_params.get("time", "06:00:00"),
         partition=job.slurm_params.get("partition", "gpu"),
         gpus_per_node=job.slurm_params.get("gpus_per_node", 1),
         cpus_per_task=job.slurm_params.get("cpus_per_task", 16),

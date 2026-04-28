@@ -8,6 +8,8 @@ and submits them via the SLURM scheduler with concurrency management.
 Usage:
     python -m experiment_orchestrator.run_experiments
     python -m experiment_orchestrator.run_experiments --only MedGemma1.5 Qwen2.5
+    python -m experiment_orchestrator.run_experiments --exclude LLaVA-Med
+    python -m experiment_orchestrator.run_experiments --exclude-name human single_slice_shuffled
     python -m experiment_orchestrator.run_experiments --dry-run
     python -m experiment_orchestrator.run_experiments --config custom.json
 """
@@ -78,6 +80,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         nargs="+",
         default=[],
         help="Run specific model:test combinations (e.g., MedGemma1.5:single_slice_shuffled).",
+    )
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=[],
+        help="Skip experiments for these model names (e.g., LLaVA-Med MedImageInsight). "
+             "Applied after all --only/--name/--variant/--include filters.",
+    )
+    parser.add_argument(
+        "--exclude-name",
+        nargs="+",
+        default=[],
+        help="Skip experiments for these test names (e.g., human single_slice_shuffled). "
+             "Applied after all --only/--name/--variant/--include filters.",
     )
     parser.add_argument(
         "--dry-run",
@@ -170,6 +186,25 @@ def main(argv: list[str] | None = None) -> int:
         final_jobs.update(included_jobs)
         all_jobs = list(final_jobs.values())
         logger.info("Final job list contains %d jobs after applying --include", len(all_jobs))
+
+    # Exclusion (denylist) filters — applied last so they always win
+    if args.exclude:
+        exclude_set = set(args.exclude)
+        before = len(all_jobs)
+        all_jobs = [j for j in all_jobs if j.model_name not in exclude_set]
+        logger.info(
+            "--exclude removed %d job(s) matching %s; %d remaining",
+            before - len(all_jobs), args.exclude, len(all_jobs),
+        )
+
+    if args.exclude_name:
+        exclude_name_set = set(args.exclude_name)
+        before = len(all_jobs)
+        all_jobs = [j for j in all_jobs if j.test_name not in exclude_name_set]
+        logger.info(
+            "--exclude-name removed %d job(s) matching %s; %d remaining",
+            before - len(all_jobs), args.exclude_name, len(all_jobs),
+        )
 
     if not all_jobs:
         logger.warning("No jobs to run. Check that models are enabled in the config.")
