@@ -26,7 +26,7 @@ class GlobalConfig(BaseModel):
     gpus_per_node: int = 1
     cpus_per_task: int = 16
     mem: str = "20G"
-    time: str = "2-00:00:00"
+    time: str = "06:00:00"
     mail_user: str = ""
     mail_type: str = "ALL"
     log_dir: str = "/home/remote/%u/logs"
