@@ -66,8 +66,8 @@ def main(args):
 
     # Now map it
 
-    #Replace 'accession_num' with 'Accession Num'
-    qa_data['Accession_number'] = qa_data['DeID Note Key'].map(id_look_up)
+    #Map DeID Note Key to Identified_Accession_Number
+    qa_data['Identified_Accession_Number'] = qa_data['DeID Note Key'].map(id_look_up)
 
     if args.preferred_only:
         seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']
@@ -75,16 +75,16 @@ def main(args):
     if args.filter_types:
         seq_type_data = seq_type_data[seq_type_data['sequence'].isin(args.filter_types)]
 
-    seq_type_data['Accession_number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
+    seq_type_data['Identified_Accession_Number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
 
     # 1. Output the distinct questions
     # Get accessions that actually have sequences
-    valid_accessions = seq_type_data['Accession_number'].unique()
+    valid_accessions = seq_type_data['Identified_Accession_Number'].unique()
     
     # Filter questions that exist in valid_accessions
-    found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Question", "Answer","Assigned ID","Accession_number"]]
+    found_qs = qa_data[qa_data['Identified_Accession_Number'].isin(valid_accessions)].copy()
+    final_data = found_qs[["Question", "Answer","Assigned ID","Identified_Accession_Number"]]
 
     print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
     final_data.to_csv(args.output_path, index=False)
@@ -106,12 +106,12 @@ def main(args):
     seq_type_data = seq_type_data.dropna(subset=['image_path'])
 
     # Only map ones relevant to QA data
-    scan_mapping = seq_type_data[seq_type_data['Accession_number'].isin(found_qs['Accession_number'])].copy()
+    scan_mapping = seq_type_data[seq_type_data['Identified_Accession_Number'].isin(found_qs['Identified_Accession_Number'])].copy()
     
     rev_id_look_up = {v: k for k, v in id_look_up.items()}
-    scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Accession_number'].map(rev_id_look_up)
+    scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Identified_Accession_Number'].map(rev_id_look_up)
     
-    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path','Accession_number']]
+    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path','Identified_Accession_Number']]
     
     print(f'Scan Mapping Output shape {scan_mapping.shape[0]} x {scan_mapping.shape[1]}')
     scan_mapping.to_csv(args.scan_mapping_path, index=False)
