@@ -77,8 +77,6 @@ def main(args):
 
     seq_type_data['Accession_number'] = seq_type_data['seq_dir'].astype(str).str.split('/').str[5]
 
-    # Replaced 'accession_num' with 'Accession Num'
-    qa_data = qa_data.rename(columns={'Accession Num': 'Deidentified_Accession_Number'})
 
     # 1. Output the distinct questions
     # Get accessions that actually have sequences
@@ -86,7 +84,7 @@ def main(args):
     
     # Filter questions that exist in valid_accessions
     found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number","Assigned ID","Accession_number"]]
+    final_data = found_qs[["Question", "Answer","Assigned ID","Accession_number"]]
 
     print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
     final_data.to_csv(args.output_path, index=False)
