@@ -122,7 +122,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="QMRI Match Script")
     parser.add_argument('--qa_path', type=str, required=False, help='Path to QA data',
-                        default=_cfg.get("qa_data_path"))
+                        default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, required=False, help='Path to output data',
                         default=_cfg.get("output_base", "") + "/dicom_dataset.csv")
     parser.add_argument('--scan_mapping_path', type=str, required=False,
