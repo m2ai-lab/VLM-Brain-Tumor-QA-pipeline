@@ -22,11 +22,16 @@ def load_datasets(args):
                                     usecols=['newID', 'accession_number'],
                                     dtype=str)
 
-    return qa_data,seq_type_data,deid_to_newID,newID_to_accession
+    pdgm_notes = pd.read_csv(args.pdgm_notes_path,
+                            usecols=['Assigned ID', 'accessionnumber'],
+                            dtype=str)
+
+    return qa_data,seq_type_data,deid_to_newID,newID_to_accession,pdgm_notes
+
 def main(args):
 
     #Load in the QA data
-    qa_data,seq_type_data,deid_to_newID,newID_to_accession = load_datasets(args)
+    qa_data,seq_type_data,deid_to_newID,newID_to_accession,pdgm_notes = load_datasets(args)
 
     #'Note ID' switched to DeID Note Key
     qa_data = qa_data.dropna(subset=['DeID Note Key'])
@@ -52,10 +57,21 @@ def main(args):
     deid_to_accession = deid_to_accession.loc[:, ~deid_to_accession.columns.str.contains('^Unnamed')]
 
     print('Merged deid to accession data, resulting shape:', deid_to_accession.shape)
+
+    pdgm_notes = pdgm_notes.dropna(subset=['Assigned ID'])
+    pdgm_notes['Assigned ID'] = pdgm_notes['Assigned ID'].astype(str).str.strip()
+    print('Loaded pdgm notes with shape:', pdgm_notes.shape)
+
+    pdgm_notes['Assigned ID'] = pdgm_notes['Assigned ID'].astype(str).apply(lambda x: f"UCSF-PDGM-{int(x):04d}")
+
+    deid_to_acc_map = dict(zip(pdgm_notes['Assigned ID'], 
+                                    pdgm_notes['accessionnumber']))
+
+    qa_data['Deidentified_Accession_Number'] = qa_data['Assigned ID'].map(deid_to_acc_map)
     
     notes_to_acc = pd.merge(qa_data, 
                             deid_to_accession, 
-                            left_on='DeID Note Key', 
+                            left_on='Deidentified_Accession_Number', 
                             right_on='deid_accession_number', 
                             how='left',
                             validate='many_to_one')
@@ -72,7 +88,7 @@ def main(args):
     # Now map it
 
     #Replace 'accession_num' with 'Accession Num'
-    qa_data['Accession_number'] = qa_data['Accession Num'].map(id_look_up)
+    qa_data['Accession_number'] = qa_data['Deidentified_Accession_Number'].map(id_look_up)
 
     if args.preferred_only:
         seq_type_data = seq_type_data[seq_type_data['preferred'] == 'True']

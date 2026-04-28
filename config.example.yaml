@@ -25,7 +25,7 @@ nifti_root: /scratch/user/shghosh/UCSF-PDGM-v5
 raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
 
 # ── QA CSV datasets ───────────────────────────────────────────────────────────
-qa_path: "{scratch_root}/finalized_ucsf_pdgm_pairs.csv"
+qa_path: "{scratch_root}/new_refined_ucsf_pdgm_pairs.csv"
 reshuffled_qa_path: "{scratch_root}/reshuffled_finalized_ucsf_pdgm_pairs.csv"
 human_qa_path: "{scratch_root}/human_dataset.csv"
 
@@ -60,6 +60,7 @@ log_dir: /home/remote/%u/logs
 deid_to_newID_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/De-Identified/RITM0609393A_Patient_Cohort_De_id_20251006.csv
 newID_to_accession_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/Identified/RITM0609393A_Patient_Cohort_id_20251006.csv
 seq_type_path: /mnt/fac/CX000019_DS1/neuroimaging_seqtype.csv
+pdgm_notes_path: "{scratch_root}/ucsf_pdgm_notes.csv"
 
 # ── Segmentation model (used by best_slice_extraction_2d.py) ─────────────────
 swinunetr_weights_path: "{models_base}/model_swinvit.pt"
