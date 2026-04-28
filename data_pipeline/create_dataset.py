@@ -170,6 +170,9 @@ if __name__ == "__main__":
     parser.add_argument('--single_dicom', type=bool, required=False,
                         help='single_dicom if required',
                         default=False)
+    parser.add_argument('--pdgm_notes_path', type=str, required=False,
+                        help='Path to pdgm notes data',
+                        default=_cfg.get("pdgm_notes_path"))
     args = parser.parse_args()
 
     main(args)
