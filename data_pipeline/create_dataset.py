@@ -80,12 +80,6 @@ def main(args):
     id_look_up = dict(zip(deid_to_accession['deid_accession_number'], 
                     deid_to_accession['accession_number']))
 
-    print(deid_to_accession.head(5))
-    print(qa_data.head(5))
-    print(notes_to_acc.head(5))
-    first_id = qa_data['DeID Note Key'].head(1)
-    print(first_id)
-    # Now map it
 
     #Replace 'accession_num' with 'Accession Num'
     qa_data['Accession_number'] = qa_data['Deidentified_Accession_Number'].map(id_look_up)
@@ -107,7 +101,7 @@ def main(args):
     
     # Filter questions that exist in valid_accessions
     found_qs = qa_data[qa_data['Accession_number'].isin(valid_accessions)].copy()
-    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number","Assigned ID"]]
+    final_data = found_qs[["Question", "Answer", "Deidentified_Accession_Number","Assigned ID","Accession_number"]]
 
     print(f'QA Output shape (Unique Questions) {final_data.shape[0]} x {final_data.shape[1]}')
     final_data.to_csv(args.output_path, index=False)

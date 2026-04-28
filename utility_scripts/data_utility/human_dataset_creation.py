@@ -15,7 +15,7 @@ def argument_handler():
     parser.add_argument(
         '--first_n',
         action='store_true',
-        default=False,
+        default=True,
         help=(
             'If set, skip accession-frequency ranking and simply take the first 250 '
             'rows of the dataset in their existing order. '
