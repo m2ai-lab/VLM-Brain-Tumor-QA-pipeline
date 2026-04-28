@@ -64,6 +64,11 @@ def main(args):
     id_look_up = dict(zip(deid_to_accession['deid_accession_number'], 
                     deid_to_accession['accession_number']))
 
+    print(deid_to_accession.head(5))
+    print(qa_data.head(5))
+    print(notes_to_acc.head(5))
+    first_id = qa_data['DeID Note Key'].head(1)
+    print(first_id)
     # Now map it
 
     #Replace 'accession_num' with 'Accession Num'
