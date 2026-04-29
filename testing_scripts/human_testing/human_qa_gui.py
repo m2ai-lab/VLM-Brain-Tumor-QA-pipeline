@@ -520,7 +520,7 @@ class QAReviewer(tk.Tk):
             self.comments = {int(k): v for k, v in raw_com.items()}
 
             n_q = len(self.rows)
-            n_acc = len(set([r.get("Deidentified_Accession_Number") for r in self.rows]))
+            n_acc = len(set([r.get("Accession_number") for r in self.rows]))
             fname = os.path.basename(self.csv_path or "Unknown")
 
             self._landing_n_questions_lbl.config(text=str(n_q))
