@@ -70,11 +70,6 @@ def argument_handler() -> argparse.Namespace:
         help="Root directory that contains all model result CSVs.",
     )
     parser.add_argument(
-        "--answer_dir",
-        default=_cfg.get("scratch_root"),
-        help="Directory containing the ground-truth Q&A CSVs.",
-    )
-    parser.add_argument(
         "--metrics_dir",
         default=_cfg.get("output_base", "") + "/metrics",
         help="Directory where all output files are written.",
@@ -113,7 +108,7 @@ def argument_handler() -> argparse.Namespace:
 # ──────────────────────────────────────────────────────────────────────────────
 # SHARED HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
-def _resolve_answer_csv(answer_dir: str, result_filename: str) -> str:
+def _resolve_answer_csv(result_filename: str) -> str:
     """
     Pick the correct ground-truth CSV based on whether the results file
     name contains 'shuffled'.
@@ -178,7 +173,7 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     for test_name, read_path, write_path in iter_result_csvs(args.qa_path):
         # ── pick the correct ground-truth CSV for this result file ──
         result_filename = os.path.basename(read_path)
-        answer_path = _resolve_answer_csv(args.answer_dir, result_filename)
+        answer_path = _resolve_answer_csv(result_filename)
         answer_df = pd.read_csv(answer_path)
         answer_idx_col = answer_df.columns[0]
         print(f"  Evaluating [{test_name}]  ←  {read_path}")
@@ -292,7 +287,7 @@ def stage2_aggregate_rw(args: argparse.Namespace) -> tuple[Counter, Counter]:
     print("=" * 60)
 
     # Use the standard (non-shuffled) answer key for aggregation indexing
-    answer_path = os.path.join(args.answer_dir, "finalized_ucsf_pdgm_pairs.csv")
+    answer_path = _cfg.get("qa_path")
     answer_df = pd.read_csv(answer_path)
     answer_df = answer_df.rename(columns={answer_df.columns[0]: "Question_Idx"})
     answer_df = answer_df.set_index("Question_Idx")
