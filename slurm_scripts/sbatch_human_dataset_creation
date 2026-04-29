@@ -1,0 +1,52 @@
+#!/bin/bash
+#SBATCH --job-name=human_dataset_creation
+#SBATCH --time=06:00:00
+#SBATCH --partition=cpu
+#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=40G
+#SBATCH --output=/home/remote/%u/logs/human_dataset_creation_%j.out
+#SBATCH --error=/home/remote/%u/logs/human_dataset_creation_%j.err
+#SBATCH --mail-user=shiv.ghosh@ucsf.edu
+#SBATCH --mail-type=ALL
+
+# 1. Load the cluster's Conda module
+module load miniforge3
+
+# 2. Prevent "Ghost" package leakage
+export PYTHONNOUSERSITE=1
+unset PYTHONPATH
+
+# 3. DYNAMIC ENVIRONMENT DETECTION
+ENV_PATH=$(conda env list | grep -E '^format\s' | awk '{print $NF}')
+
+if [ -z "$ENV_PATH" ]; then
+    echo "ERROR: Environment 'format' not found for user $USER."
+    echo "Please create it using: conda create -n format python=3.10"
+    exit 1
+fi
+
+DYNAMIC_PYTHON="${ENV_PATH}/bin/python"
+
+echo "------------------------------------------------------------"
+echo "Job ID:        $SLURM_JOB_ID"
+echo "User:          $USER"
+echo "Env Path:      $ENV_PATH"
+echo "Using Python:  $DYNAMIC_PYTHON"
+echo "------------------------------------------------------------"
+
+# 4. Resolve project root from config.yaml
+PROJECT_ROOT=$("$DYNAMIC_PYTHON" -c "import sys; sys.path.insert(0, '$(pwd)'); from config_utils import load_config; print(load_config()['project_root'])")
+echo "Project Root: $PROJECT_ROOT"
+
+# 5. RUN human_dataset_creation.py
+# Remove --first_n to use the default mode (most-questions-first accession ranking).
+# Add --first_n to simply take the first 250 rows of the dataset in order.
+"$DYNAMIC_PYTHON" "$PROJECT_ROOT/utility_scripts/data_utility/human_dataset_creation.py" \
+    --first_n
+
+cp "/mnt/fac/CX000019_DS1/brain_vlm_human_ds/human_dataset.csv" "$PROJECT_ROOT/../human_dataset.csv"
+
+echo "------------------------------------------------------------"
+echo "Job finished at $(date)"
