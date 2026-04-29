@@ -35,6 +35,7 @@ output_base: "{scratch_root}/QApairs"
 
 # Format dataset — 2D slices and blank controls
 slice_dir: "{output_base}/format_dataset/2D_slices"
+mask_dir: "{output_base}/format_dataset/2D_slices/generated_masks"
 blank_png: "{output_base}/format_dataset/blank/BlackedOut.png"
 blank_nifti: "{output_base}/format_dataset/blank/BlackedOut.nii.gz"
 

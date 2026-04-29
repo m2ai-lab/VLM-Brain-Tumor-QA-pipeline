@@ -128,7 +128,7 @@ def main(args):
     rev_id_look_up = {v: k for k, v in id_look_up.items()}
     scan_mapping['Deidentified_Accession_Number'] = scan_mapping['Accession_number'].map(rev_id_look_up)
     
-    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path']]
+    scan_mapping = scan_mapping[['Deidentified_Accession_Number', 'sequence', 'image_path','Accession_number']]
     
     print(f'Scan Mapping Output shape {scan_mapping.shape[0]} x {scan_mapping.shape[1]}')
     scan_mapping.to_csv(args.scan_mapping_path, index=False)
