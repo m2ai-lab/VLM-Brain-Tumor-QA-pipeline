@@ -548,7 +548,7 @@ class QAReviewer(tk.Tk):
             self._show_load_screen()
             return
 
-        required = {"Question", "Deidentified_Accession_Number"}
+        required = {"Question", "Accession_number"}
         missing = required - set(df.columns)
         if missing:
             self.load_err.config(text=f"Missing columns: {', '.join(missing)}")
@@ -567,7 +567,7 @@ class QAReviewer(tk.Tk):
 
         # populate landing stats
         n_q = len(self.rows)
-        n_acc = df["Deidentified_Accession_Number"].nunique()
+        n_acc = df["Accession_number"].nunique()
         fname = os.path.basename(path)
         self._landing_n_questions_lbl.config(text=str(n_q))
         self._landing_n_accessions_lbl.config(text=str(n_acc))
@@ -605,7 +605,7 @@ class QAReviewer(tk.Tk):
         n = len(self.rows)
 
         # header
-        self.accession_lbl.config(text=str(row.get("Deidentified_Accession_Number", "—")))
+        self.accession_lbl.config(text=str(row.get("Accession_number", "—")))
         self.progress_lbl.config(text=f"{idx + 1} of {n}")
         self.prog_bar["maximum"] = n
         self.prog_bar["value"]   = idx + 1
@@ -783,7 +783,7 @@ class QAReviewer(tk.Tk):
         for i, row in enumerate(self.rows):
             records.append({
                 "index":                         i + 1,
-                "Deidentified_Accession_Number": row.get("Deidentified_Accession_Number", ""),
+                "Accession_number":              row.get("Accession_number", ""),
                 "Question":                      row.get("Question", ""),
                 "selected_answer":               self.answers.get(i, ""),
                 "can_answer_from_image":         self.can_answer.get(i, ""),
