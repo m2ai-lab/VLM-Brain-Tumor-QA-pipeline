@@ -267,16 +267,29 @@ class QAReviewer(tk.Tk):
         hdr = tk.Frame(self.quiz_frame, bg=self.BG, padx=self.PAD, pady=14)
         hdr.pack(fill="x", side="top")
 
-        # accession number
+        # accession number — use a read-only Entry so the value can be
+        # selected and copied with Ctrl+C like any normal text field.
         acc_box = tk.Frame(hdr, bg=self.BG)
         acc_box.pack(side="left")
         tk.Label(acc_box, text="Accession number", bg=self.BG, fg=self.MUTED,
                  font=self.FONT_SMALL).pack(anchor="w")
-        self.accession_lbl = tk.Label(acc_box, text="", bg=self.ACC_L, fg=self.ACC,
-                                      font=self.FONT_MONO, padx=10, pady=3,
-                                      relief="flat", bd=0,
-                                      highlightthickness=1, highlightbackground="#BFDBFE")
-        self.accession_lbl.pack(anchor="w", pady=(2, 0))
+        self._accession_var = tk.StringVar(value="")
+        self.accession_lbl = tk.Entry(
+            acc_box,
+            textvariable=self._accession_var,
+            state="readonly",
+            readonlybackground=self.ACC_L,
+            fg=self.ACC,
+            font=self.FONT_MONO,
+            relief="flat",
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#BFDBFE",
+            highlightcolor="#BFDBFE",
+            cursor="xterm",
+            width=18,
+        )
+        self.accession_lbl.pack(anchor="w", pady=(2, 0), ipady=3)
 
         # progress
         prog_box = tk.Frame(hdr, bg=self.BG)
@@ -604,8 +617,9 @@ class QAReviewer(tk.Tk):
         row = self.rows[idx]
         n = len(self.rows)
 
-        # header
-        self.accession_lbl.config(text=str(row.get("Accession_number", "—")))
+        # header — update the StringVar so the read-only Entry reflects the
+        # current accession number (user can click + Ctrl+C to copy it).
+        self._accession_var.set(str(row.get("Accession_number", "—")))
         self.progress_lbl.config(text=f"{idx + 1} of {n}")
         self.prog_bar["maximum"] = n
         self.prog_bar["value"]   = idx + 1
