@@ -1,0 +1,68 @@
+"""
+openai_versa.py — Adapter for GPT-5+ vision via UCSF Versa / Mulesoft Azure OpenAI.
+
+A single script (QA_testing_OpenAI.py) handles all variants; the variant
+is conveyed through CLI flags:
+  - single_slice : --image_dir <per-patient PNG dir>
+  - blank        : --image_path <blacked-out PNG>
+
+Unlike local GPU models, this adapter:
+  - Does not require --model_path (auth is via .env / OPENAI_API_KEY)
+  - Does not need a GPU partition (API call, no local inference)
+  - Supports --deployment to switch between GPT-5 / GPT-4.1 / o4-mini
+"""
+from __future__ import annotations
+
+import posixpath
+
+from experiment_orchestrator.adapters.base import ModelAdapter
+from experiment_orchestrator.config_resolver import ResolvedJob
+
+
+class OpenAIVersaAdapter(ModelAdapter):
+    """Builds CLI commands for QA_testing_OpenAI.py (Versa/Azure GPT-5+)."""
+
+    SCRIPT = "testing_scripts/QA_testing_OpenAI.py"
+
+    SUPPORTED_VARIANTS = {"single_slice", "blank"}
+
+    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+        if job.variant not in self.SUPPORTED_VARIANTS:
+            raise ValueError(
+                f"Unknown OpenAI variant '{job.variant}'. "
+                f"Available: {sorted(self.SUPPORTED_VARIANTS)}"
+            )
+
+        script = posixpath.join(project_root, self.SCRIPT)
+        args = [
+            f"--qa_path {job.qa_path}",
+            f"--output_path {job.output_path}",
+        ]
+
+        if job.variant == "blank":
+            args.append(f"--image_path {job.image_path}")
+        else:
+            args.append(f"--image_dir {job.image_dir}")
+
+        # Optional deployment override (e.g. gpt-4.1-2025-04-14)
+        if getattr(job, "deployment", None):
+            args.append(f"--deployment {job.deployment}")
+
+        return f"{script} {' '.join(args)}"
+
+    def validate(self, job: ResolvedJob) -> None:
+        if job.variant not in self.SUPPORTED_VARIANTS:
+            raise ValueError(
+                f"OpenAI variant '{job.variant}' not in {sorted(self.SUPPORTED_VARIANTS)}"
+            )
+
+        if job.variant == "blank":
+            if not job.image_path:
+                raise ValueError(
+                    f"OpenAI blank test '{job.job_name}' requires 'image_path'"
+                )
+        else:
+            if not job.image_dir:
+                raise ValueError(
+                    f"OpenAI test '{job.job_name}' requires 'image_dir'"
+                )

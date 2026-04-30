@@ -1,6 +1,6 @@
 {
   "global": {
-    "max_concurrent_jobs": 4,
+    "max_concurrent_jobs": 3,
     "runs_per_experiment": 3,
     "partition": "gpu",
     "gpus_per_node": 1,
@@ -38,6 +38,7 @@
       "activate_path": "{project_root}/../envs/medimageinsight/bin/activate"
     }
   },
+
 
   "models": {
     "MedGemma1.5": {

@@ -11,6 +11,7 @@ from experiment_orchestrator.adapters.qwen import QwenAdapter
 from experiment_orchestrator.adapters.medfusion import MedFusionAdapter
 from experiment_orchestrator.adapters.medimageinsight import MedImageInsightAdapter
 from experiment_orchestrator.adapters.llavamed import LLaVaMedAdapter
+from experiment_orchestrator.adapters.openai_versa import OpenAIVersaAdapter
 
 ADAPTER_REGISTRY: dict[str, ModelAdapter] = {
     "medgemma": MedGemmaAdapter(),
@@ -19,6 +20,7 @@ ADAPTER_REGISTRY: dict[str, ModelAdapter] = {
     "medfusion": MedFusionAdapter(),
     "medimageinsight": MedImageInsightAdapter(),
     "llavamed": LLaVaMedAdapter(),
+    "openai_versa": OpenAIVersaAdapter(),
 }
 
 

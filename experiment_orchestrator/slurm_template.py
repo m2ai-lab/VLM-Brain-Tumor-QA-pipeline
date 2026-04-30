@@ -61,7 +61,7 @@ SBATCH_TEMPLATE = textwrap.dedent("""\
     #SBATCH --partition={partition}
     #SBATCH --ntasks-per-node=1
     #SBATCH --nodes=1
-    #SBATCH --gres=gpu:{gpus_per_node}
+    {gres_line}
     #SBATCH --cpus-per-task={cpus_per_task}
     #SBATCH --mem={mem}
     #SBATCH --output={log_dir}/%j_%x.out
@@ -148,11 +148,15 @@ def generate_sbatch(
     env_block = _build_env_block(env_cfg)
     mail_lines = _build_mail_lines(job.slurm_params)
 
+    gpus = job.slurm_params.get("gpus_per_node", 1)
+    # Omit --gres entirely for CPU-only jobs (e.g. OpenAI API calls)
+    gres_line = f"#SBATCH --gres=gpu:{gpus}" if gpus and int(gpus) > 0 else ""
+
     return SBATCH_TEMPLATE.format(
         job_name=job.job_name,
         time=job.slurm_params.get("time", "06:00:00"),
         partition=job.slurm_params.get("partition", "gpu"),
-        gpus_per_node=job.slurm_params.get("gpus_per_node", 1),
+        gres_line=gres_line,
         cpus_per_task=job.slurm_params.get("cpus_per_task", 16),
         mem=job.slurm_params.get("mem", "20G"),
         log_dir=job.slurm_params.get("log_dir", "/home/remote/%u/logs"),

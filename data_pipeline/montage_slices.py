@@ -194,7 +194,7 @@ def process_patient(pdgm_id: str,
     """
     Generates a montage for a single patient.  Returns True if created.
     """
-    out_path = Path(output_dir) / str(pdgm_id) / "montage.png"
+    out_path = Path(output_dir) / str(pdgm_id) / "axial_slices_montage.png"
     if out_path.exists() and not overwrite:
         print(f"  [SKIP] {pdgm_id} — montage already exists")
         return False
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output_dir", type=str,
-        default=_cfg.get("output_base", "") + "/montages",
+        default=_cfg.get("slice_dir"),
         help="Root directory for output montage PNGs.",
     )
     parser.add_argument(
