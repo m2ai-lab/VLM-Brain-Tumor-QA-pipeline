@@ -168,7 +168,7 @@ def main(args):
 
         if not os.path.exists(slice_dir_path):
             os.makedirs(slice_dir_path, exist_ok=True)
-            scan_dir_path = os.path.join(f'/mnt/scratch/user/shghosh/UCSF-PDGM-v5/{pdgm_id}_nifti')                
+            scan_dir_path = os.path.join(_cfg.get("nifti_root"),f'{pdgm_id}_nifti')                
             # 2. GENERATE MASK IF MISSING
             if not os.path.exists(mask_path):
                 print(f"Generating mask for {pdgm_id}...")

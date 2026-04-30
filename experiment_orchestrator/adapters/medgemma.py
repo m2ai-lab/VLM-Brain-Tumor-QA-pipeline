@@ -2,10 +2,12 @@
 medgemma.py — Adapter for MedGemma model variants.
 
 MedGemma uses 2D PNG images via PIL, AutoProcessor, and Pydantic JSON-
-constrained generation.  Supports three variants:
-  - multi_slice:  3 axial/coronal/sagittal PNGs per patient
-  - single_slice: 1 axial PNG per patient
-  - blank:        a single blacked-out PNG (control experiment)
+constrained generation.  Supports four variants:
+  - multi_slice:      3 axial/coronal/sagittal PNGs per patient
+  - single_slice:     1 axial PNG per patient
+  - contrast_slices:  all axial_<CONTRAST>.png files per patient
+                      (produced by data_pipeline/extract_contrast_slices.py)
+  - blank:            a single blacked-out PNG (control experiment)
 """
 from __future__ import annotations
 
@@ -19,9 +21,10 @@ class MedGemmaAdapter(ModelAdapter):
     """Builds CLI commands for MedGemma testing scripts."""
 
     VARIANT_SCRIPTS = {
-        "multi_slice": "testing_scripts/QA_testing_medgemma_multi_slice.py",
-        "single_slice": "testing_scripts/QA_testing_medgemma_single_slice.py",
-        "blank": "testing_scripts/QA_testing_medgemma_blank.py",
+        "multi_slice":     "testing_scripts/QA_testing_medgemma_multi_slice.py",
+        "single_slice":    "testing_scripts/QA_testing_medgemma_single_slice.py",
+        "contrast_slices": "testing_scripts/QA_testing_medgemma_contrast_slices.py",
+        "blank":           "testing_scripts/QA_testing_medgemma_blank.py",
     }
 
     def build_command(self, job: ResolvedJob, project_root: str) -> str:
@@ -47,7 +50,6 @@ class MedGemmaAdapter(ModelAdapter):
         return f"{script} {' '.join(args)}"
 
     def validate(self, job: ResolvedJob) -> None:
-        # Check variant is known
         known = set(self.VARIANT_SCRIPTS.keys())
         if job.variant not in known:
             raise ValueError(
@@ -64,3 +66,4 @@ class MedGemmaAdapter(ModelAdapter):
                 raise ValueError(
                     f"MedGemma test '{job.job_name}' requires 'image_dir'"
                 )
+
