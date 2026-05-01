@@ -11,10 +11,19 @@
 #SBATCH --mail-user=shiv.ghosh@ucsf.edu
 #SBATCH --mail-type=ALL
 
-# Resolve the project root from this script's location.
-# This is always correct regardless of where `sbatch` is called from.
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
+# SLURM_SUBMIT_DIR is set by SLURM to the directory where sbatch was called.
+# Always submit this script from the project root:
+#   cd /path/to/QA-BrainTumor-VLM-UCSF-
+#   sbatch slurm_scripts/sbatch_run_orchestration
+PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
+
+if [ ! -f "${PROJECT_ROOT}/config.yaml" ]; then
+    echo "ERROR: config.yaml not found in SLURM_SUBMIT_DIR=${PROJECT_ROOT}"
+    echo "Submit this script from the project root directory:"
+    echo "  cd /path/to/QA-BrainTumor-VLM-UCSF-"
+    echo "  sbatch slurm_scripts/sbatch_run_orchestration"
+    exit 1
+fi
 
 echo "------------------------------------------------------------"
 echo "Job ID:        $SLURM_JOB_ID"
