@@ -26,9 +26,9 @@ echo "------------------------------------------------------------"
 # 1. Load the cluster's Conda module
 module load miniforge3
 
-# 2. Prevent package leakage
+# 2. Prevent package leakage; keep PROJECT_ROOT importable
 export PYTHONNOUSERSITE=1
-unset PYTHONPATH
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH}"
 
 # 3. Dynamic environment detection for the orchestrator (uses 'format' env)
 ENV_PATH=$(conda env list | grep -E '^format\s' | awk '{print $NF}')
@@ -43,11 +43,11 @@ DYNAMIC_PYTHON="${ENV_PATH}/bin/python"
 echo "Using Python:  $DYNAMIC_PYTHON"
 echo "------------------------------------------------------------"
 
-# 4. Run the orchestrator as a module so Python sets sys.path correctly.
-#    Pass PROJECT_ROOT explicitly via PYTHONPATH so config_utils is importable.
-export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH}"
+# 4. Run the orchestrator directly by path.
+#    run_experiments.py adds its own PROJECT_ROOT to sys.path via __file__,
+#    so no -m module magic is needed.
 cd "$PROJECT_ROOT"
-"$DYNAMIC_PYTHON" -m experiment_orchestrator.run_experiments "$@"
+"$DYNAMIC_PYTHON" "${PROJECT_ROOT}/experiment_orchestrator/run_experiments.py" "$@"
 
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"
