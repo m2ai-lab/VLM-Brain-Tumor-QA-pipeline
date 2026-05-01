@@ -49,6 +49,7 @@ medgemma_model_path: "{models_base}/medgemma-1.5-4b-it"
 med3dvlm_model_path: "{models_base}/Med3DVLM/src/model/Med3DVLM-Qwen-2.5-7B"
 qwen_model_path: "{models_base}/Qwen2.5-7B-Instruct"
 medimageinsight_model_path: "{models_base}/MedImageInsights"
+lingshu_model_path: "{models_base}/Lingshu-32B"
 
 # LLaVA-Med: model weights (relative path from its repo dir is typical)
 llavamed_model_path: "./llava-med-v1.5-mistral-7b"

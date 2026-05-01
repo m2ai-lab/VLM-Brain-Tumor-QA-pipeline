@@ -95,7 +95,7 @@ MAX_RETRIES = 4
 
 # ── Token budget for GPT-5+ and reasoning models ──────────────────────────────
 # Notebook cell 11: use max_completion_tokens (not max_tokens) for o- and GPT5+ models.
-MAX_COMPLETION_TOKENS = 256
+MAX_COMPLETION_TOKENS = 1024
 
 # ── Pydantic response schema ──────────────────────────────────────────────────
 class VQAResponse(BaseModel):

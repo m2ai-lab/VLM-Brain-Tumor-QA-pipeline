@@ -17,28 +17,28 @@
   },
   "environments": {
     "medgemma": {
-      "type": "conda_dynamic",
-      "env_name": "medgemma"
+      "type": "venv",
+      "activate_path": "{project_root}/envs/vlm-medgemma/bin/activate"
     },
     "med3dvlm": {
-      "type": "conda_dynamic",
-      "env_name": "Med3DVLM"
-    },
-    "llava-med": {
       "type": "venv",
-      "activate_path": "{project_root}/../envs/llava-med/bin/activate"
+      "activate_path": "{project_root}/envs/vlm-med3dvlm/bin/activate"
     },
-    "medfusion": {
-      "type": "static_path",
-      "python_path": "{project_root}/../envs/medfusion/bin/python"
+    "lingshu": {
+      "type": "venv",
+      "activate_path": "{project_root}/envs/vlm-lingshu/bin/activate"
     },
     "medimageinsight": {
       "type": "venv",
-      "activate_path": "{project_root}/../envs/medimageinsight/bin/activate"
+      "activate_path": "{project_root}/envs/vlm-medimageinsight/bin/activate"
+    },
+    "llava-med": {
+      "type": "venv",
+      "activate_path": "{project_root}/envs/vlm-llavamed/bin/activate"
     },
     "openai": {
-      "type": "conda_dynamic",
-      "env_name": "openai"
+      "type": "venv",
+      "activate_path": "{project_root}/envs/vlm-orchestrator/bin/activate"
     }
   },
   "models": {
@@ -343,6 +343,63 @@
           "variant": "montage_slice",
           "qa_path": "{human_qa_path}",
           "output_path": "{output_base}/GPT5Mini/montage_human_results.csv"
+        }
+      ]
+    },
+    "Lingshu-32B": {
+      "enabled": true,
+      "adapter": "lingshu",
+      "environment": "lingshu",
+      "model_path": "{lingshu_model_path}",
+      "image_dir": "{slice_dir}",
+      "runs_per_experiment": 1,
+      "slurm_overrides": {
+        "partition": "gpu",
+        "gpus_per_node": 1,
+        "mem": "64G",
+        "time": "04:00:00",
+        "cpus_per_task": 8
+      },
+      "tests": [
+        {
+          "name": "single_slice",
+          "variant": "single_slice",
+          "output_path": "{output_base}/Lingshu/single_slice_results.csv"
+        },
+        {
+          "name": "single_slice_shuffled",
+          "variant": "single_slice",
+          "qa_path": "{reshuffled_qa_path}",
+          "output_path": "{output_base}/Lingshu/single_slice_reshuffled_results.csv"
+        },
+        {
+          "name": "montage_slice",
+          "variant": "montage_slice",
+          "output_path": "{output_base}/Lingshu/montage_slice_results.csv"
+        },
+        {
+          "name": "montage_slice_shuffled",
+          "variant": "montage_slice",
+          "qa_path": "{reshuffled_qa_path}",
+          "output_path": "{output_base}/Lingshu/montage_slice_reshuffled_results.csv"
+        },
+        {
+          "name": "blank",
+          "variant": "blank",
+          "image_path": "{blank_png}",
+          "output_path": "{output_base}/Lingshu/blank_results.csv"
+        },
+        {
+          "name": "human",
+          "variant": "single_slice",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/Lingshu/human_results.csv"
+        },
+        {
+          "name": "human_montage",
+          "variant": "montage_slice",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/Lingshu/montage_human_results.csv"
         }
       ]
     }
