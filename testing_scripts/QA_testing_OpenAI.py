@@ -256,6 +256,7 @@ def query_the_model(
     patient_id: str,
     base_image_dir: str,
     deployment: str,
+    image_filename: str = "Axial.png",
 ) -> dict:
     """
     Send one question + the patient's axial MRI slice to GPT-5+ via Versa.
@@ -263,7 +264,7 @@ def query_the_model(
     Returns {"answer": ..., "concise_reasoning": ...} from the Pydantic VQAResponse.
     Mirrors query_the_model() in QA_testing_MedImageInsight.py.
     """
-    patient_image_path = os.path.join(base_image_dir, str(patient_id), "Axial.png")
+    patient_image_path = os.path.join(base_image_dir, str(patient_id), image_filename)
     _dbg(f"  Image path: {patient_image_path}")
 
     if not os.path.exists(patient_image_path):
@@ -358,6 +359,7 @@ def main(args: argparse.Namespace) -> None:
                 patient_id     = row["Assigned ID"],
                 base_image_dir = args.image_dir,
                 deployment     = args.deployment,
+                image_filename = args.image_filename,
             )
 
         generated_answer.append(response["answer"])
@@ -407,6 +409,11 @@ if __name__ == "__main__":
             "Options: gpt-5-mini-2025-08-07, gpt-4.1-2025-04-14, "
             "gpt-4o-2024-11-20, o4-mini-2025-04-16"
         ),
+    )
+    parser.add_argument(
+        "--image_filename", type=str, default="Axial.png",
+        help="Filename of the image inside each patient's directory. "
+             "Use 'axial_slices_montage.png' for the montage variant.",
     )
     parser.add_argument(
         "--limit", type=int, default=None,

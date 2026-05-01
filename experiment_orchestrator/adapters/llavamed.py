@@ -15,6 +15,11 @@ from experiment_orchestrator.config_resolver import ResolvedJob
 class LLaVaMedAdapter(ModelAdapter):
     """Builds CLI commands for LLaVA-Med testing scripts."""
 
+    _IMAGE_FILENAME = {
+        "single_slice":  "Axial.png",
+        "montage_slice": "axial_slices_montage.png",
+    }
+
     def build_command(self, job: ResolvedJob, project_root: str) -> str:
         script = posixpath.join(
             project_root, "testing_scripts/QA_testing_llava_med.py"
@@ -32,6 +37,8 @@ class LLaVaMedAdapter(ModelAdapter):
                  args.append(f"--image_dir {job.image_dir}")
         else:
             args.append(f"--image_dir {job.image_dir}")
+            if job.variant in self._IMAGE_FILENAME:
+                args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
         return f"{script} {' '.join(args)}"
 

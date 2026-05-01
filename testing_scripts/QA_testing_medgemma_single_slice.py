@@ -43,9 +43,9 @@ class MedResponse(BaseModel):
     answer: str = Field(description="The final choice selected from the options.")
 
 
-def query_the_model(model, processor, question, patient_id, base_image_dir):
+def query_the_model(model, processor, question, patient_id, base_image_dir, image_filename="Axial.png"):
     # Assume the PNGs are stored in a folder named after the patient ID
-    patient_image_path = path.join(base_image_dir, str(patient_id),"Axial.png")
+    patient_image_path = path.join(base_image_dir, str(patient_id), image_filename)
     
     if not path.exists(patient_image_path):
         return {"reasoning": f"Error: Directory {patient_image_path} not found.", "answer": "Error"}
@@ -140,7 +140,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_dir)
+        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_dir, args.image_filename)
         generated_answer.append(response['answer'])
         generated_reasoning.append(response['reasoning'])
         print(f"Response: {response}\n{'-'*30}")
@@ -156,6 +156,8 @@ if __name__ == "__main__":
     parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/MedGemma1.5/single_slice_results.csv")
     parser.add_argument('--image_dir', type=str, default=_cfg.get("slice_dir"))
+    parser.add_argument('--image_filename', type=str, default="Axial.png",
+                        help="Filename inside each patient dir. Use 'axial_slices_montage.png' for montage.")
     parser.add_argument('--model_path', type=str, default=_cfg.get("medgemma_model_path"))
 
     args = parser.parse_args()

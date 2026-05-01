@@ -23,8 +23,15 @@ class MedGemmaAdapter(ModelAdapter):
     VARIANT_SCRIPTS = {
         "multi_slice":     "testing_scripts/QA_testing_medgemma_multi_slice.py",
         "single_slice":    "testing_scripts/QA_testing_medgemma_single_slice.py",
+        "montage_slice":   "testing_scripts/QA_testing_medgemma_single_slice.py",
         "contrast_slices": "testing_scripts/QA_testing_medgemma_contrast_slices.py",
         "blank":           "testing_scripts/QA_testing_medgemma_blank.py",
+    }
+
+    # For image-dir-based variants, the filename to look for in each patient dir
+    _IMAGE_FILENAME = {
+        "single_slice":  "Axial.png",
+        "montage_slice": "axial_slices_montage.png",
     }
 
     def build_command(self, job: ResolvedJob, project_root: str) -> str:
@@ -46,6 +53,8 @@ class MedGemmaAdapter(ModelAdapter):
             args.append(f"--image_path {job.image_path}")
         else:
             args.append(f"--image_dir {job.image_dir}")
+            if job.variant in self._IMAGE_FILENAME:
+                args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
         return f"{script} {' '.join(args)}"
 

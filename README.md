@@ -551,15 +551,144 @@ sbatch slurm_scripts/sbatch_run_orchestration
 python evaluation_scripts/eval_answers.py --stages 1 2 3
 ```
 
-### Quick Local Test (OpenAI / GPT-5+)
+---
+
+## Running Locally
+
+Use this workflow when you want to test on a laptop, VM, or any machine without SLURM.
+
+### 1. Clone & configure
 
 ```bash
-# Activate the lightweight openai conda environment
-conda activate openai       # or: conda env create -f environments/openai.yml
+git clone <repo_url>
+cd QA-BrainTumor-VLM-UCSF-
 
-# Set your Versa API key in .env (copy from .env.example if present)
-# OPENAI_API_KEY=<your_base64_composite_key>
+cp config.example.yaml config.yaml
+```
 
-# Run 5 rows as a smoke test
-python testing_scripts/QA_testing_OpenAI.py --limit 5 --output_path test_output/quick_test.csv
+Edit `config.yaml` — the fields that matter for local runs:
+
+```yaml
+project_root: C:/Users/you/QA-BrainTumor-VLM-UCSF-   # absolute path to the repo
+
+# QA datasets (shipped in the repo under datasets/)
+qa_path:            "{project_root}/datasets/qa_dataset.csv"
+reshuffled_qa_path: "{project_root}/datasets/reshuffled_qa_dataset.csv"
+human_qa_path:      "{project_root}/datasets/human_dataset.csv"
+
+# Where results are saved (gitignored, created automatically)
+output_base: "{project_root}/QApairs"
+
+# 2D slice images and blank control
+slice_dir: Y:/openai_vqa_data/2D_slices       # wherever your PNGs live
+blank_png:  Y:/openai_vqa_data/blank/BlackedOut.png
+```
+
+### 2. Preview what will run
+
+```bash
+python experiment_orchestrator/run_local.py --list
+```
+
+This prints every resolved job (model × test × run) without executing anything.
+
+### 3. Run experiments locally
+
+`run_local.py` accepts the same filter flags as `run_experiments.py`:
+
+```bash
+# Run everything sequentially
+python experiment_orchestrator/run_local.py
+
+# Run a single model
+python experiment_orchestrator/run_local.py --model GPT5Mini
+
+# Run only blank (control) tests
+python experiment_orchestrator/run_local.py --variant blank
+
+# Run MedGemma, skip human tests
+python experiment_orchestrator/run_local.py --model MedGemma1.5 --exclude-test human
+
+# Run 2 jobs in parallel (useful for API-bound models)
+python experiment_orchestrator/run_local.py --jobs 2
+
+# Dry-run: print commands without executing
+python experiment_orchestrator/run_local.py --dry-run
+```
+
+> **Note on environments**: `run_local.py` uses whichever Python interpreter is currently active. Activate the correct conda environment before running, or pass `--python /path/to/env/bin/python`.
+
+### 4. OpenAI / GPT-5+ smoke test
+
+The OpenAI testing script has a dedicated lightweight environment and a `--limit` flag for quick validation.
+
+**Create the environment (first time only):**
+```bash
+conda env create -f environments/openai.yml
+# or just: conda activate openai && pip install pyyaml
+```
+
+**Set your API key in `.env`:**
+```
+OPENAI_API_KEY=<your_base64_Versa_composite_key>
+API_VERSION=2025-04-01-preview
+RESOURCE_ENDPOINT=https://unified-api.ucsf.edu/general
+```
+
+**Run a 5-row smoke test:**
+```bash
+conda activate openai
+python testing_scripts/QA_testing_OpenAI.py \
+  --limit 5 \
+  --output_path test_output/quick_test.csv
+```
+
+The script prints timestamped checkpoints for every step:
+```
+[18:30:01] Script starting — imports OK
+[18:30:01] Project root : /path/to/QA-BrainTumor-VLM-UCSF-
+[18:30:01] OPENAI_API_KEY : SET (88 chars)
+[18:30:01] AzureOpenAI client initialised OK
+[18:30:01] Row 1/5 | Patient: UCSF-PDGM-0005
+[18:30:01]   Image path: Y:/openai_vqa_data/2D_slices/UCSF-PDGM-0005/Axial.png
+[18:30:01]   → Sending API request (attempt 1/5, deployment=gpt-5-mini-2025-08-07)…
+[18:30:03]   ← Response received in 2.1s | finish='stop' | tokens: prompt=512 completion=48 total=560
+[18:30:03]   ✓ answer: 2) Right retrolenticular internal capsule/thalamus
+```
+
+---
+
+## Running on the Cluster (SLURM)
+
+> **Important**: Always submit the orchestration script **from inside the project root**. SLURM sets `SLURM_SUBMIT_DIR` to wherever `sbatch` was called, and the script uses this to locate `config.yaml` and `run_experiments.py`.
+
+```bash
+# On the cluster
+cd /scratch/group/.../QA-BrainTumor-VLM-UCSF-
+git pull
+
+# Dry-run first to verify all paths resolve correctly
+python experiment_orchestrator/run_experiments.py --list
+
+# Submit the orchestrator as a SLURM job
+sbatch slurm_scripts/sbatch_run_orchestration
+
+# Monitor
+squeue --me
+tail -f ~/logs/Orchestration_<jobid>.out
+```
+
+You can pass any filter flags through to the orchestrator via `$@`:
+
+```bash
+# Only run MedGemma
+sbatch slurm_scripts/sbatch_run_orchestration --model MedGemma1.5
+
+# Skip human tests
+sbatch slurm_scripts/sbatch_run_orchestration --exclude-test human
+```
+
+After all jobs complete:
+```bash
+python evaluation_scripts/eval_answers.py --stages 1 2 3
 ```

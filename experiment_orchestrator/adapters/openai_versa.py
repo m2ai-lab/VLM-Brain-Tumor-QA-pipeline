@@ -24,7 +24,13 @@ class OpenAIVersaAdapter(ModelAdapter):
 
     SCRIPT = "testing_scripts/QA_testing_OpenAI.py"
 
-    SUPPORTED_VARIANTS = {"single_slice", "blank"}
+    SUPPORTED_VARIANTS = {"single_slice", "montage_slice", "blank"}
+
+    # Filename to pass for each image-dir-based variant
+    _IMAGE_FILENAME = {
+        "single_slice":  "Axial.png",
+        "montage_slice": "axial_slices_montage.png",
+    }
 
     def build_command(self, job: ResolvedJob, project_root: str) -> str:
         if job.variant not in self.SUPPORTED_VARIANTS:
@@ -43,6 +49,7 @@ class OpenAIVersaAdapter(ModelAdapter):
             args.append(f"--image_path {job.image_path}")
         else:
             args.append(f"--image_dir {job.image_dir}")
+            args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
         # Optional deployment override (e.g. gpt-4.1-2025-04-14)
         if getattr(job, "deployment", None):

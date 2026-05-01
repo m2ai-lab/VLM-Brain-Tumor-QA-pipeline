@@ -64,13 +64,13 @@ def read_image_as_base64(image_path: str) -> str:
     return base64.encodebytes(buf.getvalue()).decode("utf-8")
 
 
-def query_the_model(classifier, question: str, patient_id: str, base_image_dir: str):
+def query_the_model(classifier, question: str, patient_id: str, base_image_dir: str, image_filename: str = "Axial.png"):
     """
     Perform zero-shot classification on a single patient image using the
     question's answer options as candidate labels.
     """
     # 1. Locate the image
-    patient_image_path = os.path.join(base_image_dir, str(patient_id), "Axial.png")
+    patient_image_path = os.path.join(base_image_dir, str(patient_id), image_filename)
 
     if not os.path.exists(patient_image_path):
         return {
@@ -183,7 +183,8 @@ def main(args):
         else:
             # Normal variant — per-patient image directory
             response = query_the_model(
-                classifier, row["Question"], row["Assigned ID"], args.image_dir
+                classifier, row["Question"], row["Assigned ID"], args.image_dir,
+                image_filename=args.image_filename
             )
 
         generated_answer.append(response["answer"])
@@ -207,6 +208,8 @@ if __name__ == "__main__":
                         default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedImageInsight/single_slice_results.csv")
     parser.add_argument('--image_dir', type=str,
                         default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices")
+    parser.add_argument('--image_filename', type=str, default="Axial.png",
+                        help="Filename inside each patient dir. Use 'axial_slices_montage.png' for montage.")
     parser.add_argument('--image_path', type=str, default=None,
                         help="For blank experiments: path to a single blacked-out image.")
     parser.add_argument('--model_path', type=str,

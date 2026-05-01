@@ -25,9 +25,8 @@ def main(args):
         # For 'human' or similar, we use the Assigned ID
         accession = row["Assigned ID"]
         
-        # Determine image_name based on user's csv_to_llava_jsonl behavior
-        # In single_slice it's commonly f"{accession}/Axial.png"
-        image_name = f"{accession}/Axial.png"
+        # Determine image filename based on variant flag
+        image_name = f"{accession}/{args.image_filename}"
         
         # If it's a blank run, image_name is the path directly
         if args.image_path:
@@ -80,6 +79,8 @@ if __name__ == "__main__":
     parser.add_argument('--qa_path', type=str, required=True)
     parser.add_argument('--output_path', type=str, required=True)
     parser.add_argument('--image_dir', type=str, required=True)
+    parser.add_argument('--image_filename', type=str, default="Axial.png",
+                        help="Filename inside each patient dir. Use 'axial_slices_montage.png' for montage.")
     parser.add_argument('--image_path', type=str, default=None, help="Not used for full test, here for blank compatibility")
     parser.add_argument('--model_path', type=str, default=_cfg.get("llavamed_model_path"))
     parser.add_argument('--llava_repo_dir', type=str, default=_cfg.get("llavamed_repo_dir"))
