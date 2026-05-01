@@ -111,20 +111,95 @@ experiment.json
 ### Usage
 
 ```bash
-# Preview all jobs (dry-run, no submission)
-python experiment_orchestrator/run_experiments.py --dry-run
-
-# Run all experiments (scheduler handles concurrency)
+# Run all enabled experiments
 python experiment_orchestrator/run_experiments.py
 
-# Run only specific models
-python experiment_orchestrator/run_experiments.py --only MedGemma1.5 Qwen2.5
+# Preview all jobs that would run (no files generated, no submission)
+python experiment_orchestrator/run_experiments.py --list
 
-# Use a custom config file
-python experiment_orchestrator/run_experiments.py --config custom_experiment.json
+# Generate sbatch files but don't submit (dry run)
+python experiment_orchestrator/run_experiments.py --dry-run
 ```
 
-### How Scheduling Works
+**Filtering by model**
+```bash
+# Run only one model
+python experiment_orchestrator/run_experiments.py --model MedGemma1.5
+
+# Run two models
+python experiment_orchestrator/run_experiments.py --model MedGemma1.5 Qwen2.5
+
+# Skip a model (run everything else)
+python experiment_orchestrator/run_experiments.py --exclude-model LLaVA-Med
+```
+
+**Filtering by test name**
+```bash
+# Run only the human benchmark across all models
+python experiment_orchestrator/run_experiments.py --test human
+
+# Run both the standard and shuffled single-slice tests
+python experiment_orchestrator/run_experiments.py --test single_slice single_slice_shuffled
+
+# Skip human tests (run all other tests for all models)
+python experiment_orchestrator/run_experiments.py --exclude-test human
+```
+
+**Filtering by variant type**
+```bash
+# Run only blank (control) tests across all models
+python experiment_orchestrator/run_experiments.py --variant blank
+
+# Skip blank tests
+python experiment_orchestrator/run_experiments.py --exclude-variant blank
+```
+
+**Combining filters** — all allow-list flags compose with AND; deny-list always wins:
+```bash
+# MedGemma, all tests except human
+python experiment_orchestrator/run_experiments.py --model MedGemma1.5 --exclude-test human
+
+# All models, only single_slice variant, skip LLaVA-Med
+python experiment_orchestrator/run_experiments.py --variant single_slice --exclude-model LLaVA-Med
+```
+
+### Local Runner (no SLURM)
+
+`run_local.py` is an alternative entrypoint for running the same experiments **without a SLURM cluster** — on a laptop, VM, or any machine where you can run the testing scripts directly.
+
+It accepts the **exact same filter flags** as `run_experiments.py` so you can use identical invocations.
+
+```bash
+# Run all enabled experiments sequentially
+python -m experiment_orchestrator.run_local
+
+# Preview matching jobs without running
+python -m experiment_orchestrator.run_local --list
+
+# Run only the OpenAI/API tests (CPU, no GPU needed)
+python -m experiment_orchestrator.run_local --model GPT5Mini
+
+# Run a specific test across all models
+python -m experiment_orchestrator.run_local --test human
+
+# Run 2 jobs in parallel (useful for API-bound models)
+python -m experiment_orchestrator.run_local --jobs 2
+
+# Dry-run: print commands without executing
+python -m experiment_orchestrator.run_local --dry-run --model MedGemma1.5
+```
+
+| Feature | `run_experiments.py` | `run_local.py` |
+|---|---|---|
+| Execution | SLURM (`sbatch`) | Direct subprocess |
+| Concurrency | SLURM queue | `--jobs N` thread pool |
+| Environment | conda/venv activation in sbatch | Current active environment |
+| GPU allocation | `#SBATCH --gres=gpu:N` | None (use whatever is available) |
+| Filter flags | `--model --test --variant --exclude-*` | Same |
+| `--list` / `--dry-run` | ✓ | ✓ |
+
+> **Note on environments**: `run_local.py` uses the Python interpreter it is invoked with (`sys.executable` by default, overridable via `--python /path/to/python`). Activate the correct conda environment before running, or pass `--python $(conda run -n myenv which python)`.
+
 
 1. The orchestrator resolves `experiment.json` into a flat list of jobs (model × test × run)
 2. Each job gets a generated `.sbatch` file in `generated_slurm/`
@@ -372,21 +447,119 @@ Each model requires its own environment. Core dependencies across environments:
 
 ---
 
+## Configuration
+
+All scripts and the orchestrator read paths from a single `config.yaml` file that you create locally from the provided example. This file is **gitignored** — it is never committed.
+
+### Setup
+
+```bash
+cp config.example.yaml config.yaml
+# Then edit config.yaml with your paths (see below)
+```
+
+### Required Fields
+
+These are the fields you must set before anything will run. Everything else either has sensible defaults or is only needed for optional pipeline stages.
+
+| Field | What it points to |
+|---|---|
+| `project_root` | Absolute path to the cloned repo on your machine / cluster |
+| `qa_path` | Main QA dataset CSV (`Assigned ID`, `Question`, `Answer` columns) |
+| `reshuffled_qa_path` | Answer-order-randomised version of the QA dataset (for bias testing) |
+| `output_base` | Root directory where all model result CSVs are written |
+| `slice_dir` | Root directory containing per-patient `<pdgm_id>/Axial.png` 2D slices |
+| `blank_png` | Path to a blacked-out PNG used as the control/blank experiment image |
+
+### Minimal `config.yaml`
+
+```yaml
+# ── Required ──────────────────────────────────────────────────────────────────
+project_root: /path/to/QA-BrainTumor-VLM-UCSF-
+
+qa_path:           "{project_root}/new_refined_ucsf_pdgm_pairs.csv"
+reshuffled_qa_path: "{project_root}/reshuffled_finalized_ucsf_pdgm_pairs.csv"
+human_qa_path:     "{project_root}/human_dataset.csv"
+
+output_base: /path/to/output
+
+slice_dir: /path/to/2D_slices          # per-patient Axial.png dirs
+blank_png: /path/to/blank/BlackedOut.png
+
+# ── Only needed for cluster / GPU model runs ──────────────────────────────────
+scratch_root: /scratch/group/...
+nifti_root:   /scratch/user/.../UCSF-PDGM-v5
+
+models_base: "{project_root}/models"
+medgemma_model_path:       "{models_base}/medgemma-1.5-4b-it"
+medimageinsight_model_path: "{models_base}/MedImageInsights"
+# ... add others as needed, see config.example.yaml for the full list
+
+mail_user: your.email@institution.edu
+log_dir:   /home/remote/%u/logs
+```
+
+> **Note on `{variable}` syntax** — values enclosed in braces are resolved at runtime by `config_utils.py`. For example, `"{project_root}/models"` expands to the full path automatically. Set `project_root` first and all derived paths resolve for free.
+
+### QA Datasets
+
+The repo ships with two ready-to-use CSVs in the root directory:
+
+| File | Description |
+|---|---|
+| `new_refined_ucsf_pdgm_pairs.csv` | Main QA dataset (use as `qa_path`) |
+| `reshuffled_finalized_ucsf_pdgm_pairs.csv` | Answer-shuffled version (use as `reshuffled_qa_path`) |
+| `human_dataset.csv` | Clinician evaluation subset |
+
+Point `qa_path` and `reshuffled_qa_path` at these files if running locally:
+
+```yaml
+qa_path:            "{project_root}/new_refined_ucsf_pdgm_pairs.csv"
+reshuffled_qa_path: "{project_root}/reshuffled_finalized_ucsf_pdgm_pairs.csv"
+```
+
+### Local vs. Cluster
+
+The same `config.yaml` works both locally and on the cluster — just change the paths:
+
+| Setting | Local (Windows example) | Cluster (SLURM) |
+|---|---|---|
+| `project_root` | `C:/Users/.../QA-BrainTumor-VLM-UCSF-` | `/scratch/.../QA-BrainTumor-VLM-UCSF-` |
+| `slice_dir` | `Y:/openai_vqa_data/2D_slices` | `{output_base}/format_dataset/2D_slices` |
+| `blank_png` | `Y:/openai_vqa_data/blank/BlackedOut.png` | `{output_base}/format_dataset/blank/BlackedOut.png` |
+
+---
+
 ## Quick Start
 
 ```bash
-# 1. Clone the repo to the cluster
+# 1. Clone the repo
 git clone <repo_url>
+cd QA-BrainTumor-VLM-UCSF-
 
-# 2. Edit experiment.json with your paths and email
-vim experiment.json
+# 2. Create your config (required before anything else)
+cp config.example.yaml config.yaml
+# Edit config.yaml — at minimum set project_root, qa_path, output_base, slice_dir, blank_png
 
-# 3. Dry-run to verify configuration
+# 3. Dry-run to verify configuration resolves correctly
 python experiment_orchestrator/run_experiments.py --dry-run
 
-# 4. Submit the orchestrator
+# 4. Submit the orchestrator to the cluster
 sbatch slurm_scripts/sbatch_run_orchestration
 
 # 5. After all jobs complete, run evaluation
 python evaluation_scripts/eval_answers.py --stages 1 2 3
+```
+
+### Quick Local Test (OpenAI / GPT-5+)
+
+```bash
+# Activate the lightweight openai conda environment
+conda activate openai       # or: conda env create -f environments/openai.yml
+
+# Set your Versa API key in .env (copy from .env.example if present)
+# OPENAI_API_KEY=<your_base64_composite_key>
+
+# Run 5 rows as a smoke test
+python testing_scripts/QA_testing_OpenAI.py --limit 5 --output_path test_output/quick_test.csv
 ```

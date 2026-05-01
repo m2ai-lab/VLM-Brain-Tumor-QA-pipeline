@@ -5,13 +5,50 @@ run_experiments.py — Main entrypoint for the experiment orchestrator.
 Reads experiment.json, resolves all jobs, generates sbatch scripts,
 and submits them via the SLURM scheduler with concurrency management.
 
-Usage:
-    python -m experiment_orchestrator.run_experiments
-    python -m experiment_orchestrator.run_experiments --only MedGemma1.5 Qwen2.5
-    python -m experiment_orchestrator.run_experiments --exclude LLaVA-Med
-    python -m experiment_orchestrator.run_experiments --exclude-name human single_slice_shuffled
-    python -m experiment_orchestrator.run_experiments --dry-run
-    python -m experiment_orchestrator.run_experiments --config custom.json
+Filtering
+---------
+All filter flags are optional and compose with AND logic.
+Allow-list flags restrict to matching jobs; deny-list flags remove them.
+Deny-list flags always win (applied last).
+
+Allow-list flags
+  --model    MODEL [MODEL ...]     Only run these model(s)
+  --test     TEST  [TEST  ...]     Only run tests with these name(s)
+  --variant  VAR   [VAR   ...]     Only run jobs with these variant type(s)
+
+Deny-list flags
+  --exclude-model    MODEL [...]   Skip these model(s)
+  --exclude-test     TEST  [...]   Skip tests with these name(s)
+  --exclude-variant  VAR   [...]   Skip jobs with these variant type(s)
+
+Examples
+--------
+  # Run every enabled experiment
+  python -m experiment_orchestrator.run_experiments
+
+  # Run a single model
+  python -m experiment_orchestrator.run_experiments --model MedGemma1.5
+
+  # Run two models
+  python -m experiment_orchestrator.run_experiments --model MedGemma1.5 Qwen2.5
+
+  # Run only the human-dataset tests across all models
+  python -m experiment_orchestrator.run_experiments --test human
+
+  # Run only blank (control) tests
+  python -m experiment_orchestrator.run_experiments --variant blank
+
+  # Run all MedGemma tests except the human benchmark
+  python -m experiment_orchestrator.run_experiments --model MedGemma1.5 --exclude-test human
+
+  # Run everything except LLaVA-Med
+  python -m experiment_orchestrator.run_experiments --exclude-model LLaVA-Med
+
+  # Preview all jobs without submitting
+  python -m experiment_orchestrator.run_experiments --list
+
+  # Dry-run (generate sbatch files but don't submit)
+  python -m experiment_orchestrator.run_experiments --dry-run
 """
 from __future__ import annotations
 
@@ -21,8 +58,6 @@ import logging
 import os
 import sys
 
-# Ensure the project root is on sys.path so this script works when invoked
-# directly (e.g., `python run_experiments.py`) rather than as a module.
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
@@ -35,111 +70,167 @@ from experiment_orchestrator.slurm_scheduler import SlurmScheduler
 
 logger = logging.getLogger(__name__)
 
-# Default paths
-DEFAULT_CONFIG = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "experiment.json",
-)
-DEFAULT_GENERATED_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "generated_slurm",
-)
+DEFAULT_CONFIG = os.path.join(_PROJECT_ROOT, "experiment.json")
+DEFAULT_GENERATED_DIR = os.path.join(_PROJECT_ROOT, "generated_slurm")
 
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Experiment Orchestrator — run VLM experiments via SLURM",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=(
+            "Experiment Orchestrator — submit VLM experiments to SLURM.\n"
+            "All filter flags are optional and compose with AND logic.\n"
+            "Deny-list flags (--exclude-*) always win over allow-list flags."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  Run all enabled experiments:\n"
+            "    %(prog)s\n\n"
+            "  Run a single model:\n"
+            "    %(prog)s --model MedGemma1.5\n\n"
+            "  Run only human tests across all models:\n"
+            "    %(prog)s --test human\n\n"
+            "  Run only blank (control) variant:\n"
+            "    %(prog)s --variant blank\n\n"
+            "  Run MedGemma but skip the human test:\n"
+            "    %(prog)s --model MedGemma1.5 --exclude-test human\n\n"
+            "  Run everything except LLaVA-Med:\n"
+            "    %(prog)s --exclude-model LLaVA-Med\n\n"
+            "  Preview all matching jobs without submitting:\n"
+            "    %(prog)s --list\n"
+        ),
     )
+
+    # ── Config / output ───────────────────────────────────────────────────────
     parser.add_argument(
-        "--config",
-        type=str,
-        default=DEFAULT_CONFIG,
+        "--config", type=str, default=DEFAULT_CONFIG,
         help="Path to experiment.json config file.",
     )
     parser.add_argument(
-        "--only",
-        nargs="+",
-        default=[],
-        help="Only run experiments for these model names (e.g., MedGemma1.5 Qwen2.5).",
-    )
-    parser.add_argument(
-        "--name",
-        nargs="+",
-        default=[],
-        help="Only run experiments for specific test names (e.g., human, single_slice_shuffled).",
-    )
-    parser.add_argument(
-        "--variant",
-        type=str,
-        default=None,
-        help="Only run experiments for a specific variant type (e.g., blank, single_slice).",
-    )
-    parser.add_argument(
-        "--include",
-        nargs="+",
-        default=[],
-        help="Run specific model:test combinations (e.g., MedGemma1.5:single_slice_shuffled).",
-    )
-    parser.add_argument(
-        "--exclude",
-        nargs="+",
-        default=[],
-        help="Skip experiments for these model names (e.g., LLaVA-Med MedImageInsight). "
-             "Applied after all --only/--name/--variant/--include filters.",
-    )
-    parser.add_argument(
-        "--exclude-name",
-        nargs="+",
-        default=[],
-        help="Skip experiments for these test names (e.g., human single_slice_shuffled). "
-             "Applied after all --only/--name/--variant/--include filters.",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Generate sbatch files but do not submit to SLURM.",
-    )
-    parser.add_argument(
-        "--generated-dir",
-        type=str,
-        default=DEFAULT_GENERATED_DIR,
+        "--generated-dir", type=str, default=DEFAULT_GENERATED_DIR,
         help="Directory to write generated .sbatch files.",
     )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging.",
+
+    # ── Allow-list filters ────────────────────────────────────────────────────
+    allow = parser.add_argument_group("allow-list filters (restrict to matching jobs)")
+    allow.add_argument(
+        "--model", nargs="+", default=[], metavar="MODEL",
+        help="Only run jobs for these model name(s).  e.g. --model MedGemma1.5 Qwen2.5",
     )
+    allow.add_argument(
+        "--test", nargs="+", default=[], metavar="TEST",
+        help="Only run jobs whose test name matches.  e.g. --test human single_slice",
+    )
+    allow.add_argument(
+        "--variant", nargs="+", default=[], metavar="VARIANT",
+        help="Only run jobs with these variant type(s).  e.g. --variant blank single_slice",
+    )
+
+    # ── Deny-list filters ─────────────────────────────────────────────────────
+    deny = parser.add_argument_group("deny-list filters (always applied last, always win)")
+    deny.add_argument(
+        "--exclude-model", nargs="+", default=[], metavar="MODEL",
+        help="Skip jobs for these model name(s).  e.g. --exclude-model LLaVA-Med",
+    )
+    deny.add_argument(
+        "--exclude-test", nargs="+", default=[], metavar="TEST",
+        help="Skip jobs whose test name matches.  e.g. --exclude-test human",
+    )
+    deny.add_argument(
+        "--exclude-variant", nargs="+", default=[], metavar="VARIANT",
+        help="Skip jobs with these variant type(s).  e.g. --exclude-variant blank",
+    )
+
+    # ── Run modes ─────────────────────────────────────────────────────────────
+    modes = parser.add_argument_group("run modes")
+    modes.add_argument(
+        "--list", action="store_true",
+        help="Print all matching jobs and exit without submitting or generating files.",
+    )
+    modes.add_argument(
+        "--dry-run", action="store_true",
+        help="Generate sbatch files but do not submit to SLURM.",
+    )
+    modes.add_argument(
+        "--debug", action="store_true",
+        help="Enable verbose debug logging.",
+    )
+
     return parser.parse_args(argv)
 
 
-def load_config(config_path: str) -> ExperimentSuite:
-    """Load, expand {variable} placeholders, and validate experiment.json through Pydantic."""
-    logger.info("Loading config from %s", config_path)
+# ── Config loading ────────────────────────────────────────────────────────────
 
+def load_config(config_path: str) -> ExperimentSuite:
+    """Load, expand {variable} placeholders, and validate experiment.json."""
+    logger.info("Loading config from %s", config_path)
     with open(config_path, "r") as f:
         raw = json.load(f)
-
-    # Expand {variable} placeholders from config.yaml before Pydantic validation
     raw = expand_suite_raw(raw)
-
     suite = ExperimentSuite.model_validate(raw)
     logger.info(
         "Config loaded: %d models, %d environments",
-        len(suite.models),
-        len(suite.environments),
+        len(suite.models), len(suite.environments),
     )
     return suite
 
 
+# ── Filtering ─────────────────────────────────────────────────────────────────
+
+def apply_filters(jobs, args) -> list:
+    """
+    Apply allow-list then deny-list filters in a clear, predictable order.
+
+    Allow-list (AND): if a flag is set, keep only jobs that match ALL given flags.
+    Deny-list  (AND): remove jobs that match ANY deny flag. Always wins.
+    """
+    # ── Allow-list ────────────────────────────────────────────────────────────
+    if args.model:
+        model_set = set(args.model)
+        jobs = [j for j in jobs if j.model_name in model_set]
+        logger.info("--model: %d jobs match %s", len(jobs), args.model)
+
+    if args.test:
+        test_set = set(args.test)
+        jobs = [j for j in jobs if j.test_name in test_set]
+        logger.info("--test: %d jobs match %s", len(jobs), args.test)
+
+    if args.variant:
+        variant_set = set(args.variant)
+        jobs = [j for j in jobs if j.variant in variant_set]
+        logger.info("--variant: %d jobs match %s", len(jobs), args.variant)
+
+    # ── Deny-list (always applied last) ───────────────────────────────────────
+    if args.exclude_model:
+        before = len(jobs)
+        ex_set = set(args.exclude_model)
+        jobs = [j for j in jobs if j.model_name not in ex_set]
+        logger.info("--exclude-model: removed %d jobs", before - len(jobs))
+
+    if args.exclude_test:
+        before = len(jobs)
+        ex_set = set(args.exclude_test)
+        jobs = [j for j in jobs if j.test_name not in ex_set]
+        logger.info("--exclude-test: removed %d jobs", before - len(jobs))
+
+    if args.exclude_variant:
+        before = len(jobs)
+        ex_set = set(args.exclude_variant)
+        jobs = [j for j in jobs if j.variant not in ex_set]
+        logger.info("--exclude-variant: removed %d jobs", before - len(jobs))
+
+    return jobs
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
-    # Setup logging
-    level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(
-        level=level,
+        level=logging.DEBUG if args.debug else logging.INFO,
         format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -155,66 +246,27 @@ def main(argv: list[str] | None = None) -> int:
     all_jobs = resolve_all(suite)
     logger.info("Resolved %d total jobs from config", len(all_jobs))
 
-    # Keep a copy of all jobs for the additive --include filter
-    original_all_jobs = list(all_jobs)
+    # ── 3. Apply filters ──────────────────────────────────────────────────
+    jobs = apply_filters(all_jobs, args)
 
-    # Subtractive (AND) filters
-    if args.only:
-        only_set = set(args.only)
-        all_jobs = [j for j in all_jobs if j.model_name in only_set]
-        logger.info("Filtered to %d jobs matching --only %s", len(all_jobs), args.only)
-        
-    if args.name:
-        name_set = set(args.name)
-        all_jobs = [j for j in all_jobs if j.test_name in name_set]
-        logger.info("Filtered to %d jobs matching --name %s", len(all_jobs), args.name)
-
-    if args.variant:
-        all_jobs = [j for j in all_jobs if j.variant == args.variant]
-        logger.info("Filtered to %d jobs matching --variant %s", len(all_jobs), args.variant)
-        
-    # Additive (OR) filter
-    if args.include:
-        included_set = set(args.include)
-        included_jobs = {
-            j.job_name: j for j in original_all_jobs
-            if f"{j.model_name}:{j.test_name}" in included_set
-        }
-        
-        # Combine the subtractive filtered jobs AND the explicitly included jobs
-        final_jobs = {j.job_name: j for j in all_jobs}
-        final_jobs.update(included_jobs)
-        all_jobs = list(final_jobs.values())
-        logger.info("Final job list contains %d jobs after applying --include", len(all_jobs))
-
-    # Exclusion (denylist) filters — applied last so they always win
-    if args.exclude:
-        exclude_set = set(args.exclude)
-        before = len(all_jobs)
-        all_jobs = [j for j in all_jobs if j.model_name not in exclude_set]
-        logger.info(
-            "--exclude removed %d job(s) matching %s; %d remaining",
-            before - len(all_jobs), args.exclude, len(all_jobs),
-        )
-
-    if args.exclude_name:
-        exclude_name_set = set(args.exclude_name)
-        before = len(all_jobs)
-        all_jobs = [j for j in all_jobs if j.test_name not in exclude_name_set]
-        logger.info(
-            "--exclude-name removed %d job(s) matching %s; %d remaining",
-            before - len(all_jobs), args.exclude_name, len(all_jobs),
-        )
-
-    if not all_jobs:
-        logger.warning("No jobs to run. Check that models are enabled in the config.")
+    if not jobs:
+        logger.warning("No jobs to run after filtering. Check your filter flags and that models are enabled.")
         return 0
 
-    # ── 3. Validate & generate sbatch files ───────────────────────────────
-    sbatch_jobs: list[tuple[str, str]] = []  # (job_name, sbatch_path)
+    # ── 4. --list mode: just print and exit ───────────────────────────────
+    if args.list:
+        col_w = max(len(j.job_name) for j in jobs) + 2
+        print(f"\n{'Job':>{col_w}}   {'Model':<30} {'Test':<30} {'Variant'}")
+        print("-" * (col_w + 75))
+        for j in jobs:
+            print(f"{j.job_name:>{col_w}}   {j.model_name:<30} {j.test_name:<30} {j.variant}")
+        print(f"\n{len(jobs)} job(s) matched.")
+        return 0
 
-    for job in all_jobs:
-        # Validate via adapter
+    # ── 5. Validate & generate sbatch files ───────────────────────────────
+    sbatch_jobs: list[tuple[str, str]] = []
+
+    for job in jobs:
         adapter = get_adapter(job.adapter_name)
         try:
             adapter.validate(job)
@@ -222,19 +274,16 @@ def main(argv: list[str] | None = None) -> int:
             logger.error("Validation failed for %s: %s", job.job_name, e)
             return 1
 
-        # Build the command
         command = adapter.build_command(job, suite.global_config.project_root)
 
-        # Look up environment config
         if job.environment not in suite.environments:
             logger.error(
                 "Environment '%s' not found for job '%s'. Available: %s",
                 job.environment, job.job_name, list(suite.environments.keys()),
             )
             return 1
-        env_cfg = suite.environments[job.environment]
 
-        # Generate sbatch file
+        env_cfg = suite.environments[job.environment]
         sbatch_path = write_sbatch_file(
             job=job,
             env_cfg=env_cfg,
@@ -244,11 +293,9 @@ def main(argv: list[str] | None = None) -> int:
         sbatch_jobs.append((job.job_name, sbatch_path))
         logger.info("Generated: %s", sbatch_path)
 
-    logger.info(
-        "Generated %d sbatch files in %s", len(sbatch_jobs), args.generated_dir
-    )
+    logger.info("Generated %d sbatch files in %s", len(sbatch_jobs), args.generated_dir)
 
-    # ── 4. Submit via scheduler ───────────────────────────────────────────
+    # ── 6. Submit via scheduler ───────────────────────────────────────────
     scheduler = SlurmScheduler(
         max_concurrent=suite.global_config.max_concurrent_jobs,
         poll_interval=suite.global_config.poll_interval_seconds,
@@ -257,7 +304,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = scheduler.submit_all(sbatch_jobs)
 
-    # ── 5. Summary ────────────────────────────────────────────────────────
+    # ── 7. Summary ────────────────────────────────────────────────────────
     n_completed = len(result["completed"])
     n_failed = len(result["failed"])
 
@@ -274,3 +321,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

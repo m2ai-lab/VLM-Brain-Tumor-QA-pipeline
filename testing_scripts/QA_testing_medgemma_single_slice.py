@@ -148,6 +148,7 @@ def main(args):
     # Save results
     qa_data["predicted_answer"] = generated_answer
     qa_data["MedGemma_Reasoning"] = generated_reasoning
+    os.makedirs(os.path.dirname(os.path.abspath(args.output_path)), exist_ok=True)
     qa_data.to_csv(args.output_path, index=False)
 
 if __name__ == "__main__":

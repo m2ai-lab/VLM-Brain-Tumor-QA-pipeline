@@ -25,13 +25,14 @@ nifti_root: /scratch/user/shghosh/UCSF-PDGM-v5
 raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
 
 # ── QA CSV datasets ───────────────────────────────────────────────────────────
-qa_path: "{scratch_root}/new_refined_ucsf_pdgm_pairs.csv"
-reshuffled_qa_path: "{scratch_root}/reshuffled_finalized_ucsf_pdgm_pairs.csv"
-human_qa_path: "{scratch_root}/human_dataset.csv"
+qa_path: "{project_root}/datasets/qa_dataset.csv"
+reshuffled_qa_path: "{project_root}/datasets/reshuffled_qa_dataset.csv"
+human_qa_path: "{project_root}/datasets/human_dataset.csv"
 
 # ── Output directories ────────────────────────────────────────────────────────
-# All model result CSVs land here (QApairs/ in the repo is a gitignored mirror)
-output_base: "{scratch_root}/QApairs"
+# All model result CSVs land here.
+# Default: inside the repo (gitignored). On the cluster, set to scratch_root instead.
+output_base: "{project_root}/QApairs"
 
 # Format dataset — 2D slices and blank controls
 slice_dir: "{output_base}/format_dataset/2D_slices"
