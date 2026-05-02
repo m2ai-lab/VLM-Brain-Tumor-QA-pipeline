@@ -72,8 +72,8 @@ fi
 # -- Med3DVLM Environment --
 echo "--- Creating Med3DVLM Environment (vlm-med3dvlm) ---"
 if [ ! -d "environments/envs/vlm-med3dvlm" ]; then
-    if [ ! -d "Med3DVLM" ]; then
-        git clone https://github.com/mirthAI/Med3DVLM.git
+    if [ ! -d "models/Med3DVLM" ]; then
+        git clone https://github.com/mirthAI/Med3DVLM.git models/Med3DVLM
     fi
     python3 -m venv environments/envs/vlm-med3dvlm
     source environments/envs/vlm-med3dvlm/bin/activate
