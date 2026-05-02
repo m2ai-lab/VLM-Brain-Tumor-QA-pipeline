@@ -1,0 +1,32 @@
+#!/bin/bash
+#SBATCH --job-name=lingshu_smoke_test
+#SBATCH --output=/home/remote/%u/logs/lingshu_smoke_test_%j.out
+#SBATCH --error=/home/remote/%u/logs/lingshu_smoke_test_%j.err
+#SBATCH --partition=gpu
+#SBATCH --nodes=1
+#SBATCH --gpus-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --time=01:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=your.email@institution.edu
+
+echo "Starting Lingshu-32B Smoke Test..."
+echo "Node: $HOSTNAME"
+echo "Job ID: $SLURM_JOB_ID"
+echo "----------------------------------------"
+
+# 1. Navigate to project root
+cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/catherine/QA-BrainTumor-VLM-UCSF- || cd .
+
+# 2. Activate isolated Lingshu environment
+source envs/vlm-lingshu/bin/activate
+
+# 3. Run the testing script for just the first 2 rows
+python testing_scripts/QA_testing_lingshu.py \
+  --model_path models/Lingshu-32B \
+  --output_path test_output/Lingshu/smoke_test_results.csv \
+  --limit 2
+
+echo "----------------------------------------"
+echo "Smoke test complete."
