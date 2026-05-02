@@ -1,6 +1,6 @@
 {
   "global": {
-    "max_concurrent_jobs": 3,
+    "max_concurrent_jobs": 4,
     "runs_per_experiment": 3,
     "partition": "gpu",
     "gpus_per_node": 1,
