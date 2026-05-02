@@ -168,6 +168,10 @@ def main(args):
     classifier.load_model()
 
     qa_data = pd.read_csv(args.qa_path)
+    if getattr(args, 'limit', None):
+        print(f"Limiting to first {args.limit} rows.")
+        qa_data = qa_data.head(args.limit)
+        
     generated_answer = []
     generated_reasoning = []
     total = qa_data.shape[0]
@@ -214,6 +218,7 @@ if __name__ == "__main__":
                         help="For blank experiments: path to a single blacked-out image.")
     parser.add_argument('--model_path', type=str,
                         default="/mnt/scratch/group/CX000019_DS1/vlm-brain-mri/MedImageInsights")
+    parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
 
     args = parser.parse_args()
     main(args)

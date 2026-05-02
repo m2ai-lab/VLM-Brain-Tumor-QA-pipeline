@@ -1,0 +1,78 @@
+#!/bin/bash
+#SBATCH --job-name=smoke_all
+#SBATCH --output=/home/remote/%u/logs/smoke_all_%j.out
+#SBATCH --error=/home/remote/%u/logs/smoke_all_%j.err
+#SBATCH --partition=gpu
+#SBATCH --nodes=1
+#SBATCH --gpus-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --time=02:00:00
+
+echo "============================================================"
+echo "Starting Unified Smoke Tests for All Models..."
+echo "Node: $HOSTNAME | Job ID: $SLURM_JOB_ID"
+echo "============================================================"
+
+cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF- || cd .
+mkdir -p test_output/smoke_tests
+
+# 1. MedGemma1.5
+echo ""
+echo "--- [1/5] Testing MedGemma1.5 ---"
+source environments/envs/vlm-medgemma/bin/activate
+python testing_scripts/QA_testing_medgemma_single_slice.py \
+    --output_path test_output/smoke_tests/medgemma.csv \
+    --limit 2
+EXIT_CODE=$?
+deactivate
+if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedGemma1.5 FAILED"; else echo "✅ MedGemma1.5 PASSED"; fi
+
+# 2. Lingshu-32B
+echo ""
+echo "--- [2/5] Testing Lingshu-32B ---"
+source environments/envs/vlm-lingshu/bin/activate
+python testing_scripts/QA_testing_lingshu.py \
+    --output_path test_output/smoke_tests/lingshu.csv \
+    --limit 2
+EXIT_CODE=$?
+deactivate
+if [ $EXIT_CODE -ne 0 ]; then echo "❌ Lingshu-32B FAILED"; else echo "✅ Lingshu-32B PASSED"; fi
+
+# 3. LLaVA-Med
+echo ""
+echo "--- [3/5] Testing LLaVA-Med ---"
+source environments/envs/vlm-llavamed/bin/activate
+python testing_scripts/QA_testing_LLaVA_Med.py \
+    --output_path test_output/smoke_tests/llavamed.jsonl \
+    --limit 2
+EXIT_CODE=$?
+deactivate
+if [ $EXIT_CODE -ne 0 ]; then echo "❌ LLaVA-Med FAILED"; else echo "✅ LLaVA-Med PASSED"; fi
+
+# 4. MedImageInsight
+echo ""
+echo "--- [4/5] Testing MedImageInsight ---"
+source environments/envs/vlm-medimageinsight/bin/activate
+python testing_scripts/QA_testing_MedImageInsight.py \
+    --output_path test_output/smoke_tests/medimageinsight.csv \
+    --limit 2
+EXIT_CODE=$?
+deactivate
+if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedImageInsight FAILED"; else echo "✅ MedImageInsight PASSED"; fi
+
+# 5. Med3DVLM
+echo ""
+echo "--- [5/5] Testing Med3DVLM ---"
+source environments/envs/vlm-med3dvlm/bin/activate
+python testing_scripts/QA_testing_Med3DVLM.py \
+    --output_path test_output/smoke_tests/med3dvlm.csv \
+    --limit 2
+EXIT_CODE=$?
+deactivate
+if [ $EXIT_CODE -ne 0 ]; then echo "❌ Med3DVLM FAILED"; else echo "✅ Med3DVLM PASSED"; fi
+
+echo ""
+echo "============================================================"
+echo "All smoke tests completed! Check ~/logs/smoke_all_$SLURM_JOB_ID.err for details."
+echo "============================================================"

@@ -80,6 +80,10 @@ def main(args):
     )
 
     qa_data = pd.read_csv(args.qa_path)
+    if getattr(args, 'limit', None):
+        print(f"Limiting to first {args.limit} rows.")
+        qa_data = qa_data.head(args.limit)
+        
     responses = []
     total = qa_data.shape[0]
 
@@ -101,6 +105,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/Med3DVLM/Full_nifti_results.csv")
     parser.add_argument('--image_dir', type=str, default=_cfg.get("nifti_root"))
     parser.add_argument('--model_path', type=str, default=_cfg.get("med3dvlm_model_path"))
+    parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
 
     args = parser.parse_args()
     main(args)
