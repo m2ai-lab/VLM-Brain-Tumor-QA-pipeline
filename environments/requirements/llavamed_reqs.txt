@@ -9,3 +9,4 @@ shortuuid
 requests
 sentencepiece
 tiktoken
+protobuf
