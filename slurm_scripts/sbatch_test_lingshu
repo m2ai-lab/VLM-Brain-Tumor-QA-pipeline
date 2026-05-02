@@ -17,10 +17,10 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "----------------------------------------"
 
 # 1. Navigate to project root
-cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/catherine/QA-BrainTumor-VLM-UCSF- || cd .
+cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF- || cd .
 
 # 2. Activate isolated Lingshu environment
-source envs/vlm-lingshu/bin/activate
+conda activate format 
 
 # 3. Run the testing script for just the first 2 rows
 python testing_scripts/QA_testing_lingshu.py \
