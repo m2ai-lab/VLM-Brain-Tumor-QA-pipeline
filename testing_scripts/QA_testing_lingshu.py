@@ -135,7 +135,7 @@ def main(args):
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         args.model_path,
         torch_dtype=torch.bfloat16,
-        attn_implementation="flash_attention_2" if torch.cuda.get_device_capability()[0] >= 8 else "sdpa",
+        attn_implementation="sdpa",
         device_map="auto",
     )
     processor = AutoProcessor.from_pretrained(args.model_path)
