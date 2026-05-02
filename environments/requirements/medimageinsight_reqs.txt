@@ -6,3 +6,4 @@ pandas
 pydantic
 timm
 einops
+mup
