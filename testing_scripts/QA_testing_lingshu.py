@@ -34,15 +34,15 @@ class VQAResponse(BaseModel):
 FEW_SHOT_EXAMPLE = """
 Example:
 Question: Is there evidence of a midline shift?
-(A) Yes
-(B) No
-(C) Indeterminate
-(D) Not applicable
+1) Yes
+2) No
+3) Indeterminate
+4) Not applicable
 
 Response:
 {
   "concise_reasoning": "The septum pellucidum is at the midline with no displacement of ventricular structures.",
-  "answer": "B"
+  "answer": "2) No"
 }
 """
 
@@ -64,6 +64,7 @@ def query_the_model(model, processor, question, patient_id, base_image_dir, imag
     # Prepare prompt
     prompt_text = (
         "Instruction: You are a neuroradiologist. Analyze the MRI slice and provide a structured JSON response.\n"
+        "CRITICAL: Your 'answer' field MUST contain the EXACT verbatim answer text from the options provided, including the number/letter marker (e.g., '1) Left frontal lobe'). Do NOT just output the number.\n"
         f"{FEW_SHOT_EXAMPLE}\n"
         "---\n"
         f"Question: {question}\n"
