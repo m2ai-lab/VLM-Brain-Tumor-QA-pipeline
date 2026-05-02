@@ -9,3 +9,4 @@ einops
 mup
 fvcore
 requests
+tenacity
