@@ -169,6 +169,7 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     print("=" * 60)
 
     accuracy: dict[str, float] = {}
+    failed_tests: list[tuple[str, str, str]] = []  # (test_name, read_path, reason)
 
     for test_name, read_path, write_path in iter_result_csvs(args.qa_path):
         # ── pick the correct ground-truth CSV for this result file ──
@@ -182,24 +183,30 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
         required = {"Question", "Answer"}
         missing = required - set(answer_df.columns)
         if missing:
-            raise ValueError(
-                f"answer_df is missing required column(s): {sorted(missing)}. "
-                f"Columns: {list(answer_df.columns)}"
-            )
+            reason = f"answer_df is missing required column(s): {sorted(missing)}"
+            print(f"    [ERROR] {reason}")
+            failed_tests.append((test_name, read_path, reason))
+            continue
 
-        results_df = pd.read_csv(read_path)
+        try:
+            results_df = pd.read_csv(read_path)
+        except Exception as e:
+            reason = f"Failed to read results CSV: {e}"
+            print(f"    [ERROR] {reason}")
+            failed_tests.append((test_name, read_path, reason))
+            continue
 
         if "predicted_answer" not in results_df.columns:
-            raise ValueError(
-                f"No predicted_answer column found in {read_path}. "
-                f"Columns: {list(results_df.columns)}"
-            )
+            reason = f"No predicted_answer column found."
+            print(f"    [ERROR] {reason}")
+            failed_tests.append((test_name, read_path, reason))
+            continue
 
         if len(results_df) != len(answer_df):
-            raise ValueError(
-                f"result length ({len(results_df)}) != answer length ({len(answer_df)}). "
-                f"Columns: {list(results_df.columns)}"
-            )
+            reason = f"result length ({len(results_df)}) != answer length ({len(answer_df)})."
+            print(f"    [ERROR] {reason}")
+            failed_tests.append((test_name, read_path, reason))
+            continue
 
         is_right = []
         for ans, pred in zip(answer_df["Answer"], results_df["predicted_answer"]):
@@ -225,6 +232,17 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
     with open(evals_path, "w") as f:
         json.dump(accuracy, f, indent=4)
     print(f"\n  ✓ Accuracy summary saved → {evals_path}")
+
+    if failed_tests:
+        print("\n" + "!" * 60)
+        print("THE FOLLOWING TESTS FAILED TO COMPLETE OR EVALUATE:")
+        for tname, path, reason in failed_tests:
+            print(f"  - {tname}  ({reason})")
+            
+        print("\nSUGGESTION: Rerun the incomplete tests using the SLURM orchestrator.")
+        print("For example, if the failed test is 'MedGemma1.5_single_slice', run:")
+        print("  python experiment_orchestrator/run_experiments.py --model MedGemma1.5 --test single_slice")
+        print("!" * 60 + "\n")
 
     return accuracy
 
