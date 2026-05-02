@@ -74,7 +74,7 @@ def main(args):
     )
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        dtype=dtype,
+        torch_dtype=dtype,
         device_map="auto",
         trust_remote_code=True,
     )

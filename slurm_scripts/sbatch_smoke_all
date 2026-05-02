@@ -43,7 +43,7 @@ if [ $EXIT_CODE -ne 0 ]; then echo "❌ Lingshu-32B FAILED"; else echo "✅ Ling
 echo ""
 echo "--- [3/5] Testing LLaVA-Med ---"
 source environments/envs/vlm-llavamed/bin/activate
-python testing_scripts/QA_testing_LLaVA_Med.py \
+python testing_scripts/QA_testing_llava_med.py \
     --output_path test_output/smoke_tests/llavamed.jsonl \
     --limit 2
 EXIT_CODE=$?

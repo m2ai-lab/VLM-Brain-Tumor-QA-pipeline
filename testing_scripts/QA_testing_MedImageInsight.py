@@ -17,6 +17,12 @@ using only image–text alignment, with no reasoning capability.
 """
 import os
 import sys
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+from config_utils import load_config
+_cfg = load_config()
 import re
 import base64
 import argparse
@@ -207,17 +213,17 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MedImageInsight Zero-Shot VQA")
     parser.add_argument('--qa_path', type=str,
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/finalized_ucsf_pdgm_pairs.csv")
+                        default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str,
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/MedImageInsight/single_slice_results.csv")
+                        default=_cfg.get("output_base", "") + "/MedImageInsight/single_slice_results.csv")
     parser.add_argument('--image_dir', type=str,
-                        default="/scratch/group/CX000019_DS1/vlm-brain-mri/QApairs/format_dataset/2D_slices")
+                        default=_cfg.get("slice_dir"))
     parser.add_argument('--image_filename', type=str, default="Axial.png",
                         help="Filename inside each patient dir. Use 'axial_slices_montage.png' for montage.")
     parser.add_argument('--image_path', type=str, default=None,
                         help="For blank experiments: path to a single blacked-out image.")
     parser.add_argument('--model_path', type=str,
-                        default="/mnt/scratch/group/CX000019_DS1/vlm-brain-mri/MedImageInsights")
+                        default=_cfg.get("medimageinsight_model_path", "models/MedImageInsights"))
     parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
 
     args = parser.parse_args()
