@@ -8,3 +8,4 @@ timm
 einops
 mup
 fvcore
+requests
