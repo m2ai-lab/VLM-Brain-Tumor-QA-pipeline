@@ -179,7 +179,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Lingshu-32B VQA Inference")
     parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, required=True)
-    parser.add_argument('--model_path', type=str, default="lingshu-medical-mllm/Lingshu-32B")
+    parser.add_argument('--model_path', type=str, default=_cfg.get("lingshu_model_path", "models/Lingshu-32B"))
     parser.add_argument('--image_dir', type=str, default=_cfg.get("slice_dir"))
     parser.add_argument('--image_path', type=str, default=None, help="Path to single image (e.g. for blank variant)")
     parser.add_argument('--image_filename', type=str, default="Axial.png")

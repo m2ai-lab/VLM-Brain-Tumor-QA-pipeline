@@ -4,3 +4,4 @@ transformers
 pillow
 pandas
 pydantic
+timm

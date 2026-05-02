@@ -5,3 +5,4 @@ accelerate
 pillow
 pandas
 pydantic
+shortuuid
