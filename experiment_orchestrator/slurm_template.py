@@ -86,9 +86,12 @@ SBATCH_TEMPLATE = textwrap.dedent("""\
 
     # ── Execute ───────────────────────────────────────────────────────────
     $DYNAMIC_PYTHON {command}
+    EXIT_CODE=$?
 
     echo "------------------------------------------------------------"
-    echo "Job finished at $(date)"
+    echo "Job finished at $(date) with exit code $EXIT_CODE"
+    
+    exit $EXIT_CODE
 """)
 
 

@@ -1,0 +1,8 @@
+torch
+torchvision
+monai
+transformers
+accelerate
+pillow
+pandas
+pydantic
