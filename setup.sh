@@ -78,8 +78,7 @@ if [ ! -d "environments/envs/vlm-med3dvlm" ]; then
     python3 -m venv environments/envs/vlm-med3dvlm
     source environments/envs/vlm-med3dvlm/bin/activate
     pip install --upgrade pip
-    pip install -r Med3DVLM/requirements.txt
-    pip install deepspeed monai
+    pip install -r environments/requirements/med3dvlm_reqs.txt
     echo "Med3DVLM environment ready."
     deactivate
 else
