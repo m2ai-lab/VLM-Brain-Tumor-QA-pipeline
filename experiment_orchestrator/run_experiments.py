@@ -57,6 +57,7 @@ import json
 import logging
 import os
 import sys
+import yaml
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
@@ -107,6 +108,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--config", type=str, default=DEFAULT_CONFIG,
         help="Path to experiment.json config file.",
+    )
+    parser.add_argument(
+        "--run-spec", type=str, default=None,
+        help="Path to a YAML file defining a matrix of runs (overrides other filter flags).",
     )
     parser.add_argument(
         "--generated-dir", type=str, default=DEFAULT_GENERATED_DIR,
@@ -179,48 +184,68 @@ def load_config(config_path: str) -> ExperimentSuite:
 
 # ── Filtering ─────────────────────────────────────────────────────────────────
 
+def filter_job_list(jobs, models=None, tests=None, variants=None,
+                    ex_models=None, ex_tests=None, ex_variants=None):
+    if models:
+        model_set = set(models)
+        jobs = [j for j in jobs if j.model_name in model_set]
+    if tests:
+        test_set = set(tests)
+        jobs = [j for j in jobs if j.test_name in test_set]
+    if variants:
+        variant_set = set(variants)
+        jobs = [j for j in jobs if j.variant in variant_set]
+
+    if ex_models:
+        ex_set = set(ex_models)
+        jobs = [j for j in jobs if j.model_name not in ex_set]
+    if ex_tests:
+        ex_set = set(ex_tests)
+        jobs = [j for j in jobs if j.test_name not in ex_set]
+    if ex_variants:
+        ex_set = set(ex_variants)
+        jobs = [j for j in jobs if j.variant not in ex_set]
+
+    return jobs
+
+def apply_run_spec(all_jobs, spec_path) -> list:
+    logger.info("Applying matrix filters from --run-spec: %s", spec_path)
+    with open(spec_path, "r") as f:
+        spec = yaml.safe_load(f)
+    
+    if not spec or "runs" not in spec:
+        logger.warning("Run spec is empty or missing 'runs' list.")
+        return []
+    
+    final_jobs = {}
+    for group in spec["runs"]:
+        matched = filter_job_list(
+            all_jobs,
+            models=group.get("models"),
+            tests=group.get("tests"),
+            variants=group.get("variants"),
+            ex_models=group.get("exclude_models"),
+            ex_tests=group.get("exclude_tests"),
+            ex_variants=group.get("exclude_variants"),
+        )
+        for job in matched:
+            final_jobs[job.job_name] = job
+            
+    jobs_list = list(final_jobs.values())
+    logger.info("--run-spec: resolved %d unique jobs across %d run groups.", len(jobs_list), len(spec["runs"]))
+    return jobs_list
+
 def apply_filters(jobs, args) -> list:
     """
-    Apply allow-list then deny-list filters in a clear, predictable order.
-
-    Allow-list (AND): if a flag is set, keep only jobs that match ALL given flags.
-    Deny-list  (AND): remove jobs that match ANY deny flag. Always wins.
+    Apply allow-list then deny-list filters from CLI args.
     """
-    # ── Allow-list ────────────────────────────────────────────────────────────
-    if args.model:
-        model_set = set(args.model)
-        jobs = [j for j in jobs if j.model_name in model_set]
-        logger.info("--model: %d jobs match %s", len(jobs), args.model)
-
-    if args.test:
-        test_set = set(args.test)
-        jobs = [j for j in jobs if j.test_name in test_set]
-        logger.info("--test: %d jobs match %s", len(jobs), args.test)
-
-    if args.variant:
-        variant_set = set(args.variant)
-        jobs = [j for j in jobs if j.variant in variant_set]
-        logger.info("--variant: %d jobs match %s", len(jobs), args.variant)
-
-    # ── Deny-list (always applied last) ───────────────────────────────────────
-    if args.exclude_model:
-        before = len(jobs)
-        ex_set = set(args.exclude_model)
-        jobs = [j for j in jobs if j.model_name not in ex_set]
-        logger.info("--exclude-model: removed %d jobs", before - len(jobs))
-
-    if args.exclude_test:
-        before = len(jobs)
-        ex_set = set(args.exclude_test)
-        jobs = [j for j in jobs if j.test_name not in ex_set]
-        logger.info("--exclude-test: removed %d jobs", before - len(jobs))
-
-    if args.exclude_variant:
-        before = len(jobs)
-        ex_set = set(args.exclude_variant)
-        jobs = [j for j in jobs if j.variant not in ex_set]
-        logger.info("--exclude-variant: removed %d jobs", before - len(jobs))
-
+    before = len(jobs)
+    jobs = filter_job_list(
+        jobs, 
+        models=args.model, tests=args.test, variants=args.variant,
+        ex_models=args.exclude_model, ex_tests=args.exclude_test, ex_variants=args.exclude_variant
+    )
+    logger.info("CLI filters applied: %d -> %d jobs.", before, len(jobs))
     return jobs
 
 
@@ -247,7 +272,10 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("Resolved %d total jobs from config", len(all_jobs))
 
     # ── 3. Apply filters ──────────────────────────────────────────────────
-    jobs = apply_filters(all_jobs, args)
+    if getattr(args, "run_spec", None):
+        jobs = apply_run_spec(all_jobs, args.run_spec)
+    else:
+        jobs = apply_filters(all_jobs, args)
 
     if not jobs:
         logger.warning("No jobs to run after filtering. Check your filter flags and that models are enabled.")

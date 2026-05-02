@@ -1,0 +1,16 @@
+runs:
+  # 1. Run all tests for MedGemma1.5 and Lingshu-32b
+  - models:
+      - MedGemma1.5
+      - Lingshu-32B
+      
+  # 2. Run all montage tests on all models except the excluded ones
+  - tests:
+      - montage_slice
+      - montage_slice_shuffled
+      - human_montage
+    exclude_models:
+      - MedGemma1.5-ContrastSlices
+      - GPT5Mini
+      - MedGemma1.5
+      - Lingshu-32B
