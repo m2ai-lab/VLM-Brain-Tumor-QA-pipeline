@@ -10,8 +10,8 @@ set -e
 echo "Starting project setup..."
 
 # 1. Create base directories
-mkdir -p models QApairs logs envs
-echo "Directories created: models/, QApairs/, logs/"
+mkdir -p models QApairs logs environments/envs environments/requirements
+echo "Directories created: models/, QApairs/, logs/, environments/envs/, environments/requirements/"
 
 # 2. Bootstrap config
 if [ ! -f "config.yaml" ]; then
