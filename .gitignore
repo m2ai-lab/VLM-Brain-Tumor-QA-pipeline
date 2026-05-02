@@ -8,5 +8,5 @@ config.yaml
 # Large data directories — populated automatically, never committed
 models/
 QApairs/
-envs/
+environments/envs/
 .env

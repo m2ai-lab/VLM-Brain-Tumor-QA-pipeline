@@ -18,27 +18,27 @@
   "environments": {
     "medgemma": {
       "type": "venv",
-      "activate_path": "{project_root}/envs/vlm-medgemma/bin/activate"
+      "activate_path": "{project_root}/environments/envs/vlm-medgemma/bin/activate"
     },
     "med3dvlm": {
       "type": "venv",
-      "activate_path": "{project_root}/envs/vlm-med3dvlm/bin/activate"
+      "activate_path": "{project_root}/environments/envs/vlm-med3dvlm/bin/activate"
     },
     "lingshu": {
       "type": "venv",
-      "activate_path": "{project_root}/envs/vlm-lingshu/bin/activate"
+      "activate_path": "{project_root}/environments/envs/vlm-lingshu/bin/activate"
     },
     "medimageinsight": {
       "type": "venv",
-      "activate_path": "{project_root}/envs/vlm-medimageinsight/bin/activate"
+      "activate_path": "{project_root}/environments/envs/vlm-medimageinsight/bin/activate"
     },
     "llava-med": {
       "type": "venv",
-      "activate_path": "{project_root}/envs/vlm-llavamed/bin/activate"
+      "activate_path": "{project_root}/environments/envs/vlm-llavamed/bin/activate"
     },
     "openai": {
       "type": "venv",
-      "activate_path": "{project_root}/envs/vlm-orchestrator/bin/activate"
+      "activate_path": "{project_root}/environments/envs/vlm-orchestrator/bin/activate"
     }
   },
   "models": {

@@ -14,9 +14,9 @@ module load miniforge3
 
 export PYTHONNOUSERSITE=1
 export PYTHONPATH=""
-export LD_LIBRARY_PATH="/home/remote/shghosh/.conda/envs/format/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="/home/remote/shghosh/.conda/environments/envs/format/lib:$LD_LIBRARY_PATH"
 
-PYTHON=/home/remote/shghosh/.conda/envs/format/bin/python
+PYTHON=/home/remote/shghosh/.conda/environments/envs/format/bin/python
 SCRIPT=/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/data_pipeline/montage_slices.py
 
 # ── Run ───────────────────────────────────────────────────────────────────────

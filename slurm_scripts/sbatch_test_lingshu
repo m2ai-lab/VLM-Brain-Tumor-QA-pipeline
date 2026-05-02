@@ -20,7 +20,7 @@ echo "----------------------------------------"
 cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF- || cd .
 
 # 2. Activate isolated Lingshu environment (created by setup.sh)
-source envs/vlm-lingshu/bin/activate
+source environments/envs/vlm-lingshu/bin/activate
 
 # 3. Run the testing script for just the first 2 rows
 python testing_scripts/QA_testing_lingshu.py \
