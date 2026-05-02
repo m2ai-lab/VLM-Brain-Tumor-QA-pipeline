@@ -6,3 +6,5 @@ pillow
 pandas
 pydantic
 shortuuid
+requests
+sentencepiece
