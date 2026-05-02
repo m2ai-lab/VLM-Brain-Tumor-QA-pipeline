@@ -17,60 +17,85 @@ echo "============================================================"
 cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF- || cd .
 mkdir -p test_output/smoke_tests
 
+MODELS="$@"
+
+function should_run() {
+    local model=$1
+    if [ -z "$MODELS" ]; then
+        return 0 # True
+    fi
+    for m in $MODELS; do
+        if [ "$m" == "$model" ] || [ "$m" == "all" ]; then
+            return 0 # True
+        fi
+    done
+    return 1 # False
+}
+
 # 1. MedGemma1.5
-echo ""
-echo "--- [1/5] Testing MedGemma1.5 ---"
-source environments/envs/vlm-medgemma/bin/activate
-python testing_scripts/QA_testing_medgemma_single_slice.py \
-    --output_path test_output/smoke_tests/medgemma.csv \
-    --limit 2
-EXIT_CODE=$?
-deactivate
-if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedGemma1.5 FAILED"; else echo "✅ MedGemma1.5 PASSED"; fi
+if should_run "medgemma"; then
+    echo ""
+    echo "--- [1/5] Testing MedGemma1.5 ---"
+    source environments/envs/vlm-medgemma/bin/activate
+    python testing_scripts/QA_testing_medgemma_single_slice.py \
+        --output_path test_output/smoke_tests/medgemma.csv \
+        --limit 2
+    EXIT_CODE=$?
+    deactivate
+    if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedGemma1.5 FAILED"; else echo "✅ MedGemma1.5 PASSED"; fi
+fi
 
 # 2. Lingshu-32B
-echo ""
-echo "--- [2/5] Testing Lingshu-32B ---"
-source environments/envs/vlm-lingshu/bin/activate
-python testing_scripts/QA_testing_lingshu.py \
-    --output_path test_output/smoke_tests/lingshu.csv \
-    --limit 2
-EXIT_CODE=$?
-deactivate
-if [ $EXIT_CODE -ne 0 ]; then echo "❌ Lingshu-32B FAILED"; else echo "✅ Lingshu-32B PASSED"; fi
+if should_run "lingshu"; then
+    echo ""
+    echo "--- [2/5] Testing Lingshu-32B ---"
+    source environments/envs/vlm-lingshu/bin/activate
+    python testing_scripts/QA_testing_lingshu.py \
+        --output_path test_output/smoke_tests/lingshu.csv \
+        --limit 2
+    EXIT_CODE=$?
+    deactivate
+    if [ $EXIT_CODE -ne 0 ]; then echo "❌ Lingshu-32B FAILED"; else echo "✅ Lingshu-32B PASSED"; fi
+fi
 
 # 3. LLaVA-Med
-echo ""
-echo "--- [3/5] Testing LLaVA-Med ---"
-source environments/envs/vlm-llavamed/bin/activate
-python testing_scripts/QA_testing_llava_med.py \
-    --output_path test_output/smoke_tests/llavamed.jsonl \
-    --limit 2
-EXIT_CODE=$?
-deactivate
-if [ $EXIT_CODE -ne 0 ]; then echo "❌ LLaVA-Med FAILED"; else echo "✅ LLaVA-Med PASSED"; fi
+if should_run "llavamed"; then
+    echo ""
+    echo "--- [3/5] Testing LLaVA-Med ---"
+    source environments/envs/vlm-llavamed/bin/activate
+    python testing_scripts/QA_testing_llava_med.py \
+        --output_path test_output/smoke_tests/llavamed.jsonl \
+        --limit 2
+    EXIT_CODE=$?
+    deactivate
+    if [ $EXIT_CODE -ne 0 ]; then echo "❌ LLaVA-Med FAILED"; else echo "✅ LLaVA-Med PASSED"; fi
+fi
 
 # 4. MedImageInsight
-echo ""
-echo "--- [4/5] Testing MedImageInsight ---"
-source environments/envs/vlm-medimageinsight/bin/activate
-python testing_scripts/QA_testing_MedImageInsight.py \
-    --output_path test_output/smoke_tests/medimageinsight.csv \
-    --limit 2
-EXIT_CODE=$?
-deactivate
-if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedImageInsight FAILED"; else echo "✅ MedImageInsight PASSED"; fi
+if should_run "medimageinsight"; then
+    echo ""
+    echo "--- [4/5] Testing MedImageInsight ---"
+    source environments/envs/vlm-medimageinsight/bin/activate
+    python testing_scripts/QA_testing_MedImageInsight.py \
+        --output_path test_output/smoke_tests/medimageinsight.csv \
+        --limit 2
+    EXIT_CODE=$?
+    deactivate
+    if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedImageInsight FAILED"; else echo "✅ MedImageInsight PASSED"; fi
+fi
 
 # 5. Med3DVLM
-echo ""
-echo "--- [5/5] Testing Med3DVLM ---"
-source environments/envs/vlm-med3dvlm/bin/activate
-python testing_scripts/QA_testing_Med3DVLM.py \
-    --output_path test_output/smoke_tests/med3dvlm.csv \
-    --limit 2
-EXIT_CODE=$?
-deactivate
-if [ $EXIT_CODE -ne 0 ]; then echo "❌ Med3DVLM FAILED"; else echo "✅ Med3DVLM PASSED"; fi
+if should_run "med3dvlm"; then
+    echo ""
+    echo "--- [5/5] Testing Med3DVLM ---"
+    source environments/envs/vlm-med3dvlm/bin/activate
+    python testing_scripts/QA_testing_Med3DVLM.py \
+        --output_path test_output/smoke_tests/med3dvlm.csv \
+        --limit 2
+    EXIT_CODE=$?
+    deactivate
+    if [ $EXIT_CODE -ne 0 ]; then echo "❌ Med3DVLM FAILED"; else echo "✅ Med3DVLM PASSED"; fi
+fi
 
 echo ""
 echo "============================================================"
