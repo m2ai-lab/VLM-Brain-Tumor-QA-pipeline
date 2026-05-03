@@ -11,7 +11,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
-from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 _cfg = load_config()
 
 # Added a strong system prompt to enforce JSON output
@@ -130,7 +130,7 @@ def main(args):
 
         pending = [
             (i, rec) for i, rec in zip(batch_df_indices, batch_records)
-            if str(rec.get("Assigned ID", i)) not in completed_ids
+            if get_row_id(rec["Assigned ID"], rec["Question"]) not in completed_ids
         ]
         if not pending:
             continue

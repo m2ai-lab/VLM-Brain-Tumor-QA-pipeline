@@ -12,13 +12,13 @@ Usage pattern in a testing script
     completed_ids = load_checkpoint(args.output_path)
 
     for batch in batches:
-        # skip rows whose Assigned ID was already saved
-        batch = [r for r in batch if r["Assigned ID"] not in completed_ids]
+        # skip rows whose ID+Question was already saved
+        batch = [r for r in batch if get_row_id(r["Assigned ID"], r["Question"]) not in completed_ids]
         if not batch:
             continue
         results = run_model(batch)
         save_checkpoint(args.output_path, batch_df_slice, results)
-        completed_ids.update(r["Assigned ID"] for r in batch)
+        completed_ids.update(get_row_id(r["Assigned ID"], r["Question"]) for r in batch)
 """
 from __future__ import annotations
 
@@ -27,9 +27,14 @@ import pandas as pd
 from typing import Any
 
 
+def get_row_id(assigned_id: Any, question: str) -> str:
+    """Combine Assigned ID and Question into a unique identifier."""
+    return f"{assigned_id}|||{question}"
+
+
 def load_checkpoint(output_path: str) -> set:
     """
-    Return the set of 'Assigned ID' values already written to output_path.
+    Return the set of get_row_id(ID, Question) values already written to output_path.
 
     If the file does not exist yet (fresh run), returns an empty set.
     The output CSV is written by save_checkpoint() in append mode, so this
@@ -40,8 +45,10 @@ def load_checkpoint(output_path: str) -> set:
 
     try:
         df = pd.read_csv(output_path)
-        if "Assigned ID" in df.columns:
-            return set(df["Assigned ID"].astype(str).tolist())
+        if "Assigned ID" in df.columns and "Question" in df.columns:
+            return set(
+                df.apply(lambda r: get_row_id(r["Assigned ID"], r["Question"]), axis=1).tolist()
+            )
     except Exception as e:
         print(f"[checkpoint] Warning: could not read checkpoint at {output_path}: {e}")
 

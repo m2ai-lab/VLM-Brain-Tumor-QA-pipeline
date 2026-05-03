@@ -12,7 +12,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
-from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 _cfg = load_config()
 
 def query_the_model(model, tokenizer, question, image_path):
@@ -91,7 +91,7 @@ def main(args):
 
     for idx, row in qa_data.iterrows():
         patient_id = str(row["Assigned ID"])
-        if patient_id in completed_ids:
+        if get_row_id(patient_id, row["Question"]) in completed_ids:
             continue
 
         print(f'Processing {idx+1}/{total} (ID: {patient_id})...')
@@ -103,7 +103,7 @@ def main(args):
             qa_data.iloc[[idx]],
             {"predicted_answer": [response]},
         )
-        completed_ids.add(patient_id)
+        completed_ids.add(get_row_id(patient_id, row["Question"]))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Med3DVLM Blank-Control Inference")

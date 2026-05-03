@@ -73,7 +73,7 @@ class TestCheckpoint(unittest.TestCase):
             )
 
             loaded = self.load_checkpoint(out_path)
-            self.assertEqual(loaded, {"P001", "P002", "P003"})
+            self.assertEqual(loaded, {"P001|||Q1", "P002|||Q2", "P003|||Q3"})
         finally:
             if os.path.exists(out_path):
                 os.remove(out_path)
@@ -90,15 +90,15 @@ class TestCheckpoint(unittest.TestCase):
             self.save_checkpoint(out_path, batch1, {"predicted_answer": ["A1", "A2"]})
 
             completed = self.load_checkpoint(out_path)
-            self.assertIn("P001", completed)
-            self.assertIn("P002", completed)
-            self.assertNotIn("P003", completed)
+            self.assertIn("P001|||Q1", completed)
+            self.assertIn("P002|||Q2", completed)
+            self.assertNotIn("P003|||Q3", completed)
 
             batch2 = pd.DataFrame({"Assigned ID": ["P003"], "Question": ["Q3"]})
             self.save_checkpoint(out_path, batch2, {"predicted_answer": ["A3"]})
 
             final = self.load_checkpoint(out_path)
-            self.assertEqual(final, {"P001", "P002", "P003"})
+            self.assertEqual(final, {"P001|||Q1", "P002|||Q2", "P003|||Q3"})
         finally:
             if os.path.exists(out_path):
                 os.remove(out_path)

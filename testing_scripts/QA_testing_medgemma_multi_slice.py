@@ -15,7 +15,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
-from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 _cfg = load_config()
 
 slice_names = ["Axial", "Coronal", "Sagittal"]
@@ -188,7 +188,7 @@ def main(args):
 
         pending = [
             (i, rec) for i, rec in zip(batch_df_indices, batch_records)
-            if str(rec["Assigned ID"]) not in completed_ids
+            if get_row_id(rec["Assigned ID"], rec["Question"]) not in completed_ids
         ]
         if not pending:
             continue
@@ -209,7 +209,7 @@ def main(args):
                 "MedGemma_Reasoning": [r["reasoning"] for r in responses],
             },
         )
-        completed_ids.update(str(rec["Assigned ID"]) for rec in pending_records)
+        completed_ids.update(get_row_id(rec["Assigned ID"], rec["Question"]) for rec in pending_records)
         print(f"  → Checkpoint saved ({len(completed_ids)}/{total} total done).")
 
     print(f"All done. Results written to {args.output_path}")

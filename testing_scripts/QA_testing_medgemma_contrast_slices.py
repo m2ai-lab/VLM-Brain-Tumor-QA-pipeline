@@ -34,7 +34,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
-from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 
 _cfg = load_config()
 
@@ -213,7 +213,7 @@ def main(args: argparse.Namespace) -> None:
 
     for idx, row in qa_data.iterrows():
         patient_id = row["Assigned ID"]
-        if str(patient_id) in completed_ids:
+        if get_row_id(patient_id, row["Question"]) in completed_ids:
             continue
 
         print(f"Processing {idx+1}/{total} (ID: {patient_id})…")
@@ -238,7 +238,7 @@ def main(args: argparse.Namespace) -> None:
                 "MedGemma_Reasoning": [response["reasoning"]],
             },
         )
-        completed_ids.add(str(patient_id))
+        completed_ids.add(get_row_id(patient_id, row["Question"]))
 
     print(f"\nSaved results to {args.output_path}")
 

@@ -32,7 +32,7 @@ import pandas as pd
 from io import BytesIO
 from PIL import Image
 
-from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 
 
 # ── Ensure the MedImageInsights repo is importable ────────────────────────────
@@ -218,7 +218,7 @@ def main(args):
 
         pending = [
             (i, rec) for i, rec in zip(batch_df_indices, batch_records)
-            if str(rec["Assigned ID"]) not in completed_ids
+            if get_row_id(rec["Assigned ID"], rec["Question"]) not in completed_ids
         ]
         if not pending:
             continue
@@ -245,7 +245,7 @@ def main(args):
                 "MedImageInsight_Reasoning": [r["reasoning"] for r in responses],
             },
         )
-        completed_ids.update(str(rec["Assigned ID"]) for rec in pending_records)
+        completed_ids.update(get_row_id(rec["Assigned ID"], rec["Question"]) for rec in pending_records)
         print(f"  → Checkpoint saved ({len(completed_ids)}/{total} total done).")
 
     print(f"Saved results to {args.output_path}")
