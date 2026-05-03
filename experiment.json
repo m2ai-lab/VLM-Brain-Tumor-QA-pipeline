@@ -297,10 +297,10 @@
           "output_path": "{output_base}/GPT5Mini/single_slice_results.csv"
         },
         {
-          "name": "single_slice_shuffled",
-          "variant": "single_slice",
+          "name": "multi_slice_shuffled",
+          "variant": "multi_slice",
           "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/single_slice_reshuffled_results.csv"
+          "output_path": "{output_base}/GPT5Mini/multi_slice_shuffled_results.csv"
         },
         {
           "name": "blank",
@@ -318,6 +318,11 @@
           "name": "montage_slice",
           "variant": "montage_slice",
           "output_path": "{output_base}/GPT5Mini/montage_slice_results.csv"
+        },
+        {
+          "name": "multi_slice",
+          "variant": "multi_slice",
+          "output_path": "{output_base}/GPT5Mini/multi_slice_results.csv"
         }
       ]
     },

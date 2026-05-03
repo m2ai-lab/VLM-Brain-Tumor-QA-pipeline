@@ -93,15 +93,16 @@ def encode_image_as_base64(image_path: str) -> str:
     img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
-def call_versa_vision(image_b64: str, question: str, deployment: str) -> VQAResponse:
+def call_versa_vision(images_b64: list[str], question: str, deployment: str) -> VQAResponse:
+    content = [{"type": "text", "text": question}]
+    for img_b64 in images_b64:
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}})
+
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {
             "role": "user",
-            "content": [
-                {"type": "text", "text": question},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}},
-            ],
+            "content": content,
         },
     ]
     retries = 0
@@ -126,18 +127,22 @@ def call_versa_vision(image_b64: str, question: str, deployment: str) -> VQAResp
 def process_row(idx: int, row: pd.Series, args: argparse.Namespace) -> dict:
     """Task function for ThreadPoolExecutor."""
     try:
-        if args.image_path:
-            # Control / Blank mode
-            img_path = args.image_path
-        else:
-            # Normal mode
-            img_path = os.path.join(args.image_dir, str(row["Assigned ID"]), args.image_filename)
+        # Split filenames in case multiple are provided (e.g. "Axial.png Coronal.png Sagittal.png")
+        filenames = args.image_filename.split()
+        images_b64 = []
 
-        if not os.path.exists(img_path):
-            return {"rid": get_row_id(row["Assigned ID"], row["Question"]), "answer": "Error", "reasoning": f"Image not found: {img_path}", "idx": idx}
+        for fname in filenames:
+            if args.image_path:
+                img_path = args.image_path
+            else:
+                img_path = os.path.join(args.image_dir, str(row["Assigned ID"]), fname)
 
-        image_b64 = encode_image_as_base64(img_path)
-        result = call_versa_vision(image_b64, row["Question"], args.deployment)
+            if not os.path.exists(img_path):
+                return {"rid": get_row_id(row["Assigned ID"], row["Question"]), "answer": "Error", "reasoning": f"Image not found: {img_path}", "idx": idx}
+
+            images_b64.append(encode_image_as_base64(img_path))
+
+        result = call_versa_vision(images_b64, row["Question"], args.deployment)
         
         return {
             "rid": get_row_id(row["Assigned ID"], row["Question"]),
