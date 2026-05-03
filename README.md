@@ -163,6 +163,38 @@ python experiment_orchestrator/run_experiments.py --model MedGemma1.5 --exclude-
 python experiment_orchestrator/run_experiments.py --variant single_slice --exclude-model LLaVA-Med
 ```
 
+### Run Specifications (`--run-spec`)
+
+For complex experiment matrices, you can use a YAML "run spec" file instead of long CLI flags. This is the preferred way to manage large-scale batch runs.
+
+**Example `my_run.yaml`:**
+```yaml
+runs:
+  - models: [MedGemma1.5, GPT5Mini]
+    tests: [single_slice, single_slice_shuffled]
+  - models: [Med3DVLM]
+    tests: [full_nifti, blank]
+```
+
+**Usage:**
+```bash
+python experiment_orchestrator/run_experiments.py --run-spec my_run.yaml
+```
+
+The orchestrator will resolve all valid combinations (Model × Test × Run) defined in the YAML file that are also enabled in `experiment.json`.
+
+> **Note on YAML Syntax:** You can use either bulleted lists or bracketed "flow" style. Both of these are equivalent:
+> ```yaml
+> # Bulleted style
+> models:
+>   - MedGemma1.5
+>   - GPT5Mini
+> 
+> # Bracketed style
+> models: [MedGemma1.5, GPT5Mini]
+> ```
+> However, providing a single string without a bullet or brackets (e.g., `models: GPT5Mini`) will cause the filter to fail.
+
 ### Local Runner (no SLURM)
 
 `run_local.py` is an alternative entrypoint for running the same experiments **without a SLURM cluster** — on a laptop, VM, or any machine where you can run the testing scripts directly.
@@ -618,15 +650,9 @@ python experiment_orchestrator/run_local.py --dry-run
 
 > **Note on environments**: `run_local.py` uses whichever Python interpreter is currently active. Activate the correct conda environment before running, or pass `--python /path/to/env/bin/python`.
 
-### 4. OpenAI / GPT-5+ smoke test
+### 4. OpenAI / GPT-5+ Parallel Smoke Test
 
-The OpenAI testing script has a dedicated lightweight environment and a `--limit` flag for quick validation.
-
-**Create the environment (first time only):**
-```bash
-conda env create -f environments/openai.yml
-# or just: conda activate openai && pip install pyyaml
-```
+The OpenAI testing script supports threading to speed up API-bound runs. It also uses a checkpointing system to save progress row-by-row.
 
 **Set your API key in `.env`:**
 ```
@@ -635,26 +661,28 @@ API_VERSION=2025-04-01-preview
 RESOURCE_ENDPOINT=https://unified-api.ucsf.edu/general
 ```
 
-**Run a 5-row smoke test:**
+**Run a parallel 5-row smoke test:**
 ```bash
-conda activate openai
+# Use the orchestrator environment
+source environments/envs/vlm-orchestrator/bin/activate
+
 python testing_scripts/QA_testing_OpenAI.py \
   --limit 5 \
-  --output_path test_output/quick_test.csv
+  --batch_size 5 \
+  --output_path test_output/parallel_test.csv
 ```
 
-The script prints timestamped checkpoints for every step:
+The script will fire all 5 requests simultaneously:
 ```
 [18:30:01] Script starting — imports OK
 [18:30:01] Project root : /path/to/QA-BrainTumor-VLM-UCSF-
-[18:30:01] OPENAI_API_KEY : SET (88 chars)
-[18:30:01] AzureOpenAI client initialised OK
-[18:30:01] Row 1/5 | Patient: UCSF-PDGM-0005
-[18:30:01]   Image path: Y:/openai_vqa_data/2D_slices/UCSF-PDGM-0005/Axial.png
-[18:30:01]   → Sending API request (attempt 1/5, deployment=gpt-5-mini-2025-08-07)…
-[18:30:03]   ← Response received in 2.1s | finish='stop' | tokens: prompt=512 completion=48 total=560
-[18:30:03]   ✓ answer: 2) Right retrolenticular internal capsule/thalamus
+[18:30:01] Loaded 5 rows. Resuming from 0 existing results.
+[18:30:01] Processing 5 remaining rows using 5 parallel workers...
+[18:30:03] Progress: 5/5 requests completed.
+[18:30:03] Run complete. Results in test_output/parallel_test.csv
 ```
+
+> **Note**: If you run it again, the checkpointing system will see the existing results and skip them automatically.
 
 ---
 
