@@ -170,8 +170,12 @@ bs4 = pd.read_csv("test_output/smoke_tests/medgemma_bs4_check.csv")
 # Sort both by Assigned ID to ensure same order
 bs1 = bs1.sort_values("Assigned ID").reset_index(drop=True)
 bs4 = bs4.sort_values("Assigned ID").reset_index(drop=True)
-# Answers must match exactly (greedy decoding is deterministic)
-mismatches = (bs1["predicted_answer"] != bs4["predicted_answer"]).sum()
+# Use .values to compare numpy arrays directly — avoids pandas index-alignment errors
+# if the two CSVs ended up with different row counts or index labels.
+if len(bs1) != len(bs4):
+    print(f"  ❌ Row count mismatch: bs1={len(bs1)}, bs4={len(bs4)}")
+    sys.exit(1)
+mismatches = (bs1["predicted_answer"].values != bs4["predicted_answer"].values).sum()
 if mismatches == 0:
     print(f"  ✅ Answers match across batch_size=1 and batch_size=4 ({len(bs1)} rows)")
     sys.exit(0)
