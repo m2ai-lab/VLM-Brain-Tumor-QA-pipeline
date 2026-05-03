@@ -67,7 +67,7 @@ _dbg("AzureOpenAI client initialised OK")
 DEFAULT_DEPLOYMENT = "gpt-5-mini-2025-08-07"
 RETRY_SECS  = 10
 MAX_RETRIES = 4
-MAX_COMPLETION_TOKENS = 1024
+MAX_COMPLETION_TOKENS = 4096
 
 _SAVE_LOCK = threading.Lock()  # Protects CSV appends from parallel threads
 
