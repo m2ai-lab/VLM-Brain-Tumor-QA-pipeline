@@ -90,9 +90,11 @@ def run_batch(model, processor, batch_rows: list[dict], blank_image: Image.Image
     # Left-padding required for batched decoder-only generation
     processor.tokenizer.padding_side = "left"
 
+    # Gemma3 processor requires images as a nested list:
+    # [[img_for_text_0], [img_for_text_1], ...]
     inputs = processor(
         text=texts,
-        images=images_batch,
+        images=[[blank_image] for _ in range(len(texts))],
         padding=True,
         return_tensors="pt",
     ).to(model.device, dtype=model.dtype)

@@ -92,7 +92,8 @@ def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str) -> 
     results: list[dict] = [{"reasoning": "Not processed", "answer": "Error"}] * len(batch_rows)
 
     texts: list[str] = []
-    all_images: list[Image.Image] = []  # flat list: [pt0_ax, pt0_cor, pt0_sag, pt1_ax, ...]
+    # Gemma3 processor needs a nested list: [[imgs_for_patient_0], [imgs_for_patient_1], ...]
+    images_per_patient: list[list] = []
 
     for i, row in enumerate(batch_rows):
         patient_image_dir = path.join(base_image_dir, str(row["Assigned ID"]))
@@ -116,7 +117,7 @@ def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str) -> 
 
         valid_indices.append(i)
         texts.append(input_text)
-        all_images.extend(images)
+        images_per_patient.append(images)
 
     if not valid_indices:
         return results
@@ -124,9 +125,12 @@ def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str) -> 
     # Left-padding required for batched decoder-only generation
     processor.tokenizer.padding_side = "left"
 
+    # Gemma3 processor requires images as a nested list:
+    # [[imgs_for_text_0], [imgs_for_text_1], ...]
+    # where each inner list may have 1–N images (one per <image> token in that text).
     inputs = processor(
         text=texts,
-        images=all_images,
+        images=images_per_patient,
         padding=True,
         return_tensors="pt",
     ).to(model.device, dtype=model.dtype)

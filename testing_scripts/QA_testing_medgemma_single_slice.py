@@ -110,9 +110,12 @@ def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str, ima
     # Left-pad so generation doesn't get confused by padding on the right
     processor.tokenizer.padding_side = "left"
 
+    # Gemma3 processor requires images as a nested list:
+    # [[img_for_text_0], [img_for_text_1], ...]
+    # A flat list is treated as a single-image batch and causes a size mismatch.
     inputs = processor(
         text=texts,
-        images=images_batch,
+        images=[[img] for img in images_batch],
         padding=True,
         return_tensors="pt",
     ).to(model.device, dtype=model.dtype)

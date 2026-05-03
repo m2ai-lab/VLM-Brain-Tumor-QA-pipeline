@@ -147,9 +147,12 @@ def query_the_model(model, processor, question: str,
     messages = [{"role": "user", "content": content}]
 
     input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
+    # Gemma3 processor requires images as a nested list even for a single sample:
+    # [images] = "1 text sample whose prompt has len(images) <image> tokens".
+    # Passing a flat list causes a batch-size mismatch error.
     inputs = processor(
         text=input_text,
-        images=images,
+        images=[images],
         padding=True,
         return_tensors="pt",
     ).to(model.device, dtype=model.dtype)
