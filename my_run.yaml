@@ -1,7 +1,6 @@
 runs:
   # 1. Run all tests for MedGemma1.5 and Lingshu-32b
   - models:
-      - MedGemma1.5
       - Lingshu-32B
       - MedGemma1.5-ContrastSlices
       
@@ -13,6 +12,5 @@ runs:
       - human
     exclude_models:
       - GPT5Mini
-      - MedGemma1.5
       - Lingshu-32B
       - MedGemma1.5-ContrastSlices

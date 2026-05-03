@@ -41,6 +41,8 @@ class MedImageInsightAdapter(ModelAdapter):
             if job.variant in self._IMAGE_FILENAME:
                 args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
+        args.append(f"--batch_size {job.batch_size}")
+
         return f"{script} {' '.join(args)}"
 
     def validate(self, job: ResolvedJob) -> None:

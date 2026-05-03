@@ -43,6 +43,10 @@ class GlobalConfig(BaseModel):
         default=30,
         description="How often (seconds) the scheduler checks for completed jobs.",
     )
+    batch_size: int = Field(
+        default=4,
+        description="Default number of QA rows per model.generate() call across all models.",
+    )
 
     def slurm_defaults(self) -> dict:
         """Return the SLURM-relevant defaults as a flat dict for merging."""
@@ -103,6 +107,8 @@ class ModelConfig(BaseModel):
 
     runs_per_experiment: Optional[int] = None
     slurm_overrides: dict = {}
+    # Per-model batch_size override (inherits from global if not set)
+    batch_size: Optional[int] = None
 
     tests: list[TestConfig]
 

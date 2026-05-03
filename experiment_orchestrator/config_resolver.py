@@ -63,6 +63,7 @@ class ResolvedJob:
     qa_path: str
     output_path: str        # with _runN suffix
     slurm_params: dict = field(default_factory=dict)
+    batch_size: int = 4     # resolved: model override → global default
 
 
 
@@ -118,6 +119,13 @@ def resolve_all(suite: ExperimentSuite) -> list[ResolvedJob]:
                 **test.slurm_overrides,
             }
 
+            # Resolve batch_size: model override → global default
+            effective_batch_size = (
+                model_cfg.batch_size
+                if model_cfg.batch_size is not None
+                else suite.global_config.batch_size
+            )
+
             for run in range(1, num_runs + 1):
                 output_path = _make_run_output_path(test.output_path, run, num_runs)
 
@@ -137,6 +145,7 @@ def resolve_all(suite: ExperimentSuite) -> list[ResolvedJob]:
                         qa_path=qa_path,
                         output_path=output_path,
                         slurm_params=slurm,
+                        batch_size=effective_batch_size,
                     )
                 )
 

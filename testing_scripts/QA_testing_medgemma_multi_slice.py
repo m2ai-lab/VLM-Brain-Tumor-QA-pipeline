@@ -15,6 +15,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
 _cfg = load_config()
 
 slice_names = ["Axial", "Coronal", "Sagittal"]
@@ -38,39 +39,24 @@ def clean_json_string(raw_str):
     return match.group(0) if match else clean_str
 
 class MedResponse(BaseModel):
-    # Literal ensures the answer MUST be one of these specific strings
     reasoning: str = Field(description="Step-by-step clinical observation of the MRI slices.")
     answer: str = Field(description="The final choice selected from the options.")
 
-def process_slices(image_dir: str):
-    """Loads specific PNG slices from a directory into a list of PIL Images."""
+
+def process_slices(image_dir: str) -> list:
+    """Loads Axial/Coronal/Sagittal PNGs from a directory into a list of PIL Images."""
     slices = []
-    for i in slice_names:
-        slice_path = path.join(image_dir, f'{i}.png')
+    for name in slice_names:
+        slice_path = path.join(image_dir, f'{name}.png')
         if path.exists(slice_path):
-            # PIL requires Image.open() and it's best practice to ensure RGB format
             slices.append(Image.open(slice_path).convert("RGB"))
         else:
             print(f"Warning: {slice_path} not found.")
-    
     return slices
 
-def query_the_model(model, processor, question, patient_id, base_image_dir):
-    # Assume the PNGs are stored in a folder named after the patient ID
-    patient_image_dir = path.join(base_image_dir, str(patient_id))
-    
-    if not path.exists(patient_image_dir):
-        return {"reasoning": f"Error: Directory {patient_image_dir} not found.", "answer": "Error"}
 
-    # 1. Get processed PIL images
-    images = process_slices(patient_image_dir)
-    num_loaded_slices = len(images)
-    
-    if num_loaded_slices == 0:
-         return {"reasoning": "Error: No slices found to process.", "answer": "Error"}
-
-    # 1. More aggressive prompt with a clear JSON schema
-    prompt_text = (
+def _build_prompt(question: str, num_slices: int) -> str:
+    return (
         "Instruction: You are a neuroradiologist. Analyze the MRI slices and provide a structured JSON response.\n"
         f"{FEW_SHOT_EXAMPLE}"
         "---\n"
@@ -78,73 +64,100 @@ def query_the_model(model, processor, question, patient_id, base_image_dir):
         "Response:"
     )
 
-    # 2. Build messages
-    content = [{"type": "image"}] * 3
-    content.append({"type": "text", "text": prompt_text})
-    messages = [{"role": "user", "content": content}]
 
-    # 3. Process inputs
-    # Use add_generation_prompt=False because we are manually adding the "{"
-    input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
-    
-    # Check if the template ends with <|im_start|>assistant or similar; 
-    # we need to ensure our '{' comes AFTER the assistant tag.
-    inputs = processor(
-        text=input_text,
-        images=images,
-        padding=True,
-        return_tensors="pt"
-    ).to(model.device, dtype=model.dtype)
-
-    # 4. Generate
-    input_len = inputs["input_ids"].shape[1]
-    with torch.inference_mode():
-        generated_sequence = model.generate(
-            **inputs, 
-            do_sample=False, 
-            max_new_tokens=512,
-            stop_strings=["}"], # Stop as soon as the JSON closes
-            tokenizer=processor.tokenizer
-        )
-
-    # 5. Extract and RE-ADD the opening brace
-    new_tokens = generated_sequence[0][input_len:]
-    raw_response = processor.decode(new_tokens, skip_special_tokens=True).strip()
-    
-    # Since we pre-filled '{', the model output likely starts with "reasoning": ...
-    full_json_str = "{" + raw_response 
-    if not full_json_str.endswith("}"):
-        full_json_str += "}"
-    
-    cleaned_response = clean_json_string(raw_response) 
-    
+def _parse_response(raw_response: str) -> dict:
+    cleaned_response = clean_json_string(raw_response)
     try:
-        # Extract JSON string using regex
         json_match = re.search(r'\{.*\}', cleaned_response, re.DOTALL)
         if not json_match:
             raise ValueError("No JSON found in model output")
-        
-        # Validate against the Pydantic schema
         validated_data = MedResponse.model_validate_json(json_match.group(0))
-        
         return validated_data.model_dump()
-        
     except ValidationError as e:
         print(f"Pydantic Validation Error: {e}")
         return {"reasoning": "Schema mismatch", "answer": "Error", "raw": cleaned_response}
     except Exception as e:
         return {"reasoning": f"Parsing error: {str(e)}", "answer": "Error"}
 
+
+def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str) -> list[dict]:
+    """
+    Run batched multi-slice inference.
+
+    Each patient contributes 3 images (Axial/Coronal/Sagittal).  All images
+    for all patients in the batch are stacked so the processor can handle them
+    together.
+    """
+    valid_indices: list[int] = []
+    results: list[dict] = [{"reasoning": "Not processed", "answer": "Error"}] * len(batch_rows)
+
+    texts: list[str] = []
+    all_images: list[Image.Image] = []  # flat list: [pt0_ax, pt0_cor, pt0_sag, pt1_ax, ...]
+
+    for i, row in enumerate(batch_rows):
+        patient_image_dir = path.join(base_image_dir, str(row["Assigned ID"]))
+        if not path.exists(patient_image_dir):
+            results[i] = {"reasoning": f"Error: Directory {patient_image_dir} not found.", "answer": "Error"}
+            continue
+
+        images = process_slices(patient_image_dir)
+        if not images:
+            results[i] = {"reasoning": "Error: No slices found.", "answer": "Error"}
+            continue
+
+        num_loaded = len(images)
+        prompt_text = _build_prompt(row["Question"], num_loaded)
+
+        # Build message with one {"type": "image"} placeholder per loaded slice
+        content = [{"type": "image"}] * num_loaded
+        content.append({"type": "text", "text": prompt_text})
+        messages = [{"role": "user", "content": content}]
+        input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
+
+        valid_indices.append(i)
+        texts.append(input_text)
+        all_images.extend(images)
+
+    if not valid_indices:
+        return results
+
+    # Left-padding required for batched decoder-only generation
+    processor.tokenizer.padding_side = "left"
+
+    inputs = processor(
+        text=texts,
+        images=all_images,
+        padding=True,
+        return_tensors="pt",
+    ).to(model.device, dtype=model.dtype)
+
+    input_len = inputs["input_ids"].shape[1]
+    with torch.inference_mode():
+        generated_sequences = model.generate(
+            **inputs,
+            do_sample=False,
+            max_new_tokens=512,
+            stop_strings=["}"],
+            tokenizer=processor.tokenizer,
+        )
+
+    for seq_idx, row_idx in enumerate(valid_indices):
+        new_tokens = generated_sequences[seq_idx][input_len:]
+        raw_response = processor.decode(new_tokens, skip_special_tokens=True).strip()
+        results[row_idx] = _parse_response(raw_response)
+
+    return results
+
+
 def main(args):
     model_id = args.model_path
-    
+
     print(f"Loading MedGemma from {model_id}...")
     processor = AutoProcessor.from_pretrained(model_id)
-    
-    # Using bfloat16 is highly recommended for MedGemma if your GPU supports it
+
     model = AutoModelForImageTextToText.from_pretrained(
-        model_id, 
-        torch_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16, 
+        model_id,
+        torch_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
         device_map="auto",
         trust_remote_code=True
     )
@@ -153,30 +166,58 @@ def main(args):
     if getattr(args, 'limit', None):
         print(f"Limiting to first {args.limit} rows.")
         qa_data = qa_data.head(args.limit)
-        
-    generated_answer = []
-    generated_reasoning = []
-    total = qa_data.shape[0]
 
-    for idx, row in qa_data.iterrows():
-        print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model, processor, row["Question"], row["Assigned ID"], args.image_dir)
-        generated_answer.append(response['answer'])
-        generated_reasoning.append(response['reasoning'])
-        print(f"Response: {response}\n{'-'*30}")
-        
-    # Save results
-    qa_data["predicted_answer"] = generated_answer
-    qa_data["MedGemma_Reasoning"] = generated_reasoning
-    os.makedirs(os.path.dirname(os.path.abspath(args.output_path)), exist_ok=True)
-    qa_data.to_csv(args.output_path, index=False)
+    completed_ids = load_checkpoint(args.output_path)
+    if completed_ids:
+        print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
+
+    total = len(qa_data)
+    batch_size = args.batch_size
+    print(f"Running inference with batch_size={batch_size} on {total} rows.")
+
+    rows_list = qa_data.to_dict("records")
+    df_index = list(range(len(rows_list)))
+
+    for batch_start in range(0, total, batch_size):
+        batch_records = rows_list[batch_start: batch_start + batch_size]
+        batch_df_indices = df_index[batch_start: batch_start + batch_size]
+
+        pending = [
+            (i, rec) for i, rec in zip(batch_df_indices, batch_records)
+            if str(rec["Assigned ID"]) not in completed_ids
+        ]
+        if not pending:
+            continue
+
+        pending_df_indices, pending_records = zip(*pending)
+        batch_end = min(batch_start + batch_size, total)
+        print(f"Processing rows {batch_start + 1}–{batch_end}/{total} "
+              f"(batch of {len(pending_records)})...")
+
+        responses = run_batch(model, processor, list(pending_records), args.image_dir)
+
+        batch_df = qa_data.iloc[list(pending_df_indices)].copy()
+        save_checkpoint(
+            args.output_path,
+            batch_df,
+            {
+                "predicted_answer":   [r["answer"]    for r in responses],
+                "MedGemma_Reasoning": [r["reasoning"] for r in responses],
+            },
+        )
+        completed_ids.update(str(rec["Assigned ID"]) for rec in pending_records)
+        print(f"  → Checkpoint saved ({len(completed_ids)}/{total} total done).")
+
+    print(f"All done. Results written to {args.output_path}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MedGemma NIfTI Inference")
+    parser = argparse.ArgumentParser(description="MedGemma Multi-Slice Inference")
     parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/MedGemma1.5/multi_slice_results.csv")
     parser.add_argument('--image_dir', type=str, default=_cfg.get("slice_dir"))
     parser.add_argument('--model_path', type=str, default=_cfg.get("medgemma_model_path"))
+    parser.add_argument('--batch_size', type=int, default=4,
+                        help="Number of patients per model.generate() call.")
     parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
 
     args = parser.parse_args()

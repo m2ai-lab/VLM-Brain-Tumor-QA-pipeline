@@ -12,6 +12,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
 _cfg = load_config()
 
 def query_the_model(model, tokenizer, question, image_path):
@@ -80,27 +81,38 @@ def main(args):
     )
 
     qa_data = pd.read_csv(args.qa_path)
-    responses = []
     total = qa_data.shape[0]
 
-    for idx, row in qa_data.iterrows():
-        print(f'Processing {idx+1}/{total} (ID: {row["Assigned ID"]})...')
-        response = query_the_model(model,tokenizer, row["Question"], args.image_path)
-        responses.append(response)
-        print(f"Response: {response}\n{'-'*30}")
-        
+    completed_ids = load_checkpoint(args.output_path)
+    if completed_ids:
+        print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
 
-    # Save results
-    qa_data["predicted_answer"] = responses
-    os.makedirs(os.path.dirname(os.path.abspath(args.output_path)), exist_ok=True)
-    qa_data.to_csv(args.output_path, index=False)
+    print(f"Running Med3DVLM blank inference (batch_size=1) on {total} rows.")
+
+    for idx, row in qa_data.iterrows():
+        patient_id = str(row["Assigned ID"])
+        if patient_id in completed_ids:
+            continue
+
+        print(f'Processing {idx+1}/{total} (ID: {patient_id})...')
+        response = query_the_model(model, tokenizer, row["Question"], args.image_path)
+        print(f"Response: {response}\n{'-'*30}")
+
+        save_checkpoint(
+            args.output_path,
+            qa_data.iloc[[idx]],
+            {"predicted_answer": [response]},
+        )
+        completed_ids.add(patient_id)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Medgemma QA testing")
+    parser = argparse.ArgumentParser(description="Med3DVLM Blank-Control Inference")
     parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/Med3DVLM/blank_results.csv")
     parser.add_argument('--image_path', type=str, default=_cfg.get("blank_nifti"))
     parser.add_argument('--model_path', type=str, default=_cfg.get("med3dvlm_model_path"))
+    parser.add_argument('--batch_size', type=int, default=1,
+                        help="Fixed at 1: each volumetric NIfTI uses ~1 GB GPU RAM.")
 
     args = parser.parse_args()
     main(args)

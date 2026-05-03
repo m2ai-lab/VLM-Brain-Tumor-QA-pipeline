@@ -34,6 +34,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
 
 _cfg = load_config()
 
@@ -197,12 +198,21 @@ def main(args: argparse.Namespace) -> None:
     )
 
     qa_data = pd.read_csv(args.qa_path)
-    generated_answer    = []
-    generated_reasoning = []
     total = qa_data.shape[0]
+
+    # Contrast-slices variant keeps batch_size=1 because each patient has a
+    # variable number of images, making true multi-patient batching non-trivial.
+    completed_ids = load_checkpoint(args.output_path)
+    if completed_ids:
+        print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
+
+    print(f"Running contrast-slices inference (batch_size=1) on {total} rows.")
 
     for idx, row in qa_data.iterrows():
         patient_id = row["Assigned ID"]
+        if str(patient_id) in completed_ids:
+            continue
+
         print(f"Processing {idx+1}/{total} (ID: {patient_id})…")
 
         # Log which contrasts will be fed in
@@ -214,15 +224,19 @@ def main(args: argparse.Namespace) -> None:
         response = query_the_model(
             model, processor, row["Question"], patient_id, args.image_dir
         )
-        generated_answer.append(response["answer"])
-        generated_reasoning.append(response["reasoning"])
         print(f"  Response: {response['answer']}\n{'-'*30}")
 
-    qa_data["predicted_answer"]    = generated_answer
-    qa_data["MedGemma_Reasoning"]  = generated_reasoning
+        # Write checkpoint immediately after each row
+        save_checkpoint(
+            args.output_path,
+            qa_data.iloc[[idx]],
+            {
+                "predicted_answer":   [response["answer"]],
+                "MedGemma_Reasoning": [response["reasoning"]],
+            },
+        )
+        completed_ids.add(str(patient_id))
 
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-    qa_data.to_csv(args.output_path, index=False)
     print(f"\nSaved results to {args.output_path}")
 
 
@@ -241,6 +255,10 @@ if __name__ == "__main__":
         help="Root dir containing <pdgm_id>/axial_*.png files.",
     )
     parser.add_argument("--model_path", type=str, default=_cfg.get("medgemma_model_path"))
+    parser.add_argument(
+        "--batch_size", type=int, default=1,
+        help="Fixed at 1 for contrast_slices: variable image count per patient prevents true batching.",
+    )
 
     args = parser.parse_args()
     main(args)

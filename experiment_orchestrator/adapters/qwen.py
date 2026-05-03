@@ -24,6 +24,7 @@ class QwenAdapter(ModelAdapter):
             f" --qa_path {job.qa_path}"
             f" --output_path {job.output_path}"
             f" --model_path {job.model_path}"
+            f" --batch_size {job.batch_size}"
         )
 
     def validate(self, job: ResolvedJob) -> None:

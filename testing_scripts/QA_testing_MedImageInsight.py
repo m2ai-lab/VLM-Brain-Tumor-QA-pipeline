@@ -1,5 +1,5 @@
 """
-QA_testing_MedImageInsight.py — Zero-shot VQA using MedImageInsight.
+QA_testing_MedImageInsight.py — Zero-shot VQA using MedImageInsight with batch processing.
 
 MedImageInsight is a CLIP-style contrastive embedding model, NOT a generative
 VLM. It cannot "answer" questions — instead, it computes cosine similarity
@@ -12,8 +12,10 @@ Strategy:
      context) with the text encoder.
   4. Pick the option with the highest similarity score as the predicted answer.
 
-This gives us a zero-shot classification baseline on the brain MRI QA task
-using only image–text alignment, with no reasoning capability.
+Batching:
+  Because each question has different label text, we call classifier.predict()
+  with a batch of N images and their per-image label lists simultaneously.
+  This amortizes the vision encoder cost across the whole batch.
 """
 import os
 import sys
@@ -27,9 +29,13 @@ import re
 import base64
 import argparse
 import pandas as pd
+from io import BytesIO
+from PIL import Image
+
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
+
 
 # ── Ensure the MedImageInsights repo is importable ────────────────────────────
-# The model code lives inside the downloaded repo and needs its own subpackages.
 
 
 def parse_answer_options(question: str) -> tuple[str, list[str]]:
@@ -61,98 +67,116 @@ def parse_answer_options(question: str) -> tuple[str, list[str]]:
 
 def read_image_as_base64(image_path: str) -> str:
     """Read an image file, force RGB, and return its base64-encoded string."""
-    from PIL import Image
-    import io
-
     img = Image.open(image_path).convert("RGB")
-    buf = io.BytesIO()
+    buf = BytesIO()
     img.save(buf, format="PNG")
     return base64.encodebytes(buf.getvalue()).decode("utf-8")
 
 
-def query_the_model(classifier, question: str, patient_id: str, base_image_dir: str, image_filename: str = "Axial.png"):
+def run_batch(
+    classifier,
+    batch_rows: list[dict],
+    base_image_dir: str,
+    image_filename: str,
+    image_path_override: str | None = None,
+) -> list[dict]:
     """
-    Perform zero-shot classification on a single patient image using the
-    question's answer options as candidate labels.
+    Zero-shot classification for a batch of QA rows.
+
+    Collects all (image_b64, labels) pairs then calls classifier.predict()
+    with all N images at once.  Rows with missing images or parse errors
+    are handled individually without blocking the rest of the batch.
     """
-    # 1. Locate the image
-    patient_image_path = os.path.join(base_image_dir, str(patient_id), image_filename)
+    valid_indices: list[int] = []
+    results: list[dict] = [{"reasoning": "Not processed", "answer": "Error"}] * len(batch_rows)
 
-    if not os.path.exists(patient_image_path):
-        return {
-            "reasoning": f"Error: Image {patient_image_path} not found.",
-            "answer": "Error",
-        }
+    images_b64: list[str] = []
+    per_image_labels: list[list[str]] = []
+    per_image_options: list[list[str]] = []
 
-    # 2. Parse the 4 answer options from the question
+    for i, row in enumerate(batch_rows):
+        if image_path_override:
+            patient_image_path = image_path_override
+        else:
+            patient_image_path = os.path.join(base_image_dir, str(row["Assigned ID"]), image_filename)
+
+        if not os.path.exists(patient_image_path):
+            results[i] = {
+                "reasoning": f"Error: Image {patient_image_path} not found.",
+                "answer": "Error",
+            }
+            continue
+
+        try:
+            question_stem, options = parse_answer_options(row["Question"])
+        except ValueError as e:
+            results[i] = {"reasoning": f"Parse error: {e}", "answer": "Error"}
+            continue
+
+        image_b64 = read_image_as_base64(patient_image_path)
+        labels = [f"{question_stem} {opt}" for opt in options]
+
+        valid_indices.append(i)
+        images_b64.append(image_b64)
+        per_image_labels.append(labels)
+        per_image_options.append(options)
+
+    if not valid_indices:
+        return results
+
+    # Batch predict: classifier receives N images each with their own label list.
+    # MedImageInsight.predict() signature: predict(images: list[str], labels: list[str])
+    # where labels is a flat list applied to all images uniformly.
+    # Since our labels differ per image, we call predict once per image but still
+    # batch the image encoding by calling predict with all images and a union label set,
+    # then remapping.  If the API only supports uniform labels, fall back to per-image calls.
     try:
-        question_stem, options = parse_answer_options(question)
-    except ValueError as e:
-        return {
-            "reasoning": f"Parse error: {e}",
-            "answer": "Error",
-        }
+        # Attempt batch call with uniform label union (richer context)
+        all_labels_flat = list({lbl for lbls in per_image_labels for lbl in lbls})
+        batch_results = classifier.predict(images_b64, all_labels_flat)
+        use_batch = True
+    except Exception:
+        use_batch = False
 
-    # 3. Encode the image
-    image_b64 = read_image_as_base64(patient_image_path)
+    for seq_idx, row_idx in enumerate(valid_indices):
+        options = per_image_options[seq_idx]
+        labels = per_image_labels[seq_idx]
 
-    # 4. Use the question stem + each option as labels for richer context
-    #    e.g., "Based on the T2/FLAIR hyperintensity, 1) Low Grade"
-    #    This gives the text encoder more semantic signal than bare labels.
-    labels = [f"{question_stem} {opt}" for opt in options]
+        if use_batch and batch_results:
+            probs = batch_results[seq_idx]  # dict: {label: prob}
+            # Only consider labels belonging to this image's question
+            relevant_probs = {lbl: probs.get(lbl, 0.0) for lbl in labels}
+        else:
+            # Fallback: individual predict call
+            single_result = classifier.predict([images_b64[seq_idx]], labels)
+            if not single_result:
+                results[row_idx] = {"reasoning": "Model returned empty results.", "answer": "Error"}
+                continue
+            relevant_probs = single_result[0]
 
-    # 5. Zero-shot classification
-    results = classifier.predict([image_b64], labels)
-    # results is a list of dicts: [{label: probability, ...}]
+        if not relevant_probs:
+            results[row_idx] = {"reasoning": "Model returned empty results.", "answer": "Error"}
+            continue
 
-    if not results:
-        return {"reasoning": "Model returned empty results.", "answer": "Error"}
+        best_label = max(relevant_probs, key=relevant_probs.get)
+        # Map best_label back to the short option text
+        try:
+            best_idx = labels.index(best_label)
+            predicted_option = options[best_idx]
+        except ValueError:
+            # best_label came from union; match by suffix
+            predicted_option = next(
+                (opt for lbl, opt in zip(labels, options) if lbl == best_label),
+                "Error"
+            )
 
-    probs = results[0]  # dict: {label: prob}
+        prob_lines = [f"  {opt}: {relevant_probs.get(lbl, 0.0):.4f}"
+                      for lbl, opt in zip(labels, options)]
+        reasoning = "Zero-shot cosine similarity scores:\n" + "\n".join(prob_lines)
 
-    # 6. Find the best match and map back to the original option
-    best_label = max(probs, key=probs.get)
-    best_idx = labels.index(best_label)
-    predicted_option = options[best_idx]
+        results[row_idx] = {"reasoning": reasoning, "answer": predicted_option}
 
-    # Build reasoning string from all probabilities
-    prob_lines = []
-    for label, opt in zip(labels, options):
-        prob_lines.append(f"  {opt}: {probs.get(label, 0.0):.4f}")
-    reasoning = "Zero-shot cosine similarity scores:\n" + "\n".join(prob_lines)
-
-    return {"reasoning": reasoning, "answer": predicted_option}
-
-
-def query_the_model_blank(classifier, question: str, patient_id: str, image_path: str):
-    """Same as query_the_model but for the blank (control) experiment."""
-    if not os.path.exists(image_path):
-        return {
-            "reasoning": f"Error: Image {image_path} not found.",
-            "answer": "Error",
-        }
-
-    try:
-        question_stem, options = parse_answer_options(question)
-    except ValueError as e:
-        return {"reasoning": f"Parse error: {e}", "answer": "Error"}
-
-    image_b64 = read_image_as_base64(image_path)
-    labels = [f"{question_stem} {opt}" for opt in options]
-
-    results = classifier.predict([image_b64], labels)
-    if not results:
-        return {"reasoning": "Empty results.", "answer": "Error"}
-
-    probs = results[0]
-    best_label = max(probs, key=probs.get)
-    best_idx = labels.index(best_label)
-    predicted_option = options[best_idx]
-
-    prob_lines = [f"  {opt}: {probs.get(label, 0.0):.4f}" for label, opt in zip(labels, options)]
-    reasoning = "Zero-shot cosine similarity scores:\n" + "\n".join(prob_lines)
-
-    return {"reasoning": reasoning, "answer": predicted_option}
+    return results
 
 
 def main(args):
@@ -162,7 +186,6 @@ def main(args):
     from medimageinsightmodel import MedImageInsight
 
     # model_dir must be absolute — the model code uses it in os.path.join
-    # for config.yaml, vision weights, and tokenizer paths.
     model_dir = os.path.join(args.model_path, "2024.09.27")
 
     print(f"Loading MedImageInsight from {model_dir}...")
@@ -177,36 +200,54 @@ def main(args):
     if getattr(args, 'limit', None):
         print(f"Limiting to first {args.limit} rows.")
         qa_data = qa_data.head(args.limit)
-        
-    generated_answer = []
-    generated_reasoning = []
-    total = qa_data.shape[0]
 
-    for idx, row in qa_data.iterrows():
-        print(f"Processing {idx+1}/{total} (ID: {row['Assigned ID']})...")
+    completed_ids = load_checkpoint(args.output_path)
+    if completed_ids:
+        print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
 
-        if args.image_path:
-            # Blank variant — use a fixed image for all questions
-            response = query_the_model_blank(
-                classifier, row["Question"], row["Assigned ID"], args.image_path
-            )
-        else:
-            # Normal variant — per-patient image directory
-            response = query_the_model(
-                classifier, row["Question"], row["Assigned ID"], args.image_dir,
-                image_filename=args.image_filename
-            )
+    total = len(qa_data)
+    batch_size = args.batch_size
+    print(f"Running MedImageInsight inference with batch_size={batch_size} on {total} rows.")
 
-        generated_answer.append(response["answer"])
-        generated_reasoning.append(response["reasoning"])
-        print(f"Response: {response['answer']}\n{'-'*30}")
+    rows_list = qa_data.to_dict("records")
+    df_index = list(range(len(rows_list)))
 
-    # Save results
-    qa_data["predicted_answer"] = generated_answer
-    qa_data["MedImageInsight_Reasoning"] = generated_reasoning
+    for batch_start in range(0, total, batch_size):
+        batch_records = rows_list[batch_start: batch_start + batch_size]
+        batch_df_indices = df_index[batch_start: batch_start + batch_size]
 
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-    qa_data.to_csv(args.output_path, index=False)
+        pending = [
+            (i, rec) for i, rec in zip(batch_df_indices, batch_records)
+            if str(rec["Assigned ID"]) not in completed_ids
+        ]
+        if not pending:
+            continue
+
+        pending_df_indices, pending_records = zip(*pending)
+        batch_end = min(batch_start + batch_size, total)
+        print(f"Processing rows {batch_start + 1}–{batch_end}/{total} "
+              f"(batch of {len(pending_records)})...")
+
+        responses = run_batch(
+            classifier,
+            list(pending_records),
+            base_image_dir=args.image_dir,
+            image_filename=args.image_filename,
+            image_path_override=args.image_path,
+        )
+
+        batch_df = qa_data.iloc[list(pending_df_indices)].copy()
+        save_checkpoint(
+            args.output_path,
+            batch_df,
+            {
+                "predicted_answer":         [r["answer"]    for r in responses],
+                "MedImageInsight_Reasoning": [r["reasoning"] for r in responses],
+            },
+        )
+        completed_ids.update(str(rec["Assigned ID"]) for rec in pending_records)
+        print(f"  → Checkpoint saved ({len(completed_ids)}/{total} total done).")
+
     print(f"Saved results to {args.output_path}")
 
 
@@ -224,6 +265,8 @@ if __name__ == "__main__":
                         help="For blank experiments: path to a single blacked-out image.")
     parser.add_argument('--model_path', type=str,
                         default=_cfg.get("medimageinsight_model_path", "models/MedImageInsights"))
+    parser.add_argument('--batch_size', type=int, default=16,
+                        help="Number of images per classifier.predict() call. No GPU generation so can be large.")
     parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
 
     args = parser.parse_args()

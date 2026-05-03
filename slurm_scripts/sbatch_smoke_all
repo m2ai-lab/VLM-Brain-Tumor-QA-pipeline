@@ -32,36 +32,75 @@ function should_run() {
     return 1 # False
 }
 
-# 1. MedGemma1.5
+# ── Phase 0: CPU-only batch infrastructure tests (no GPU needed) ──────────────
+# Runs checkpoint utility, CLI-arg presence, adapter command propagation,
+# and config round-trip checks.  Uses the orchestrator venv which has pandas.
+echo ""
+echo "--- [0/6] Batch Infrastructure Tests (CPU, no model weights) ---"
+source environments/envs/vlm-orchestrator/bin/activate
+python -m testing_scripts.utils.test_batch_consistency
+EXIT_CODE=$?
+deactivate
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "❌ Batch infrastructure tests FAILED — fix before running GPU tests"
+    exit 1
+else
+    echo "✅ Batch infrastructure tests PASSED"
+fi
+
+# ── Phase 1: MedGemma (batch_size=4, limit=4 → 1 full batch + edge case) ─────
 if should_run "medgemma"; then
     echo ""
-    echo "--- [1/5] Testing MedGemma1.5 ---"
+    echo "--- [1/6] Testing MedGemma1.5 (batch_size=4, limit=4) ---"
     source environments/envs/vlm-medgemma/bin/activate
+
+    # Run with batch_size=4 (normal batch)
     python testing_scripts/QA_testing_medgemma_single_slice.py \
-        --output_path test_output/smoke_tests/medgemma.csv \
-        --limit 2
+        --output_path test_output/smoke_tests/medgemma_bs4.csv \
+        --batch_size 4 \
+        --limit 4
     EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ]; then
+        # Verify output has expected row count
+        ROW_COUNT=$(python -c "import pandas as pd; print(len(pd.read_csv('test_output/smoke_tests/medgemma_bs4.csv')))")
+        echo "  Output rows: $ROW_COUNT (expected 4)"
+        if [ "$ROW_COUNT" != "4" ]; then
+            echo "  ⚠ Row count mismatch"
+            EXIT_CODE=1
+        fi
+
+        # Verify checkpoint resume: re-run with same output — should skip all rows
+        python testing_scripts/QA_testing_medgemma_single_slice.py \
+            --output_path test_output/smoke_tests/medgemma_bs4.csv \
+            --batch_size 4 \
+            --limit 4
+        RESUME_CODE=$?
+        echo "  Resume run exit code: $RESUME_CODE (expected 0)"
+    fi
+
     deactivate
     if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedGemma1.5 FAILED"; else echo "✅ MedGemma1.5 PASSED"; fi
 fi
 
-# 2. Lingshu-32B
+# ── Phase 2: Lingshu-32B (batch_size=2, limit=2) ─────────────────────────────
 if should_run "lingshu"; then
     echo ""
-    echo "--- [2/5] Testing Lingshu-32B ---"
+    echo "--- [2/6] Testing Lingshu-32B (batch_size=2, limit=2) ---"
     source environments/envs/vlm-lingshu/bin/activate
     python testing_scripts/QA_testing_lingshu.py \
         --output_path test_output/smoke_tests/lingshu.csv \
+        --batch_size 2 \
         --limit 2
     EXIT_CODE=$?
     deactivate
     if [ $EXIT_CODE -ne 0 ]; then echo "❌ Lingshu-32B FAILED"; else echo "✅ Lingshu-32B PASSED"; fi
 fi
 
-# 3. LLaVA-Med
+# ── Phase 3: LLaVA-Med (intrinsically batched via JSONL, no --batch_size) ────
 if should_run "llavamed"; then
     echo ""
-    echo "--- [3/5] Testing LLaVA-Med ---"
+    echo "--- [3/6] Testing LLaVA-Med ---"
     source environments/envs/vlm-llavamed/bin/activate
     python testing_scripts/QA_testing_llava_med.py \
         --output_path test_output/smoke_tests/llavamed.jsonl \
@@ -71,30 +110,91 @@ if should_run "llavamed"; then
     if [ $EXIT_CODE -ne 0 ]; then echo "❌ LLaVA-Med FAILED"; else echo "✅ LLaVA-Med PASSED"; fi
 fi
 
-# 4. MedImageInsight
+# ── Phase 4: MedImageInsight (batch_size=16, limit=4) ────────────────────────
 if should_run "medimageinsight"; then
     echo ""
-    echo "--- [4/5] Testing MedImageInsight ---"
+    echo "--- [4/6] Testing MedImageInsight (batch_size=16, limit=4) ---"
     source environments/envs/vlm-medimageinsight/bin/activate
     python testing_scripts/QA_testing_MedImageInsight.py \
         --output_path test_output/smoke_tests/medimageinsight.csv \
-        --limit 2
+        --batch_size 16 \
+        --limit 4
     EXIT_CODE=$?
     deactivate
     if [ $EXIT_CODE -ne 0 ]; then echo "❌ MedImageInsight FAILED"; else echo "✅ MedImageInsight PASSED"; fi
 fi
 
-# 5. Med3DVLM
+# ── Phase 5: Med3DVLM (batch_size=1, limit=2 — volumetric) ───────────────────
 if should_run "med3dvlm"; then
     echo ""
-    echo "--- [5/5] Testing Med3DVLM ---"
+    echo "--- [5/6] Testing Med3DVLM (batch_size=1, limit=2) ---"
     source environments/envs/vlm-med3dvlm/bin/activate
     python testing_scripts/QA_testing_Med3DVLM.py \
         --output_path test_output/smoke_tests/med3dvlm.csv \
+        --batch_size 1 \
         --limit 2
     EXIT_CODE=$?
     deactivate
     if [ $EXIT_CODE -ne 0 ]; then echo "❌ Med3DVLM FAILED"; else echo "✅ Med3DVLM PASSED"; fi
+fi
+
+# ── Phase 6: MedGemma batch=1 vs batch=4 consistency check ───────────────────
+# Runs the same 4 rows once at batch_size=1 (serial baseline) and once at
+# batch_size=4, then asserts both CSVs have identical predicted_answer columns.
+if should_run "medgemma"; then
+    echo ""
+    echo "--- [6/6] MedGemma batch consistency: bs=1 vs bs=4 ---"
+    source environments/envs/vlm-medgemma/bin/activate
+
+    # Remove stale outputs first
+    rm -f test_output/smoke_tests/medgemma_bs1_check.csv
+    rm -f test_output/smoke_tests/medgemma_bs4_check.csv
+
+    python testing_scripts/QA_testing_medgemma_single_slice.py \
+        --output_path test_output/smoke_tests/medgemma_bs1_check.csv \
+        --batch_size 1 \
+        --limit 4
+    BS1_EXIT=$?
+
+    python testing_scripts/QA_testing_medgemma_single_slice.py \
+        --output_path test_output/smoke_tests/medgemma_bs4_check.csv \
+        --batch_size 4 \
+        --limit 4
+    BS4_EXIT=$?
+
+    if [ $BS1_EXIT -eq 0 ] && [ $BS4_EXIT -eq 0 ]; then
+        python - <<'PYEOF'
+import pandas as pd, sys
+bs1 = pd.read_csv("test_output/smoke_tests/medgemma_bs1_check.csv")
+bs4 = pd.read_csv("test_output/smoke_tests/medgemma_bs4_check.csv")
+# Sort both by Assigned ID to ensure same order
+bs1 = bs1.sort_values("Assigned ID").reset_index(drop=True)
+bs4 = bs4.sort_values("Assigned ID").reset_index(drop=True)
+# Answers must match exactly (greedy decoding is deterministic)
+mismatches = (bs1["predicted_answer"] != bs4["predicted_answer"]).sum()
+if mismatches == 0:
+    print(f"  ✅ Answers match across batch_size=1 and batch_size=4 ({len(bs1)} rows)")
+    sys.exit(0)
+else:
+    print(f"  ❌ {mismatches}/{len(bs1)} answers differ between batch_size=1 and batch_size=4")
+    diff = bs1[bs1["predicted_answer"] != bs4["predicted_answer"]][["Assigned ID","predicted_answer"]].copy()
+    diff.columns = ["ID", "bs1_answer"]
+    diff["bs4_answer"] = bs4.loc[diff.index, "predicted_answer"].values
+    print(diff.to_string(index=False))
+    sys.exit(1)
+PYEOF
+        CONSISTENCY_EXIT=$?
+    else
+        CONSISTENCY_EXIT=1
+        echo "  One or both batch runs failed, skipping consistency check"
+    fi
+
+    deactivate
+    if [ $CONSISTENCY_EXIT -ne 0 ]; then
+        echo "❌ Batch consistency check FAILED"
+    else
+        echo "✅ Batch consistency check PASSED"
+    fi
 fi
 
 echo ""

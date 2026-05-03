@@ -11,6 +11,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
+from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint
 _cfg = load_config()
 
 # Added a strong system prompt to enforce JSON output
@@ -46,39 +47,14 @@ def clean_json_string(raw_str):
     match = re.search(r'\{.*\}', clean_str, re.DOTALL)
     return match.group(0) if match else clean_str
 
-def query_the_model(model, tokenizer, question):
-    # Use a system prompt to strongly enforce JSON
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"{FEW_SHOT_EXAMPLE}\n====\nQuestion: {question}"}
-    ]
-    
-    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs = tokenizer(text, return_tensors="pt").to(model.device)
 
-    generated_ids = model.generate(
-        **inputs,
-        max_new_tokens=1024,
-        do_sample=False,
-    )
-    
-    # CRITICAL FIX: Slice the output to ignore the input prompt tokens!
-    input_length = inputs['input_ids'].shape[1]
-    new_tokens = generated_ids[0][input_length:]
-    
-    output_text = tokenizer.decode(new_tokens, skip_special_tokens=True)
-    
-    # Clean and parse the output
-    cleaned_response = clean_json_string(output_text) 
-    
+def _parse_response(output_text: str) -> dict:
+    cleaned_response = clean_json_string(output_text)
     try:
         if not cleaned_response:
             raise ValueError("Regex failed to find anything resembling JSON.")
-            
-        # Validate against the Pydantic schema
         validated_data = QwenResponse.model_validate_json(cleaned_response)
         return validated_data.model_dump()
-        
     except ValidationError as e:
         print(f"Pydantic Validation Error: {e}")
         return {"reasoning": "Schema mismatch", "answer": "Error", "raw": output_text}
@@ -86,41 +62,100 @@ def query_the_model(model, tokenizer, question):
         print(f"Parsing error: {str(e)}")
         return {"reasoning": f"Parsing error: {str(e)}", "answer": "Error", "raw": output_text}
 
+
+def run_batch(model, tokenizer, batch_rows: list[dict]) -> list[dict]:
+    """
+    Run batched text-only inference on a list of QA rows.
+
+    Qwen has no image input — each row's question is independently tokenized
+    and padded into a single batch tensor.  Left-padding ensures generation
+    is not confused by trailing padding tokens.
+    """
+    texts: list[str] = []
+    for row in batch_rows:
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"{FEW_SHOT_EXAMPLE}\n====\nQuestion: {row['Question']}"}
+        ]
+        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        texts.append(text)
+
+    # Left-padding required for batched generation with decoder-only models
+    tokenizer.padding_side = "left"
+    inputs = tokenizer(texts, return_tensors="pt", padding=True).to(model.device)
+
+    input_length = inputs['input_ids'].shape[1]
+    generated_ids = model.generate(
+        **inputs,
+        max_new_tokens=1024,
+        do_sample=False,
+    )
+
+    results: list[dict] = []
+    for i in range(len(batch_rows)):
+        new_tokens = generated_ids[i][input_length:]
+        output_text = tokenizer.decode(new_tokens, skip_special_tokens=True)
+        results.append(_parse_response(output_text))
+
+    return results
+
+
 def main(args):
     print(f"Loading Qwen from {args.model_path}...")
     tokenizer = AutoTokenizer.from_pretrained(args.model_path)
-    
+
     # bf16 is great for newer models like Qwen to save VRAM
     model = AutoModelForCausalLM.from_pretrained(
-        args.model_path, 
-        torch_dtype=torch.bfloat16, 
+        args.model_path,
+        torch_dtype=torch.bfloat16,
         device_map="auto"
     )
 
     qa_data = pd.read_csv(args.qa_path)
-    generated_answer = []
-    generated_reasoning = []
-    total = qa_data.shape[0]
 
-    for idx, row in qa_data.iterrows():
-        # Added a fallback in case "Assigned ID" isn't in your CSV
-        row_id = row.get("Assigned ID", idx)
-        print(f'Processing {idx+1}/{total} (ID: {row_id})...')
-        
-        # Passed tokenizer to the function
-        response = query_the_model(model, tokenizer, row["Question"])
-        
-        generated_answer.append(response.get('answer', 'Error'))
-        generated_reasoning.append(response.get('reasoning', 'Error'))
-        print(f"Response: {response}\n{'-'*30}")
-        
-    # Save results
-    qa_data["predicted_answer"] = generated_answer
-    qa_data["Qwen_Reasoning"] = generated_reasoning
-    
-    # Ensure directory exists before saving
-    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-    qa_data.to_csv(args.output_path, index=False)
+    completed_ids = load_checkpoint(args.output_path)
+    if completed_ids:
+        print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
+
+    total = len(qa_data)
+    batch_size = args.batch_size
+    print(f"Running Qwen inference with batch_size={batch_size} on {total} rows.")
+
+    rows_list = qa_data.to_dict("records")
+    df_index = list(range(len(rows_list)))
+
+    for batch_start in range(0, total, batch_size):
+        batch_records = rows_list[batch_start: batch_start + batch_size]
+        batch_df_indices = df_index[batch_start: batch_start + batch_size]
+
+        pending = [
+            (i, rec) for i, rec in zip(batch_df_indices, batch_records)
+            if str(rec.get("Assigned ID", i)) not in completed_ids
+        ]
+        if not pending:
+            continue
+
+        pending_df_indices, pending_records = zip(*pending)
+        batch_end = min(batch_start + batch_size, total)
+        print(f"Processing rows {batch_start + 1}–{batch_end}/{total} "
+              f"(batch of {len(pending_records)})...")
+
+        responses = run_batch(model, tokenizer, list(pending_records))
+
+        batch_df = qa_data.iloc[list(pending_df_indices)].copy()
+        save_checkpoint(
+            args.output_path,
+            batch_df,
+            {
+                "predicted_answer": [r.get("answer",    "Error") for r in responses],
+                "Qwen_Reasoning":   [r.get("reasoning", "Error") for r in responses],
+            },
+        )
+        completed_ids.update(
+            str(rec.get("Assigned ID", i)) for i, rec in zip(pending_df_indices, pending_records)
+        )
+        print(f"  → Checkpoint saved ({len(completed_ids)}/{total} total done).")
+
     print(f"Saved results to {args.output_path}")
 
 if __name__ == "__main__":
@@ -128,6 +163,8 @@ if __name__ == "__main__":
     parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/Qwen/text_only_results.csv")
     parser.add_argument('--model_path', type=str, default=_cfg.get("qwen_model_path"))
+    parser.add_argument('--batch_size', type=int, default=8,
+                        help="Number of QA rows per model.generate() call. Text-only so higher is fine.")
 
     args = parser.parse_args()
     main(args)
