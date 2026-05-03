@@ -100,7 +100,14 @@
           "variant": "montage_slice",
           "qa_path": "{human_qa_path}",
           "output_path": "{output_base}/MedGemma1.5/montage_human_results.csv"
+        },
+        {
+          "name": "human_single_slice",
+          "variant": "single_slice",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/MedGemma1.5/human_single_slice_results.csv"
         }
+
       ]
     },
     "MedGemma1.5-ContrastSlices": {
@@ -120,18 +127,6 @@
           "variant": "contrast_slices",
           "qa_path": "{reshuffled_qa_path}",
           "output_path": "{output_base}/MedGemma1.5/contrast_slices_reshuffled_results.csv"
-        },
-        {
-          "name": "blank",
-          "variant": "blank",
-          "image_path": "{blank_png}",
-          "output_path": "{output_base}/MedGemma1.5/contrast_slices_blank_results.csv"
-        },
-        {
-          "name": "human",
-          "variant": "contrast_slices",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/contrast_slices_human_results.csv"
         }
       ]
     },
@@ -168,7 +163,7 @@
         }
       ]
     },
-    "Qwen2.5": {
+    "Qwen3": {
       "enabled": true,
       "adapter": "qwen",
       "environment": "medgemma",
@@ -278,18 +273,6 @@
           "name": "montage_slice",
           "variant": "montage_slice",
           "output_path": "{output_base}/LLaVA/montage_slice_results.csv"
-        },
-        {
-          "name": "montage_slice_shuffled",
-          "variant": "montage_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/LLaVA/montage_slice_reshuffled_results.csv"
-        },
-        {
-          "name": "human_montage",
-          "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/LLaVA/montage_human_results.csv"
         }
       ]
     },
@@ -387,12 +370,6 @@
           "variant": "single_slice",
           "qa_path": "{human_qa_path}",
           "output_path": "{output_base}/Lingshu/human_results.csv"
-        },
-        {
-          "name": "human_montage",
-          "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/Lingshu/montage_human_results.csv"
         }
       ]
     }
