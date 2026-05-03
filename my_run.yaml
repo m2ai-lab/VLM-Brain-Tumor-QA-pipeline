@@ -1,11 +1,2 @@
 runs:
-  - models:
-      - Med3DVLM
-    tests:
-      - human
-    runs:
-      - 1
-    output_name:
-      - med3dvlm_smoke_test.csv
-    limit:
-      - 2
+  - models: [GPT5Mini]
