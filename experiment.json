@@ -327,7 +327,7 @@
       "environment": "lingshu",
       "model_path": "{lingshu_model_path}",
       "image_dir": "{slice_dir}",
-      "runs_per_experiment": 1,
+      "runs_per_experiment": 3,
       "batch_size": 2,
       "slurm_overrides": {
         "partition": "gpu",
