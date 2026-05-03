@@ -55,6 +55,9 @@ class OpenAIVersaAdapter(ModelAdapter):
         if getattr(job, "deployment", None):
             args.append(f"--deployment {job.deployment}")
 
+        # Parallel request batching (threading)
+        args.append(f"--batch_size {job.batch_size}")
+
         return f"{script} {' '.join(args)}"
 
     def validate(self, job: ResolvedJob) -> None:

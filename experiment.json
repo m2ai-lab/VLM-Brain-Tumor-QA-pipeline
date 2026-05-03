@@ -299,7 +299,7 @@
       "environment": "openai",
       "model_path": "",
       "image_dir": "{slice_dir}",
-      "runs_per_experiment": 1,
+      "runs_per_experiment": 2,
       "slurm_overrides": {
         "partition": "cpu",
         "gpus_per_node": 0,
@@ -335,18 +335,6 @@
           "name": "montage_slice",
           "variant": "montage_slice",
           "output_path": "{output_base}/GPT5Mini/montage_slice_results.csv"
-        },
-        {
-          "name": "montage_slice_shuffled",
-          "variant": "montage_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/montage_slice_reshuffled_results.csv"
-        },
-        {
-          "name": "human_montage",
-          "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/montage_human_results.csv"
         }
       ]
     },
