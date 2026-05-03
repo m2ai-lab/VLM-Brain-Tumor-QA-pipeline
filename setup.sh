@@ -10,16 +10,26 @@ set -e
 echo "Starting project setup..."
 
 # 1. Create base directories
-mkdir -p models QApairs logs environments/envs environments/requirements
-echo "Directories created: models/, QApairs/, logs/, environments/envs/, environments/requirements/"
+mkdir -p models QApairs logs datasets environments/envs environments/requirements
+echo "Directories created: models/, QApairs/, logs/, datasets/, environments/envs/, environments/requirements/"
 
-# 2. Bootstrap config
+# 2. Download External Datasets (UCSF-PDGM Images, Metadata & BraTS Annotations)
+# Automated Image Download (NIfTI Derivatives)
+# We use a python utility to handle the multi-file download from the TCIA GitHub mirror
+echo "--- Starting Automated UCSF-PDGM Image Download ---"
+python3 utility_scripts/download_ucsf_pdgm.py
+
+echo "Images and metadata pulled into datasets/ folder."
+
+
+
+# 3. Bootstrap config
 if [ ! -f "config.yaml" ]; then
     cp config.example.yaml config.yaml
     echo "⚠️ config.yaml created from template. Please update it with your paths."
 fi
 
-# 3. Create Main Orchestrator Environment (venv)
+# 4. Create Main Orchestrator Environment (venv)
 echo "--- Creating Main Orchestrator Environment (vlm-orchestrator) ---"
 if [ ! -d "environments/envs/vlm-orchestrator" ]; then
     python3 -m venv environments/envs/vlm-orchestrator
@@ -32,7 +42,7 @@ else
     echo "environments/envs/vlm-orchestrator already exists. Skipping..."
 fi
 
-# 4. Download Models
+# 5. Download Models
 echo "--- Downloading Models ---"
 # We run this using the orchestrator environment
 source environments/envs/vlm-orchestrator/bin/activate
@@ -40,7 +50,7 @@ python utility_scripts/model_download.py
 deactivate
 echo "Models downloaded to models/"
 
-# 5. Create Individual Environments for Models
+# 6. Create Individual Environments for Models
 # We use venv for each to ensure isolation. 
 
 # -- MedGemma Environment --
@@ -88,6 +98,10 @@ fi
 # -- LLaVA-Med Environment --
 echo "--- Creating LLaVA-Med Environment (vlm-llavamed) ---"
 if [ ! -d "environments/envs/vlm-llavamed" ]; then
+    if [ ! -d "models/LLaVA-Med_Extension" ]; then
+        echo "--- Downloading LLaVA-Med Extension Model/Code ---"
+        git clone https://github.com/m2ai-lab/LLaVA-Med_Extension models/LLaVA-Med_Extension
+    fi
     python3 -m venv environments/envs/vlm-llavamed
     source environments/envs/vlm-llavamed/bin/activate
     pip install --upgrade pip

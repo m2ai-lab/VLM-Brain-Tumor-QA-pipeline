@@ -52,8 +52,8 @@ medimageinsight_model_path: "{models_base}/MedImageInsights"
 lingshu_model_path: "{models_base}/Lingshu-32B"
 
 # LLaVA-Med: model weights (relative path from its repo dir is typical)
-llavamed_model_path: "./llava-med-v1.5-mistral-7b"
-llavamed_repo_dir: /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/catherine/LLaVA-Med
+llavamed_model_path: "{models_base}/LLaVA-Med_Extension/llava-med-v1.5-mistral-7b"
+llavamed_repo_dir: "{models_base}/LLaVA-Med_Extension"
 
 # ── SLURM defaults ────────────────────────────────────────────────────────────
 mail_user: your.email@institution.edu
