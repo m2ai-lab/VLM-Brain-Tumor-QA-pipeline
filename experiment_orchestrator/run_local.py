@@ -59,7 +59,7 @@ from experiment_orchestrator.config_schema import ExperimentSuite
 from experiment_orchestrator.config_resolver import resolve_all, expand_suite_raw
 from experiment_orchestrator.adapters import get_adapter
 # Reuse the filter logic from run_experiments so behaviour is identical
-from experiment_orchestrator.run_experiments import apply_filters, load_config
+from experiment_orchestrator.run_experiments import apply_filters, load_config, apply_run_spec
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +96,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--config", type=str, default=DEFAULT_CONFIG,
         help="Path to experiment.json.",
+    )
+    parser.add_argument(
+        "--run-spec", type=str, default=None,
+        help="Path to a YAML file defining the runs to execute (matrix mode).",
     )
 
     # ── Allow-list filters (identical to run_experiments.py) ─────────────────
@@ -242,7 +246,11 @@ def main(argv: list[str] | None = None) -> int:
     all_jobs = resolve_all(suite)
     logger.info("Resolved %d total jobs from config", len(all_jobs))
 
-    # ── 3. Apply filters (reuses run_experiments.apply_filters) ──────────
+    # ── 3. Apply Run Spec (matrix mode) if provided ───────────────────────
+    if args.run_spec:
+        all_jobs = apply_run_spec(all_jobs, args.run_spec)
+
+    # ── 4. Apply CLI filters (reuses run_experiments.apply_filters) ───────
     jobs = apply_filters(all_jobs, args)
 
     if not jobs:
