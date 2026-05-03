@@ -136,25 +136,27 @@ class TestMedGemmaSingleSliceBatch(unittest.TestCase):
     """run_batch() in medgemma_single_slice handles missing images gracefully."""
 
     def _import_run_batch(self):
-        # Stub out heavy imports before loading the module
-        for mod in ["nibabel", "transformers", "pydantic"]:
-            if mod not in sys.modules:
-                sys.modules[mod] = MagicMock()
-        # Patch config_utils to avoid needing a real config.yaml
+        # Stub out ALL heavy imports before exec_module runs the top-level code.
+        # PIL must be stubbed as both 'PIL' and 'PIL.Image' because the script
+        # uses `from PIL import Image` which resolves both sub-entries.
+        pil_mock = MagicMock()
+        pil_mock.Image = MagicMock()
+        for mod_name in ["PIL", "PIL.Image", "nibabel", "torch",
+                         "transformers", "pydantic", "numpy"]:
+            sys.modules.setdefault(mod_name, MagicMock())
+        sys.modules["PIL"] = pil_mock
+        sys.modules["PIL.Image"] = pil_mock.Image
         sys.modules.setdefault("config_utils", MagicMock(load_config=lambda: {}))
-        # Patch checkpoint so it doesn't hit disk
         sys.modules.setdefault(
             "testing_scripts.utils.checkpoint",
             types.SimpleNamespace(load_checkpoint=lambda p: set(),
                                   save_checkpoint=lambda *a, **k: None),
         )
-        import importlib
         spec = importlib.util.spec_from_file_location(
             "medgemma_single",
             _PROJECT_ROOT / "testing_scripts" / "QA_testing_medgemma_single_slice.py",
         )
         mod = importlib.util.module_from_spec(spec)
-        # Provide a dummy _cfg so module-level code doesn't crash
         mod._cfg = {}
         spec.loader.exec_module(mod)
         return mod
@@ -198,8 +200,9 @@ class TestQwenBatch(unittest.TestCase):
     """run_batch() in QA_testing_Qwen.py handles N rows correctly."""
 
     def _import_run_batch(self):
-        for mod in ["transformers", "pydantic"]:
-            sys.modules.setdefault(mod, MagicMock())
+        # Stub torch and other heavy deps before exec_module runs top-level imports
+        for mod_name in ["torch", "transformers", "pydantic", "numpy"]:
+            sys.modules.setdefault(mod_name, MagicMock())
         sys.modules.setdefault("config_utils", MagicMock(load_config=lambda: {}))
         sys.modules.setdefault(
             "testing_scripts.utils.checkpoint",
