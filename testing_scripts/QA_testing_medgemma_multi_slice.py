@@ -18,7 +18,7 @@ from config_utils import load_config
 from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 _cfg = load_config()
 
-slice_names = ["axial_FLAIR", "coronal_FLAIR", "sagittal_FLAIR"]
+slice_names = ["axial_ADC.png", "axial_ASL.png", "axial_DTI_eddy_FA.png", "axial_DTI_eddy_L1.png", "axial_DTI_eddy_L2.png", "axial_DTI_eddy_L3.png", "axial_DTI_eddy_MD.png", "axial_DTI_eddy_noreg.png", "axial_DWI.png", "axial_DWI_bias.png", "axial_FLAIR.png", "axial_FLAIR_bias.png", "axial_SWI.png", "axial_SWI_bias.png", "axial_T1.png", "axial_T1_bias.png", "axial_T1c.png", "axial_T1c_bias.png", "axial_T2.png", "axial_T2_bias.png", "axial_brain_parenchyma_segmentation.png", "axial_brain_segmentation.png", "axial_tumor_segmentation.png"]
 
 FEW_SHOT_EXAMPLE = """
 Example Request:
