@@ -112,7 +112,13 @@
           "variant": "single_slice",
           "qa_path": "{human_qa_path}",
           "output_path": "{output_base}/MedGemma1.5/human_single_slice_results.csv"
-        }
+        },
+        {
+          "name": "multi_human_montage",
+          "variant": "contrast_montage_slice",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/MedGemma1.5/contrast_montage_human_results.csv"
+      }
 
       ]
     },
@@ -133,17 +139,11 @@
           "output_path": "{output_base}/MedGemma1.5/contrast_slices_results.csv"
         },
         {
-          "name": "human",
-          "variant": "contrast_slices",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/multi_montage_human_results.csv"
-        },
-        {
           "name": "multi_contrast_montages",
-          "variant": "contrast_montage_slice",
+          "variant": "montage_slice",
           "qa_path": "{qa_path}",
           "output_path": "{output_base}/MedGemma1.5/contrast_slices_montage_results.csv"
-        }
+      }
       ]
     },
     "Med3DVLM": {
@@ -325,9 +325,22 @@
           "output_path": "{output_base}/GPT5Mini/human_results.csv"
         },
         {
-          "name": "montage_slice",
-          "variant": "montage_slice",
-          "output_path": "{output_base}/GPT5Mini/montage_slice_results.csv"
+          "name": "human_multi_slice",
+          "variant": "multi_slice",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/GPT5Mini/human_multi_slice_results.csv"
+        },
+        {
+          "name": "multi_montage_human",
+          "variant": "multi_montage_slice",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/GPT5Mini/multi_montage_human_results.csv"
+        },
+        {
+          "name": "multi_montage",
+          "variant": "multi_montage_slice",
+          "qa_path": "{qa_path}",
+          "output_path": "{output_base}/GPT5Mini/multi_montage_results.csv"
         },
         {
           "name": "multi_slice",

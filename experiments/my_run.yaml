@@ -1,16 +1,4 @@
 runs:
-  - models: [Qwen]
-    tests: ["text_only","text_only_reshuffled"]
-    runs_per_experiment: 3
-  - models: [MedGemma1.5-ContrastSlices]
-    tests: ["contrast_slices","human","multi_contrast_montages"]
-    runs_per_experiment: 3
   - models: [MedGemma1.5]
-    tests: ["single_slice","single_slice_shuffled","human_single_slice"]
-    runs_per_experiment: 3
-  - models: [LlaVAMed]
-    tests: ["single_slice","reshuffled"]
-    runs_per_experiment: 3
-  - models: [MedImageInsight]
-    tests: ["single_slice","reshuffled"]
+    tests: ["multi_human_montage","multi_slice"]
     runs_per_experiment: 3

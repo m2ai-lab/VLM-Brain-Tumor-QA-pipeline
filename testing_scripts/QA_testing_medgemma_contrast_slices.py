@@ -196,7 +196,7 @@ def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str) -> 
     for seq_idx, row_idx in enumerate(valid_indices):
         new_tokens = generated_sequences[seq_idx][input_len:]
         raw_response = processor.decode(new_tokens, skip_special_tokens=True).strip()
-        results[row_idx] = _parse_response("{" + raw_response)  # Ensure opening brace for parsing if missing
+        results[row_idx] = _parse_response(raw_response)
 
     return results
 

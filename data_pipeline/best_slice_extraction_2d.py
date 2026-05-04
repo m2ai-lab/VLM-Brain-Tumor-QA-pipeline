@@ -151,7 +151,7 @@ def main(args):
     qa_data = qa_data[['Assigned ID']].drop_duplicates()
     qa_data = qa_data.rename(columns={'Assigned ID' : 'Assigned_ID'})
     
-    slice_names = ["Axial", "Coronal", "Sagittal"]
+    slice_names = ["axial_FLAIR", "coronal_FLAIR", "sagittal_FLAIR"]
     
     # Create mask directory if not exists
     mask_dir = os.path.join(os.path.dirname(args.output_slice_path), "generated_masks")

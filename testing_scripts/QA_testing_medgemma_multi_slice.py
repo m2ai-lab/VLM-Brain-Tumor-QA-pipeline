@@ -18,7 +18,7 @@ from config_utils import load_config
 from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, get_row_id
 _cfg = load_config()
 
-slice_names = ["Axial", "Coronal", "Sagittal"]
+slice_names = ["axial_FLAIR", "coronal_FLAIR", "sagittal_FLAIR"]
 
 FEW_SHOT_EXAMPLE = """
 Example Request:

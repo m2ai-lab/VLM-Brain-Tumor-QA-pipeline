@@ -27,13 +27,14 @@ class OpenAIVersaAdapter(ModelAdapter):
 
     SCRIPT = "testing_scripts/QA_testing_OpenAI.py"
 
-    SUPPORTED_VARIANTS = {"single_slice", "multi_slice", "montage_slice", "blank", "text_only"}
+    SUPPORTED_VARIANTS = {"single_slice", "multi_slice", "montage_slice", "multi_montage_slice", "blank", "text_only"}
 
     # Filename to pass for each image-dir-based variant
     _IMAGE_FILENAME = {
         "single_slice":  "axial_FLAIR.png",
-        "multi_slice":   "Axial.png Coronal.png Sagittal.png",
+        "multi_slice":   "axial_FLAIR.png coronal_FLAIR.png sagittal_FLAIR.png",
         "montage_slice": "axial_slices_montage.png",
+        "multi_montage_slice": "axial_slices_montage.png coronal_slices_montage.png sagittal_slices_montage.png",
     }
 
     def build_command(self, job: ResolvedJob, project_root: str) -> str:
