@@ -21,7 +21,7 @@ class LingshuAdapter(ModelAdapter):
 
     # Filename to pass for each image-dir-based variant
     _IMAGE_FILENAME = {
-        "single_slice":  "Axial.png",
+        "single_slice":  "axial_FLAIR.png",
         "montage_slice": "axial_slices_montage.png",
     }
 

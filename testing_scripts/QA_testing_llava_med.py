@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument('--qa_path', type=str, default=_cfg.get("qa_path"))
     parser.add_argument('--output_path', type=str, default=_cfg.get("output_base", "") + "/LLaVA_Med/single_slice_results.jsonl")
     parser.add_argument('--image_dir', type=str, default=_cfg.get("slice_dir"))
-    parser.add_argument('--image_filename', type=str, default="Axial.png",
+    parser.add_argument('--image_filename', type=str, default="axial_FLAIR.png",
                         help="Filename inside each patient dir. Use 'axial_slices_montage.png' for montage.")
     parser.add_argument('--image_path', type=str, default=None, help="Not used for full test, here for blank compatibility")
     parser.add_argument('--model_path', type=str, default=_cfg.get("llavamed_model_path"))

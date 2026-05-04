@@ -3,8 +3,11 @@ openai_versa.py — Adapter for GPT-5+ vision via UCSF Versa / Mulesoft Azure Op
 
 A single script (QA_testing_OpenAI.py) handles all variants; the variant
 is conveyed through CLI flags:
-  - single_slice : --image_dir <per-patient PNG dir>
-  - blank        : --image_path <blacked-out PNG>
+  - single_slice  : --image_dir <per-patient PNG dir>
+  - multi_slice   : --image_dir + multiple filenames
+  - montage_slice : --image_dir + montage filename
+  - blank         : --image_path <blacked-out PNG>
+  - text_only     : --text_only  (no images sent at all)
 
 Unlike local GPU models, this adapter:
   - Does not require --model_path (auth is via .env / OPENAI_API_KEY)
@@ -24,11 +27,11 @@ class OpenAIVersaAdapter(ModelAdapter):
 
     SCRIPT = "testing_scripts/QA_testing_OpenAI.py"
 
-    SUPPORTED_VARIANTS = {"single_slice", "multi_slice", "montage_slice", "blank"}
+    SUPPORTED_VARIANTS = {"single_slice", "multi_slice", "montage_slice", "blank", "text_only"}
 
     # Filename to pass for each image-dir-based variant
     _IMAGE_FILENAME = {
-        "single_slice":  "Axial.png",
+        "single_slice":  "axial_FLAIR.png",
         "multi_slice":   "Axial.png Coronal.png Sagittal.png",
         "montage_slice": "axial_slices_montage.png",
     }
@@ -46,7 +49,10 @@ class OpenAIVersaAdapter(ModelAdapter):
             f"--output_path {job.output_path}",
         ]
 
-        if job.variant == "blank":
+        if job.variant == "text_only":
+            # No image arguments — pass the flag so the script skips image loading
+            args.append("--text_only")
+        elif job.variant == "blank":
             args.append(f"--image_path {job.image_path}")
         else:
             args.append(f"--image_dir {job.image_dir}")
@@ -67,7 +73,10 @@ class OpenAIVersaAdapter(ModelAdapter):
                 f"OpenAI variant '{job.variant}' not in {sorted(self.SUPPORTED_VARIANTS)}"
             )
 
-        if job.variant == "blank":
+        if job.variant == "text_only":
+            # No image required — nothing to validate
+            pass
+        elif job.variant == "blank":
             if not job.image_path:
                 raise ValueError(
                     f"OpenAI blank test '{job.job_name}' requires 'image_path'"

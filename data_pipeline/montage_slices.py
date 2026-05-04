@@ -52,44 +52,43 @@ TEXT_COLOR = (220, 220, 220)
 BORDER_PX  = 4
 
 
-# ── Slice-selection helpers (same logic as best_slice_extraction_2d.py) ───────
+# ── Slice-selection helpers (generalized for all axes) ────────────────────────
 
-def _best_axial_index(img: np.ndarray, mask: Optional[np.ndarray] = None) -> int:
+def _best_index(img: np.ndarray, mask: Optional[np.ndarray] = None, axis: int = 2) -> int:
     """
-    Returns the axial (Z-axis) slice index that best shows the lesion.
-
-    Priority:
-      1. Centre-of-mass of a non-empty binary mask (tumour centroid).
-      2. Centre-of-mass of the top-10% bright voxels.
-      3. Middle slice (fallback).
+    Returns the slice index along the given axis that best shows the lesion.
+    Axis: 0=Sagittal, 1=Coronal, 2=Axial
     """
-    z_size = img.shape[2]
+    size = img.shape[axis]
 
     if mask is not None and np.sum(mask) > 0:
+        # Get indices where mask is positive
         coords = np.argwhere(mask > 0.5)
-        return int(np.mean(coords[:, 2]))
+        return int(np.mean(coords[:, axis]))
 
     nonzero = img[img > 0]
     if nonzero.size > 0:
         bright = img > np.percentile(nonzero, 90)
         if bright.sum() > 0:
             coords = np.argwhere(bright)
-            return int(np.mean(coords[:, 2]))
+            return int(np.mean(coords[:, axis]))
 
-    return z_size // 2
+    return size // 2
 
 
-def _extract_axial_panel(nifti_path: str,
-                         mask_path: Optional[str],
-                         thumb_px: int) -> Optional[Image.Image]:
+def _extract_panel(nifti_path: str,
+                   mask_path: Optional[str],
+                   thumb_px: int,
+                   axis: int = 2) -> Optional[Image.Image]:
     """
-    Loads a NIfTI, picks the best axial slice, normalises to [0,255], and
-    returns a square RGB PIL Image padded to thumb_px × thumb_px.
+    Loads a NIfTI, picks the best slice along 'axis', normalises, and
+    returns a square RGB PIL Image.
     """
     if not os.path.exists(nifti_path):
         return None
     try:
-        img = nib.load(nifti_path).get_fdata(dtype=np.float32)
+        img_obj = nib.load(nifti_path)
+        img = img_obj.get_fdata(dtype=np.float32)
         if img.ndim == 4:
             img = img[..., 0]
 
@@ -97,10 +96,16 @@ def _extract_axial_panel(nifti_path: str,
         if mask_path and os.path.exists(mask_path):
             mask = nib.load(mask_path).get_fdata(dtype=np.float32)
 
-        z_idx = _best_axial_index(img, mask)
-        plane = img[:, :, z_idx]
+        idx = _best_index(img, mask, axis=axis)
+        
+        if axis == 0:   # Sagittal
+            plane = img[idx, :, :]
+        elif axis == 1: # Coronal
+            plane = img[:, idx, :]
+        else:           # Axial
+            plane = img[:, :, idx]
 
-        # Robust percentile normalisation (mirrors best_slice_extraction_2d.py)
+        # Robust percentile normalisation
         v_min, v_max = np.percentile(plane, [0.5, 99.5])
         plane = np.clip(plane, v_min, v_max)
         if v_max > v_min:
@@ -108,7 +113,7 @@ def _extract_axial_panel(nifti_path: str,
         else:
             plane = np.zeros_like(plane, dtype=np.uint8)
 
-        # Rotate to standard anatomical display (same as best_slice_extraction_2d.py)
+        # Rotate to standard anatomical display
         pil_img = Image.fromarray(plane).transpose(Image.ROTATE_90).convert("RGB")
         pil_img.thumbnail((thumb_px, thumb_px), Image.LANCZOS)
 
@@ -174,13 +179,30 @@ def _build_montage(panels: list[tuple[str, Image.Image]],
 # ── Per-patient processing ────────────────────────────────────────────────────
 
 # Preferred display order for well-known sequence names
-_SEQUENCE_ORDER = ["T1", "T1c", "T1C", "T1CE", "T2", "FLAIR", "ADC", "DWI", "SWI"]
+_SEQUENCE_ORDER = [
+    "T1", "T1_bias", "T1c", "T1C", "T1CE", "T1c_bias", 
+    "T2", "T2_bias", "FLAIR", "FLAIR_bias", 
+    "SWI", "SWI_bias", "ADC", "DWI", "DWI_bias", "ASL",
+    "DTI_eddy_noreg", "DTI_eddy_FA", "DTI_eddy_MD", 
+    "DTI_eddy_L1", "DTI_eddy_L2", "DTI_eddy_L3",
+    "brain_segmentation", "brain_parenchyma_segmentation", "tumor_segmentation"
+]
 
 def _sort_key(name: str) -> tuple[int, str]:
     upper = name.upper()
+    
+    # 1. Exact match first (case-insensitive)
     for i, s in enumerate(_SEQUENCE_ORDER):
+        if s.upper() == upper:
+            return (i, name)
+            
+    # 2. Substring match (case-insensitive)
+    # Check longer sequence names first to avoid "T1" matching "T1c"
+    sorted_order = sorted(enumerate(_SEQUENCE_ORDER), key=lambda x: len(x[1]), reverse=True)
+    for i, s in sorted_order:
         if s.upper() in upper:
             return (i, name)
+            
     return (len(_SEQUENCE_ORDER), name)
 
 
@@ -192,20 +214,29 @@ def process_patient(pdgm_id: str,
                     cols: int,
                     overwrite: bool) -> bool:
     """
-    Generates a montage for a single patient.  Returns True if created.
+    Generates montages (axial, coronal, sagittal) for a single patient.
     """
-    out_path = Path(output_dir) / str(pdgm_id) / "axial_slices_montage.png"
-    if out_path.exists() and not overwrite:
-        print(f"  [SKIP] {pdgm_id} — montage already exists")
+    patient_dir = Path(output_dir) / str(pdgm_id)
+    
+    # Define filenames for all three planes
+    planes = {
+        2: ("axial",   "axial_slices_montage.png"),
+        1: ("coronal", "coronal_slices_montage.png"),
+        0: ("sagittal", "sagittal_slices_montage.png"),
+    }
+    
+    # Check if all exist
+    if not overwrite and all((patient_dir / f).exists() for _, (_, f) in planes.items()):
+        print(f"  [SKIP] {pdgm_id} — all montages already exist")
         return False
 
-    # Construct scan directory the same way as best_slice_extraction_2d.py
+    # Construct scan directory
     scan_dir = Path(nifti_root) / f"{pdgm_id}_nifti"
     if not scan_dir.is_dir():
         print(f"  [WARN] {pdgm_id} — NIfTI directory not found: {scan_dir}")
         return False
 
-    # Collect all NIfTI files in the scan directory
+    # Collect all NIfTI files
     nifti_files = sorted(
         scan_dir.glob("*.nii.gz"),
         key=lambda p: _sort_key(p.stem.replace(".nii", "").split("_")[-1])
@@ -214,36 +245,40 @@ def process_patient(pdgm_id: str,
         print(f"  [WARN] {pdgm_id} — no *.nii.gz files found in {scan_dir}")
         return False
 
-    # Optional tumour mask for better slice selection
+    # Optional tumour mask
     mask_path = None
     if mask_dir:
         candidate = Path(mask_dir) / f"{pdgm_id}_mask.nii.gz"
         if candidate.exists():
             mask_path = str(candidate)
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    patient_dir.mkdir(parents=True, exist_ok=True)
 
-    panels: list[tuple[str, Image.Image]] = []
-    for nii in nifti_files:
-        # Derive a human-readable label from the filename
-        # e.g. UCSF-PDGM-0005_FLAIR.nii.gz → FLAIR
-        stem  = nii.name.replace(".nii.gz", "").replace(".nii", "")
-        label = stem.replace(f"{pdgm_id}_", "")
+    any_created = False
+    for axis, (name, filename) in planes.items():
+        out_path = patient_dir / filename
+        if out_path.exists() and not overwrite:
+            continue
 
-        panel = _extract_axial_panel(str(nii), mask_path=mask_path, thumb_px=thumb_px)
-        if panel is None:
-            # Placeholder for unreadable files
-            panel = Image.new("RGB", (thumb_px, thumb_px), (30, 30, 30))
-            ImageDraw.Draw(panel).text((8, thumb_px // 2 - 10),
-                                       "MISSING", fill=(180, 60, 60))
+        panels: list[tuple[str, Image.Image]] = []
+        for nii in nifti_files:
+            stem  = nii.name.replace(".nii.gz", "").replace(".nii", "")
+            label = stem.replace(f"{pdgm_id}_", "")
 
-        panels.append((label, panel))
+            panel = _extract_panel(str(nii), mask_path=mask_path, thumb_px=thumb_px, axis=axis)
+            if panel is None:
+                panel = Image.new("RGB", (thumb_px, thumb_px), (30, 30, 30))
+                ImageDraw.Draw(panel).text((8, thumb_px // 2 - 10), "MISSING", fill=(180, 60, 60))
 
-    title   = f"Axial Montage  |  {pdgm_id}  |  {len(panels)} sequences"
-    montage = _build_montage(panels, cols=cols, thumb_px=thumb_px, title=title)
-    montage.save(str(out_path))
-    print(f"  [OK]   {pdgm_id} → {out_path}  ({len(panels)} sequences)")
-    return True
+            panels.append((label, panel))
+
+        title   = f"{name.capitalize()} Montage  |  {pdgm_id}  |  {len(panels)} sequences"
+        montage = _build_montage(panels, cols=cols, thumb_px=thumb_px, title=title)
+        montage.save(str(out_path))
+        print(f"  [OK]   {pdgm_id} -> {filename}  ({len(panels)} sequences)")
+        any_created = True
+
+    return any_created
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

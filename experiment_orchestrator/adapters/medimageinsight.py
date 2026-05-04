@@ -20,7 +20,7 @@ class MedImageInsightAdapter(ModelAdapter):
     """Builds CLI commands for MedImageInsight testing scripts."""
 
     _IMAGE_FILENAME = {
-        "single_slice":  "Axial.png",
+        "single_slice":  "axial_FLAIR.png",
         "montage_slice": "axial_slices_montage.png",
     }
 

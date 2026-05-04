@@ -64,7 +64,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from experiment_orchestrator.config_schema import ExperimentSuite
-from experiment_orchestrator.config_resolver import resolve_all, expand_suite_raw
+from experiment_orchestrator.config_resolver import resolve_all, expand_suite_raw, _make_run_output_path
 from experiment_orchestrator.adapters import get_adapter
 from experiment_orchestrator.slurm_template import write_sbatch_file
 from experiment_orchestrator.slurm_scheduler import SlurmScheduler
@@ -209,15 +209,41 @@ def filter_job_list(jobs, models=None, tests=None, variants=None,
     return jobs
 
 def apply_run_spec(all_jobs, spec_path) -> list:
+    """
+    Filter and optionally mutate the global job list using a YAML run-spec file.
+
+    Each entry under ``runs:`` may contain:
+
+      models, tests, variants            — allow-list filters
+      exclude_models/tests/variants      — deny-list filters
+      runs_per_experiment  (int)         — override the number of repetitions
+                                           for every job matched by this group
+
+    Example run-spec::
+
+        runs:
+          - models: [GPT5Mini]
+            tests:  [text_only]
+            runs_per_experiment: 1          # only one run for this cheap API call
+          - models: [MedGemma1.5]
+            runs_per_experiment: 5          # extra repetitions for this model
+          - models: [Lingshu-32B, Qwen3]
+                                            # no override → keep experiment.json value
+    """
+    import copy
+
     logger.info("Applying matrix filters from --run-spec: %s", spec_path)
     with open(spec_path, "r") as f:
         spec = yaml.safe_load(f)
-    
+
     if not spec or "runs" not in spec:
         logger.warning("Run spec is empty or missing 'runs' list.")
         return []
-    
-    final_jobs = {}
+
+    # Use a dict keyed by (job_name_stem, run_number) so later groups can
+    # override earlier ones for the same logical test.
+    final_jobs: dict[str, object] = {}
+
     for group in spec["runs"]:
         matched = filter_job_list(
             all_jobs,
@@ -228,11 +254,46 @@ def apply_run_spec(all_jobs, spec_path) -> list:
             ex_tests=group.get("exclude_tests"),
             ex_variants=group.get("exclude_variants"),
         )
-        for job in matched:
-            final_jobs[job.job_name] = job
-            
+
+        run_override = group.get("runs_per_experiment")
+
+        if run_override is not None:
+            # Re-expand every distinct (model, test) pair with the new run count.
+            # The incoming `matched` list already has per-run jobs; we need the
+            # deduplicated set of (model_name, test_name) seeds.
+            seen_seeds: set[tuple[str, str]] = set()
+            expanded: list = []
+            for job in matched:
+                seed = (job.model_name, job.test_name)
+                if seed in seen_seeds:
+                    continue
+                seen_seeds.add(seed)
+
+                # Strip the _runN suffix from the base output path so we can
+                # re-apply it with the new run count.
+                base_path = job.output_path
+                import re as _re
+                base_path = _re.sub(r"_run\d+(\.csv)$", r"\1", base_path)
+
+                for run in range(1, run_override + 1):
+                    new_job = copy.copy(job)
+                    new_job.run_number  = run
+                    new_job.total_runs  = run_override
+                    new_job.output_path = _make_run_output_path(base_path, run, run_override)
+                    new_job.job_name    = f"{job.model_name}_{job.test_name}_run{run}"
+                    expanded.append(new_job)
+
+            for job in expanded:
+                final_jobs[job.job_name] = job
+        else:
+            for job in matched:
+                final_jobs[job.job_name] = job
+
     jobs_list = list(final_jobs.values())
-    logger.info("--run-spec: resolved %d unique jobs across %d run groups.", len(jobs_list), len(spec["runs"]))
+    logger.info(
+        "--run-spec: resolved %d unique jobs across %d run groups.",
+        len(jobs_list), len(spec["runs"]),
+    )
     return jobs_list
 
 def apply_filters(jobs, args) -> list:

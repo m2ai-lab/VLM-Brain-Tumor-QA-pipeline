@@ -259,7 +259,7 @@ if __name__ == "__main__":
                         default=_cfg.get("output_base", "") + "/MedImageInsight/single_slice_results.csv")
     parser.add_argument('--image_dir', type=str,
                         default=_cfg.get("slice_dir"))
-    parser.add_argument('--image_filename', type=str, default="Axial.png",
+    parser.add_argument('--image_filename', type=str, default="axial_FLAIR.png",
                         help="Filename inside each patient dir. Use 'axial_slices_montage.png' for montage.")
     parser.add_argument('--image_path', type=str, default=None,
                         help="For blank experiments: path to a single blacked-out image.")

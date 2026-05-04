@@ -238,7 +238,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_path', type=str, default=_cfg.get("lingshu_model_path", "models/Lingshu-32B"))
     parser.add_argument('--image_dir', type=str, default=_cfg.get("slice_dir"))
     parser.add_argument('--image_path', type=str, default=None, help="Path to single image (e.g. for blank variant)")
-    parser.add_argument('--image_filename', type=str, default="Axial.png")
+    parser.add_argument('--image_filename', type=str, default="axial_FLAIR.png")
     parser.add_argument('--batch_size', type=int, default=2,
                         help="Number of QA rows per model.generate() call. Keep low (2) for 32B model.")
     parser.add_argument('--limit', type=int, default=None)

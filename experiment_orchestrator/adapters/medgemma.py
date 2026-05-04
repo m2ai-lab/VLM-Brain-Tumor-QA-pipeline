@@ -6,7 +6,8 @@ constrained generation.  Supports four variants:
   - multi_slice:      3 axial/coronal/sagittal PNGs per patient
   - single_slice:     1 axial PNG per patient
   - contrast_slices:  all axial_<CONTRAST>.png files per patient
-                      (produced by data_pipeline/extract_contrast_slices.py)
+                      (typically 23 sequences: T1/T2/FLAIR, bias-corrected, 
+                      DTI metrics, and segmentations)
   - blank:            a single blacked-out PNG (control experiment)
 """
 from __future__ import annotations
@@ -24,13 +25,14 @@ class MedGemmaAdapter(ModelAdapter):
         "multi_slice":     "testing_scripts/QA_testing_medgemma_multi_slice.py",
         "single_slice":    "testing_scripts/QA_testing_medgemma_single_slice.py",
         "montage_slice":   "testing_scripts/QA_testing_medgemma_single_slice.py",
+        "contrast_montage_slice": "testing_scripts/QA_testing_medgemma_contrast_montage.py",
         "contrast_slices": "testing_scripts/QA_testing_medgemma_contrast_slices.py",
         "blank":           "testing_scripts/QA_testing_medgemma_blank.py",
     }
 
     # For image-dir-based variants, the filename to look for in each patient dir
     _IMAGE_FILENAME = {
-        "single_slice":  "Axial.png",
+        "single_slice":  "axial_FLAIR.png",
         "montage_slice": "axial_slices_montage.png",
     }
 

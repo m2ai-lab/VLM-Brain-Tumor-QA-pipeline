@@ -1,6 +1,0 @@
-runs:
-  - models: [Lingshu-32B, Qwen3,MedGemma1.5-ContrastSlices]
-  - models: [MedGemma1.5]
-    tests: ["human_single_slice"]
-  - models: [LLaVA]
-    tests: ["montage_slice"]

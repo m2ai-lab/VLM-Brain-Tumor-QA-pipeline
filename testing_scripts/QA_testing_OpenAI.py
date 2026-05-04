@@ -77,11 +77,21 @@ class VQAResponse(BaseModel):
     answer: str = Field(description="The chosen answer option verbatim, e.g. '1) Low Grade'.")
     concise_reasoning: str = Field(description="One sentence citing the MRI finding.")
 
-SYSTEM_PROMPT = (
+SYSTEM_PROMPT_VISION = (
     "You are a radiologist reviewing brain MRI scans. "
     "Answer the multiple-choice question based on the provided MRI image. "
     "Your response must be a JSON object with 'answer' and 'concise_reasoning'."
 )
+
+SYSTEM_PROMPT_TEXT = (
+    "You are an expert neuro-oncologist. "
+    "Answer the following multiple-choice question about a brain tumor patient "
+    "using only the clinical information supplied in the question text (no images). "
+    "Your response must be a JSON object with 'answer' and 'concise_reasoning'."
+)
+
+# kept for backward compatibility
+SYSTEM_PROMPT = SYSTEM_PROMPT_VISION
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -93,18 +103,8 @@ def encode_image_as_base64(image_path: str) -> str:
     img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
-def call_versa_vision(images_b64: list[str], question: str, deployment: str) -> VQAResponse:
-    content = [{"type": "text", "text": question}]
-    for img_b64 in images_b64:
-        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}})
-
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": content,
-        },
-    ]
+def _parse_with_retry(messages: list[dict], deployment: str) -> VQAResponse:
+    """Shared retry loop for all API call variants."""
     retries = 0
     while True:
         try:
@@ -115,18 +115,55 @@ def call_versa_vision(images_b64: list[str], question: str, deployment: str) -> 
                 max_completion_tokens=MAX_COMPLETION_TOKENS,
             )
             parsed: VQAResponse = response.choices[0].message.parsed
-            if parsed is None: raise ValueError("Model returned null parsed content")
+            if parsed is None:
+                raise ValueError("Model returned null parsed content")
             return parsed
         except Exception as e:
-            if retries >= MAX_RETRIES: raise RuntimeError(f"API failed after {MAX_RETRIES+1} attempts: {e}")
+            if retries >= MAX_RETRIES:
+                raise RuntimeError(f"API failed after {MAX_RETRIES+1} attempts: {e}")
             time.sleep(RETRY_SECS)
             retries += 1
+
+
+def call_versa_vision(images_b64: list[str], question: str, deployment: str) -> VQAResponse:
+    """Send question + one-or-more images to the vision model."""
+    content = [{"type": "text", "text": question}]
+    for img_b64 in images_b64:
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}})
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT_VISION},
+        {"role": "user", "content": content},
+    ]
+    return _parse_with_retry(messages, deployment)
+
+
+def call_versa_text_only(question: str, deployment: str) -> VQAResponse:
+    """Send question text with NO image — pure language model call."""
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT_TEXT},
+        {"role": "user",   "content": question},
+    ]
+    return _parse_with_retry(messages, deployment)
 
 # ── Parallel Task Worker ──────────────────────────────────────────────────────
 
 def process_row(idx: int, row: pd.Series, args: argparse.Namespace) -> dict:
     """Task function for ThreadPoolExecutor."""
+    rid = get_row_id(row["Assigned ID"], row["Question"])
     try:
+        # ── Text-only branch (no images sent) ────────────────────────────────
+        if getattr(args, "text_only", False):
+            result = call_versa_text_only(row["Question"], args.deployment)
+            return {
+                "rid": rid,
+                "answer": result.answer,
+                "reasoning": result.concise_reasoning,
+                "idx": idx,
+                "row_data": row,
+            }
+
+        # ── Vision branch ─────────────────────────────────────────────────────
         # Split filenames in case multiple are provided (e.g. "Axial.png Coronal.png Sagittal.png")
         filenames = args.image_filename.split()
         images_b64 = []
@@ -138,22 +175,22 @@ def process_row(idx: int, row: pd.Series, args: argparse.Namespace) -> dict:
                 img_path = os.path.join(args.image_dir, str(row["Assigned ID"]), fname)
 
             if not os.path.exists(img_path):
-                return {"rid": get_row_id(row["Assigned ID"], row["Question"]), "answer": "Error", "reasoning": f"Image not found: {img_path}", "idx": idx}
+                return {"rid": rid, "answer": "Error",
+                        "reasoning": f"Image not found: {img_path}", "idx": idx}
 
             images_b64.append(encode_image_as_base64(img_path))
 
         result = call_versa_vision(images_b64, row["Question"], args.deployment)
-        
         return {
-            "rid": get_row_id(row["Assigned ID"], row["Question"]),
+            "rid": rid,
             "answer": result.answer,
             "reasoning": result.concise_reasoning,
             "idx": idx,
-            "row_data": row
+            "row_data": row,
         }
     except Exception as e:
         _dbg(f"  [ERROR] Row {idx} failed: {e}")
-        return {"rid": get_row_id(row["Assigned ID"], row["Question"]), "answer": "Error", "reasoning": str(e), "idx": idx}
+        return {"rid": rid, "answer": "Error", "reasoning": str(e), "idx": idx}
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -208,8 +245,12 @@ if __name__ == "__main__":
     parser.add_argument("--image_dir", type=str, default=_cfg.get("slice_dir"))
     parser.add_argument("--image_path", type=str, default=None, help="Force a single image (blank test)")
     parser.add_argument("--deployment", type=str, default=DEFAULT_DEPLOYMENT)
-    parser.add_argument("--image_filename", type=str, default="Axial.png")
+    parser.add_argument("--image_filename", type=str, default="axial_FLAIR.png")
     parser.add_argument("--batch_size", type=int, default=8, help="Number of parallel API requests")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--text_only", action="store_true",
+        help="Skip all image inputs; send only the question text (pure LLM call).",
+    )
 
     main(parser.parse_args())

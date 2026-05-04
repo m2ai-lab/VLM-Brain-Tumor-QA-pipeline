@@ -1,21 +1,23 @@
 """
-extract_contrast_slices.py  —  Per-contrast, multi-axis slice extractor
+extract_contrast_slices.py  —  Per-contrast axial slice extractor
 
-For each patient in the QA CSV, loads the four target NIfTI volumes
-(T1, T1c, T2, FLAIR) from the patient's <nifti_root>/<pdgm_id>_nifti/
-directory, finds the best slice on each anatomical axis using mask-guided /
-intensity-CoM logic, and saves 12 PNGs named:
+For each patient in the QA CSV, loads every *.nii.gz file in the patient's
+<nifti_root>/<pdgm_id>_nifti/ directory, extracts the best axial slice for
+each contrast (using the same mask-guided / intensity-CoM logic as
+montage_slices.py), and saves individual PNGs named:
 
-    <output_dir>/<pdgm_id>/<axis>_<CONTRAST>.png
+    <output_dir>/<pdgm_id>/axial_<CONTRAST>.png
 
 e.g.
+    UCSF-PDGM-0005/axial_FLAIR.png
     UCSF-PDGM-0005/axial_T1.png
     UCSF-PDGM-0005/axial_T1c.png
     UCSF-PDGM-0005/axial_T2.png
-    UCSF-PDGM-0005/axial_FLAIR.png
-    UCSF-PDGM-0005/coronal_T1.png
     ...
-    UCSF-PDGM-0005/sagittal_FLAIR.png
+
+The output directory and per-patient folder layout mirror the existing
+slice_dir / 2D_slices structure so the files can be used directly by the
+QA testing scripts that already expect per-patient image directories.
 
 Usage
 -----
@@ -52,86 +54,45 @@ from config_utils import load_config
 
 _cfg = load_config()
 
-# ── Target contrasts (only these four are extracted) ─────────────────────────
-TARGET_CONTRASTS = ["T1", "T1c", "T2", "FLAIR"]
-
-# Axes to extract: name → (array-dimension-index, slice-getter)
-# dim 0 = X → sagittal,  dim 1 = Y → coronal,  dim 2 = Z → axial
-AXES = ["axial", "coronal", "sagittal"]
-
-# ── Display constants ─────────────────────────────────────────────────────────
+# ── Display constants (match montage_slices.py) ───────────────────────────────
 BG_COLOR = (10, 10, 10)
 
 
-# ── Slice-selection helpers ───────────────────────────────────────────────────
+# ── Slice-selection helpers (identical to montage_slices.py) ──────────────────
 
-def _best_index(img: np.ndarray,
-                axis: int,
-                mask: Optional[np.ndarray] = None) -> int:
+def _best_axial_index(img: np.ndarray, mask: Optional[np.ndarray] = None) -> int:
     """
-    Return the best slice index along *axis* (0=X/sagittal, 1=Y/coronal,
-    2=Z/axial).
+    Returns the axial (Z-axis) slice index that best shows the lesion.
 
     Priority:
       1. Centre-of-mass of a non-empty binary mask (tumour centroid).
       2. Centre-of-mass of the top-10% bright voxels.
       3. Middle slice (fallback).
     """
-    size = img.shape[axis]
+    z_size = img.shape[2]
 
     if mask is not None and np.sum(mask) > 0:
         coords = np.argwhere(mask > 0.5)
-        return int(np.mean(coords[:, axis]))
+        return int(np.mean(coords[:, 2]))
 
     nonzero = img[img > 0]
     if nonzero.size > 0:
         bright = img > np.percentile(nonzero, 90)
         if bright.sum() > 0:
             coords = np.argwhere(bright)
-            return int(np.mean(coords[:, axis]))
+            return int(np.mean(coords[:, 2]))
 
-    return size // 2
-
-
-def _get_plane(img: np.ndarray, axis: int, idx: int) -> np.ndarray:
-    """Extract a 2-D plane from a 3-D volume at the given axis/index."""
-    if axis == 0:
-        return img[idx, :, :]
-    elif axis == 1:
-        return img[:, idx, :]
-    else:
-        return img[:, :, idx]
+    return z_size // 2
 
 
-def _plane_to_png(plane: np.ndarray, thumb_px: int) -> Image.Image:
+def _extract_axial_slice(nifti_path: str,
+                         mask_path: Optional[str],
+                         thumb_px: int) -> Optional[Image.Image]:
     """
-    Normalise a 2-D float array to [0,255], rotate to standard anatomical
-    orientation, and return a square RGB PIL Image padded to thumb_px².
-    """
-    v_min, v_max = np.percentile(plane, [0.5, 99.5])
-    plane = np.clip(plane, v_min, v_max)
-    if v_max > v_min:
-        plane = ((plane - v_min) / (v_max - v_min) * 255).astype(np.uint8)
-    else:
-        plane = np.zeros_like(plane, dtype=np.uint8)
+    Load a NIfTI, pick the best axial slice, normalise to [0,255], and
+    return a square RGB PIL Image padded to thumb_px × thumb_px.
 
-    pil_img = Image.fromarray(plane).transpose(Image.ROTATE_90).convert("RGB")
-    pil_img.thumbnail((thumb_px, thumb_px), Image.LANCZOS)
-
-    canvas = Image.new("RGB", (thumb_px, thumb_px), BG_COLOR)
-    canvas.paste(pil_img,
-                 ((thumb_px - pil_img.width)  // 2,
-                  (thumb_px - pil_img.height) // 2))
-    return canvas
-
-
-def _extract_slice(nifti_path: str,
-                   axis: int,
-                   mask: Optional[np.ndarray],
-                   thumb_px: int) -> Optional[Image.Image]:
-    """
-    Load a NIfTI, pick the best slice on *axis*, normalise, and return
-    a square RGB PIL Image.  Returns None on load failure.
+    Returns None if the file cannot be loaded.
     """
     if not os.path.exists(nifti_path):
         return None
@@ -140,13 +101,55 @@ def _extract_slice(nifti_path: str,
         if img.ndim == 4:
             img = img[..., 0]
 
-        idx = _best_index(img, axis=axis, mask=mask)
-        plane = _get_plane(img, axis=axis, idx=idx)
-        return _plane_to_png(plane, thumb_px)
+        mask = None
+        if mask_path and os.path.exists(mask_path):
+            mask = nib.load(mask_path).get_fdata(dtype=np.float32)
+
+        z_idx = _best_axial_index(img, mask)
+        plane = img[:, :, z_idx]
+
+        # Robust percentile normalisation (mirrors montage_slices.py)
+        v_min, v_max = np.percentile(plane, [0.5, 99.5])
+        plane = np.clip(plane, v_min, v_max)
+        if v_max > v_min:
+            plane = ((plane - v_min) / (v_max - v_min) * 255).astype(np.uint8)
+        else:
+            plane = np.zeros_like(plane, dtype=np.uint8)
+
+        # Rotate to standard anatomical orientation (matches montage_slices.py)
+        pil_img = Image.fromarray(plane).transpose(Image.ROTATE_90).convert("RGB")
+        pil_img.thumbnail((thumb_px, thumb_px), Image.LANCZOS)
+
+        # Centre on a square canvas
+        canvas = Image.new("RGB", (thumb_px, thumb_px), BG_COLOR)
+        canvas.paste(pil_img, ((thumb_px - pil_img.width)  // 2,
+                                (thumb_px - pil_img.height) // 2))
+        return canvas
 
     except Exception as exc:
         print(f"  [WARN] Could not load {nifti_path}: {exc}")
         return None
+
+
+# ── Contrast label extraction ─────────────────────────────────────────────────
+
+def _contrast_label(nii_path: Path, pdgm_id: str) -> str:
+    """
+    Derive a clean contrast label from a NIfTI filename.
+
+    Examples:
+      UCSF-PDGM-0005_FLAIR.nii.gz  →  FLAIR
+      UCSF-PDGM-0005_T1c.nii.gz    →  T1c
+      UCSF-PDGM-0005_seg.nii.gz    →  seg
+
+    Falls back to the full stem if the patient-ID prefix isn't found.
+    """
+    stem = nii_path.name.replace(".nii.gz", "").replace(".nii", "")
+    # Strip the patient-ID prefix (e.g. "UCSF-PDGM-0005_")
+    prefix = f"{pdgm_id}_"
+    if stem.startswith(prefix):
+        return stem[len(prefix):]
+    return stem
 
 
 # ── Per-patient processing ────────────────────────────────────────────────────
@@ -156,67 +159,65 @@ def process_patient(pdgm_id: str,
                     output_dir: str,
                     mask_dir: Optional[str],
                     thumb_px: int,
-                    overwrite: bool) -> tuple[int, int]:
+                    overwrite: bool,
+                    skip_seg: bool) -> tuple[int, int]:
     """
-    Extract Axial / Coronal / Sagittal PNGs for T1, T1c, T2, FLAIR.
+    Extract one axial PNG per contrast for a single patient.
 
     Returns (n_saved, n_skipped).
     """
     patient_out = Path(output_dir) / str(pdgm_id)
-    scan_dir    = Path(nifti_root) / f"{pdgm_id}_nifti"
 
+    # Locate the NIfTI directory
+    scan_dir = Path(nifti_root) / f"{pdgm_id}_nifti"
     if not scan_dir.is_dir():
         print(f"  [WARN] {pdgm_id} — NIfTI directory not found: {scan_dir}")
         return 0, 0
 
-    # Load shared tumour mask once (used for all contrasts / axes)
-    mask = None
+    # Collect all NIfTI volumes
+    nifti_files = sorted(scan_dir.glob("*.nii.gz"))
+    if not nifti_files:
+        print(f"  [WARN] {pdgm_id} — no *.nii.gz files found in {scan_dir}")
+        return 0, 0
+
+    # Optional tumour mask for better slice selection
+    mask_path = None
     if mask_dir:
         candidate = Path(mask_dir) / f"{pdgm_id}_mask.nii.gz"
         if candidate.exists():
-            try:
-                mask = nib.load(str(candidate)).get_fdata(dtype=np.float32)
-            except Exception as exc:
-                print(f"  [WARN] Could not load mask {candidate}: {exc}")
+            mask_path = str(candidate)
 
     patient_out.mkdir(parents=True, exist_ok=True)
 
     saved = skipped = 0
+    for nii in nifti_files:
+        label = _contrast_label(nii, pdgm_id)
 
-    # Axes in order: axial=2, coronal=1, sagittal=0
-    axis_dims = {"axial": 2, "coronal": 1, "sagittal": 0}
-
-    for contrast in TARGET_CONTRASTS:
-        nii_path = scan_dir / f"{pdgm_id}_{contrast}.nii.gz"
-
-        if not nii_path.exists():
-            print(f"  [MISS] {contrast} — {nii_path.name} not found, skipping")
+        # Optionally skip segmentation masks (they look blank / wrong when normalised)
+        if skip_seg and label.lower() in {"seg", "segmentation", "mask", "label"}:
+            print(f"    [SKIP] {label} — segmentation file skipped (--skip_seg)")
+            skipped += 1
             continue
 
-        # Pre-load volume once; extract all three axes from it
-        try:
-            vol = nib.load(str(nii_path)).get_fdata(dtype=np.float32)
-            if vol.ndim == 4:
-                vol = vol[..., 0]
-        except Exception as exc:
-            print(f"  [WARN] Could not load {nii_path.name}: {exc}")
+        out_png = patient_out / f"axial_{label}.png"
+
+        if out_png.exists() and not overwrite:
+            print(f"    [SKIP] axial_{label}.png already exists")
+            skipped += 1
             continue
 
-        for axis_name, axis_dim in axis_dims.items():
-            out_png = patient_out / f"{axis_name}_{contrast}.png"
+        slice_img = _extract_axial_slice(str(nii), mask_path=mask_path, thumb_px=thumb_px)
 
-            if out_png.exists() and not overwrite:
-                print(f"    [SKIP] {out_png.name} already exists")
-                skipped += 1
-                continue
+        if slice_img is None:
+            # Write a placeholder so the slot is visible in results
+            placeholder = Image.new("RGB", (thumb_px, thumb_px), (30, 30, 30))
+            placeholder.save(str(out_png))
+            print(f"    [WARN] axial_{label}.png — could not load NIfTI; placeholder saved")
+        else:
+            slice_img.save(str(out_png))
+            print(f"    [OK]  axial_{label}.png")
 
-            idx   = _best_index(vol, axis=axis_dim, mask=mask)
-            plane = _get_plane(vol, axis=axis_dim, idx=idx)
-            img   = _plane_to_png(plane, thumb_px)
-
-            img.save(str(out_png))
-            print(f"    [OK]  {out_png.name}")
-            saved += 1
+        saved += 1
 
     return saved, skipped
 
@@ -235,10 +236,6 @@ def main(args: argparse.Namespace) -> None:
             print(f"[ERROR] '{args.pdgm_id}' not found in {args.qa_path}")
             sys.exit(1)
 
-    print(f"Contrasts : {TARGET_CONTRASTS}")
-    print(f"Axes      : {AXES}")
-    print(f"Output    : {args.output_dir}\n")
-
     total_saved = total_skipped = 0
     for row in qa_data.itertuples():
         pdgm_id = row.Assigned_ID
@@ -250,6 +247,7 @@ def main(args: argparse.Namespace) -> None:
             mask_dir   = args.mask_dir,
             thumb_px   = args.thumb_px,
             overwrite  = args.overwrite,
+            skip_seg   = args.skip_seg,
         )
         total_saved   += saved
         total_skipped += skipped
@@ -260,9 +258,8 @@ def main(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Extract Axial / Coronal / Sagittal PNGs for T1, T1c, T2, FLAIR "
-            "for every patient in a QA CSV. "
-            "Output: <output_dir>/<pdgm_id>/<axis>_<CONTRAST>.png"
+            "Extract one axial PNG per contrast type for every patient in a QA CSV. "
+            "Output: <output_dir>/<pdgm_id>/axial_<CONTRAST>.png"
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -281,7 +278,8 @@ if __name__ == "__main__":
         default=_cfg.get("slice_dir"),
         help=(
             "Root directory for per-patient PNG output. "
-            "Defaults to slice_dir in config.yaml."
+            "Defaults to slice_dir in config.yaml so files land alongside "
+            "existing Axial.png slices."
         ),
     )
     parser.add_argument(
@@ -303,5 +301,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--overwrite", action="store_true",
         help="Re-generate PNGs even if they already exist.",
+    )
+    parser.add_argument(
+        "--skip_seg", action="store_true", default=True,
+        help=(
+            "Skip segmentation/mask volumes (files labelled seg, segmentation, "
+            "mask, or label) — they render incorrectly when intensity-normalised."
+        ),
     )
     main(parser.parse_args())

@@ -127,10 +127,22 @@
           "output_path": "{output_base}/MedGemma1.5/contrast_slices_results.csv"
         },
         {
-          "name": "contrast_slices_shuffled",
+          "name": "human",
           "variant": "contrast_slices",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/contrast_slices_reshuffled_results.csv"
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/MedGemma1.5/multi_montage_human_results.csv"
+        },
+        {
+          "name": "human",
+          "variant": "contrast_slices",
+          "qa_path": "{human_qa_path}",
+          "output_path": "{output_base}/MedGemma1.5/multi_montage_human_results.csv"
+        },
+        {
+          "name": "multi_contrast_montages",
+          "variant": "contrast_montage_slice",
+          "qa_path": "{qa_path}",
+          "output_path": "{output_base}/MedGemma1.5/contrast_slices_montage_results.csv"
         }
       ]
     },
@@ -228,18 +240,6 @@
           "name": "montage_slice",
           "variant": "montage_slice",
           "output_path": "{output_base}/MedImageInsight/montage_slice_results.csv"
-        },
-        {
-          "name": "montage_slice_shuffled",
-          "variant": "montage_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/MedImageInsight/montage_slice_reshuffled_results.csv"
-        },
-        {
-          "name": "human_montage",
-          "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedImageInsight/montage_human_results.csv"
         }
       ]
     },
@@ -301,6 +301,12 @@
           "output_path": "{output_base}/GPT5Mini/single_slice_results.csv"
         },
         {
+          "name": "single_slice_shuffled",
+          "variant": "single_slice",
+          "qa_path": "{reshuffled_qa_path}",
+          "output_path": "{output_base}/GPT5Mini/single_slice_shuffled_results.csv"
+        },
+        {
           "name": "multi_slice_shuffled",
           "variant": "multi_slice",
           "qa_path": "{reshuffled_qa_path}",
@@ -327,6 +333,11 @@
           "name": "multi_slice",
           "variant": "multi_slice",
           "output_path": "{output_base}/GPT5Mini/multi_slice_results.csv"
+        },
+        {
+          "name": "text_only",
+          "variant": "text_only",
+          "output_path": "{output_base}/GPT5Mini/text_only_results.csv"
         }
       ]
     },

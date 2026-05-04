@@ -11,10 +11,11 @@ axial PNG files produced by data_pipeline/extract_contrast_slices.py:
     ...
 
 Rather than loading a fixed [Axial, Coronal, Sagittal] triplet, this script
-discovers however many axial_*.png files exist for the patient and feeds them
-all to MedGemma as separate image tokens.  Each image is captioned in the
-prompt with its contrast label (e.g. "FLAIR", "T1c") so the model knows what
-it is looking at.
+discovers all axial_*.png files (typically 23 sequences including T1/T2/FLAIR, 
+bias-corrected versions, DTI eddy metrics, and segmentations) and feeds them
+all to MedGemma as separate image tokens. Each image is captioned in the
+prompt with its contrast label (e.g. "FLAIR", "DTI_eddy_FA") so the model 
+knows what it is looking at.
 
 The prompt, JSON parsing, and Pydantic validation are identical to the
 existing multi_slice script.
@@ -38,14 +39,35 @@ from testing_scripts.utils.checkpoint import load_checkpoint, save_checkpoint, g
 
 _cfg = load_config()
 
-# ── Sequence display order (mirrors montage_slices.py) ───────────────────────
-_SEQUENCE_ORDER = ["T1", "T1c", "T1C", "T1CE", "T2", "FLAIR", "ADC", "DWI", "SWI"]
+# ── Sequence display order (expanded to 23 requested sequences) ───────────────
+_SEQUENCE_ORDER = [
+    "T1", "T1_bias", "T1c", "T1C", "T1CE", "T1c_bias", 
+    "T2", "T2_bias", "FLAIR", "FLAIR_bias", 
+    "SWI", "SWI_bias", "ADC", "DWI", "DWI_bias", "ASL",
+    "DTI_eddy_noreg", "DTI_eddy_FA", "DTI_eddy_MD", 
+    "DTI_eddy_L1", "DTI_eddy_L2", "DTI_eddy_L3",
+    "brain_segmentation", "brain_parenchyma_segmentation", "tumor_segmentation"
+]
 
 def _sort_key(label: str) -> tuple[int, str]:
+    """
+    Returns a sorting key for the image label.
+    Prioritizes exact matches in _SEQUENCE_ORDER, then falls back to substring.
+    """
     upper = label.upper()
+    
+    # 1. Try exact match first (case-insensitive)
     for i, s in enumerate(_SEQUENCE_ORDER):
+        if s.upper() == upper:
+            return (i, label)
+            
+    # 2. Try substring match (case-insensitive)
+    # We check longer sequence names first to avoid "T1" matching "T1c"
+    sorted_order = sorted(enumerate(_SEQUENCE_ORDER), key=lambda x: len(x[1]), reverse=True)
+    for i, s in sorted_order:
         if s.upper() in upper:
             return (i, label)
+            
     return (len(_SEQUENCE_ORDER), label)
 
 

@@ -1,0 +1,7 @@
+runs:
+  - models: [GPT5Mini]
+    tests: ["text_only","single_slice_shuffled","multi_slice_shuffled","multi_slice"]
+    runs_per_experiment: 3
+  - models: [GPT5Mini]
+    tests: [""]
+    runs_per_experiment: 3
