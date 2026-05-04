@@ -1,4 +1,4 @@
 runs:
-  - models: [Lingshu-32B]
-    tests: ["blank"]
+  - models: [GPT5Mini]
+    tests: ["multi_slice","multi_slice_shuffled"]
     runs_per_experiment: 3

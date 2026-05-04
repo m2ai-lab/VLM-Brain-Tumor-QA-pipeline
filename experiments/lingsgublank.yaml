@@ -1,0 +1,4 @@
+runs:
+  - models: [Lingshu-32B]
+    tests: ["blank"]
+    runs_per_experiment: 3
