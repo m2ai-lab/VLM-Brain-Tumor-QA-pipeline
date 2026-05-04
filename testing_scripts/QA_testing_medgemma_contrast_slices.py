@@ -105,61 +105,65 @@ def load_contrast_slices(patient_dir: str) -> list[tuple[str, Image.Image]]:
 
 # ── Inference ─────────────────────────────────────────────────────────────────
 
-def query_the_model(model, processor, question: str,
-                    patient_id: str, base_image_dir: str) -> dict:
+def run_batch(model, processor, batch_rows: list[dict], base_image_dir: str) -> list[dict]:
     """
-    Run MedGemma on all per-contrast axial slices for one patient.
-
-    Each contrast PNG becomes its own image token; the prompt lists the
-    contrast names in order so the model has sequence context.
+    Run inference on a batch of QA rows, each using multiple contrast slices.
     """
-    patient_dir = os.path.join(base_image_dir, str(patient_id))
-    contrast_pairs = load_contrast_slices(patient_dir)
+    valid_indices: list[int] = []
+    results: list[dict] = [{"reasoning": "Not processed", "answer": "Error"}] * len(batch_rows)
 
-    if not contrast_pairs:
-        return {
-            "reasoning": f"Error: No axial_*.png files found in {patient_dir}",
-            "answer": "Error",
-        }
+    texts: list[str] = []
+    images_per_patient: list[list[Image.Image]] = []
 
-    labels = [label for label, _ in contrast_pairs]
-    images = [img   for _, img   in contrast_pairs]
+    for i, row in enumerate(batch_rows):
+        patient_id = row["Assigned ID"]
+        patient_dir = os.path.join(base_image_dir, str(patient_id))
+        contrast_pairs = load_contrast_slices(patient_dir)
 
-    # Build a contrast list description for the prompt
-    # e.g. "Image 1: T1 | Image 2: T1c | Image 3: T2 | Image 4: FLAIR"
-    img_descriptions = " | ".join(
-        f"Image {i+1}: {lbl}" for i, lbl in enumerate(labels)
-    )
+        if not contrast_pairs:
+            results[i] = {
+                "reasoning": f"Error: No axial_*.png files found in {patient_dir}",
+                "answer": "Error",
+            }
+            continue
 
-    prompt_text = (
-        "Instruction: You are a neuroradiologist. Analyze the provided MRI "
-        f"contrast sequences and provide a structured JSON response.\n"
-        f"Available contrasts: {img_descriptions}\n"
-        f"{FEW_SHOT_EXAMPLE}"
-        "---\n"
-        f"Actual Question: {question}\n"
-        "Response:"
-    )
+        labels = [label for label, _ in contrast_pairs]
+        images = [img   for _, img   in contrast_pairs]
 
-    # One {"type": "image"} entry per contrast, then the text
-    content = [{"type": "image"}] * len(images)
-    content.append({"type": "text", "text": prompt_text})
-    messages = [{"role": "user", "content": content}]
+        img_descriptions = " | ".join(f"Image {i+1}: {lbl}" for i, lbl in enumerate(labels))
+        prompt_text = (
+            "Instruction: You are a neuroradiologist. Analyze the provided MRI "
+            f"contrast sequences and provide a structured JSON response.\n"
+            f"Available contrasts: {img_descriptions}\n"
+            f"{FEW_SHOT_EXAMPLE}"
+            "---\n"
+            f"Actual Question: {row['Question']}\n"
+            "Response:"
+        )
 
-    input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
-    # Gemma3 processor requires images as a nested list even for a single sample:
-    # [images] = "1 text sample whose prompt has len(images) <image> tokens".
-    # Passing a flat list causes a batch-size mismatch error.
+        content = [{"type": "image"}] * len(images)
+        content.append({"type": "text", "text": prompt_text})
+        messages = [{"role": "user", "content": content}]
+        input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
+
+        valid_indices.append(i)
+        texts.append(input_text)
+        images_per_patient.append(images)
+
+    if not valid_indices:
+        return results
+
+    processor.tokenizer.padding_side = "left"
     inputs = processor(
-        text=input_text,
-        images=[images],
+        text=texts,
+        images=images_per_patient,
         padding=True,
         return_tensors="pt",
     ).to(model.device, dtype=model.dtype)
 
     input_len = inputs["input_ids"].shape[1]
     with torch.inference_mode():
-        generated_sequence = model.generate(
+        generated_sequences = model.generate(
             **inputs,
             do_sample=False,
             max_new_tokens=512,
@@ -167,23 +171,22 @@ def query_the_model(model, processor, question: str,
             tokenizer=processor.tokenizer,
         )
 
-    new_tokens    = generated_sequence[0][input_len:]
-    raw_response  = processor.decode(new_tokens, skip_special_tokens=True).strip()
-    full_json_str = "{" + raw_response
-    if not full_json_str.endswith("}"):
-        full_json_str += "}"
+    for seq_idx, row_idx in enumerate(valid_indices):
+        new_tokens = generated_sequences[seq_idx][input_len:]
+        raw_response = processor.decode(new_tokens, skip_special_tokens=True).strip()
+        results[row_idx] = _parse_response("{" + raw_response)  # Ensure opening brace for parsing if missing
 
+    return results
+
+
+def _parse_response(raw_response: str) -> dict:
     cleaned = clean_json_string(raw_response)
-
     try:
         json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
         if not json_match:
             raise ValueError("No JSON found in model output")
         validated = MedResponse.model_validate_json(json_match.group(0))
         return validated.model_dump()
-    except ValidationError as e:
-        print(f"Pydantic Validation Error: {e}")
-        return {"reasoning": "Schema mismatch", "answer": "Error", "raw": cleaned}
     except Exception as e:
         return {"reasoning": f"Parsing error: {str(e)}", "answer": "Error"}
 
@@ -201,44 +204,49 @@ def main(args: argparse.Namespace) -> None:
     )
 
     qa_data = pd.read_csv(args.qa_path)
-    total = qa_data.shape[0]
+    if getattr(args, 'limit', None):
+        print(f"Limiting to first {args.limit} rows.")
+        qa_data = qa_data.head(args.limit)
 
-    # Contrast-slices variant keeps batch_size=1 because each patient has a
-    # variable number of images, making true multi-patient batching non-trivial.
     completed_ids = load_checkpoint(args.output_path)
     if completed_ids:
         print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
 
-    print(f"Running contrast-slices inference (batch_size=1) on {total} rows.")
+    total = len(qa_data)
+    batch_size = args.batch_size
+    print(f"Running contrast-slices inference (batch_size={batch_size}) on {total} rows.")
 
-    for idx, row in qa_data.iterrows():
-        patient_id = row["Assigned ID"]
-        if get_row_id(patient_id, row["Question"]) in completed_ids:
+    rows_list = qa_data.to_dict("records")
+    df_index = list(range(len(rows_list)))
+
+    for batch_start in range(0, total, batch_size):
+        batch_records = rows_list[batch_start: batch_start + batch_size]
+        batch_df_indices = df_index[batch_start: batch_start + batch_size]
+
+        pending = [
+            (i, rec) for i, rec in zip(batch_df_indices, batch_records)
+            if get_row_id(rec["Assigned ID"], rec["Question"]) not in completed_ids
+        ]
+        if not pending:
             continue
 
-        print(f"Processing {idx+1}/{total} (ID: {patient_id})…")
+        pending_df_indices, pending_records = zip(*pending)
+        batch_end = min(batch_start + batch_size, total)
+        print(f"Processing rows {batch_start + 1}–{batch_end}/{total} (batch of {len(pending_records)})…")
 
-        # Log which contrasts will be fed in
-        patient_dir = os.path.join(args.image_dir, str(patient_id))
-        pairs = load_contrast_slices(patient_dir)
-        if pairs:
-            print(f"  Contrasts: {[lbl for lbl, _ in pairs]}")
+        responses = run_batch(model, processor, list(pending_records), args.image_dir)
 
-        response = query_the_model(
-            model, processor, row["Question"], patient_id, args.image_dir
-        )
-        print(f"  Response: {response['answer']}\n{'-'*30}")
-
-        # Write checkpoint immediately after each row
+        batch_df = qa_data.iloc[list(pending_df_indices)].copy()
         save_checkpoint(
             args.output_path,
-            qa_data.iloc[[idx]],
+            batch_df,
             {
-                "predicted_answer":   [response["answer"]],
-                "MedGemma_Reasoning": [response["reasoning"]],
+                "predicted_answer":   [r["answer"] for r in responses],
+                "MedGemma_Reasoning": [r["reasoning"] for r in responses],
             },
         )
-        completed_ids.add(get_row_id(patient_id, row["Question"]))
+        completed_ids.update(get_row_id(rec["Assigned ID"], rec["Question"]) for rec in pending_records)
+        print(f"  → Checkpoint saved ({len(completed_ids)}/{total} total done).")
 
     print(f"\nSaved results to {args.output_path}")
 
@@ -260,8 +268,9 @@ if __name__ == "__main__":
     parser.add_argument("--model_path", type=str, default=_cfg.get("medgemma_model_path"))
     parser.add_argument(
         "--batch_size", type=int, default=1,
-        help="Fixed at 1 for contrast_slices: variable image count per patient prevents true batching.",
+        help="Number of patients to process in parallel. (Ensure GPU memory can handle batch_size * 24 images).",
     )
+    parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
 
     args = parser.parse_args()
     main(args)

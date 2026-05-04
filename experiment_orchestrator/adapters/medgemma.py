@@ -56,8 +56,6 @@ class MedGemmaAdapter(ModelAdapter):
             if job.variant in self._IMAGE_FILENAME:
                 args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
-        # contrast_slices is forced to batch_size=1 internally (variable image count);
-        # all other variants benefit from batching.
         args.append(f"--batch_size {job.batch_size}")
 
         return f"{script} {' '.join(args)}"
