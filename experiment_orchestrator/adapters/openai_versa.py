@@ -32,7 +32,7 @@ class OpenAIVersaAdapter(ModelAdapter):
     # Filename to pass for each image-dir-based variant
     _IMAGE_FILENAME = {
         "single_slice":  "axial_FLAIR.png",
-        "multi_slice":   "axial_FLAIR.png coronal_FLAIR.png sagittal_FLAIR.png",
+        "multi_slice":   "axial_ADC.png axial_ASL.png axial_DTI_eddy_FA.png axial_DTI_eddy_L1.png axial_DTI_eddy_L2.png axial_DTI_eddy_L3.png axial_DTI_eddy_MD.png axial_DTI_eddy_noreg.png axial_DWI.png axial_DWI_bias.png axial_FLAIR.png axial_FLAIR_bias.png axial_SWI.png axial_SWI_bias.png axial_T1.png axial_T1_bias.png axial_T1c.png axial_T1c_bias.png axial_T2.png axial_T2_bias.png axial_brain_parenchyma_segmentation.png axial_brain_segmentation.png axial_tumor_segmentation.png",
         "montage_slice": "axial_slices_montage.png",
         "multi_montage_slice": "axial_slices_montage.png coronal_slices_montage.png sagittal_slices_montage.png",
     }
