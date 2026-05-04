@@ -25,7 +25,7 @@ class LingshuAdapter(ModelAdapter):
         "montage_slice": "axial_slices_montage.png",
     }
 
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         if job.variant not in self.SUPPORTED_VARIANTS:
             raise ValueError(
                 f"Unknown Lingshu variant '{job.variant}'. "
@@ -47,6 +47,9 @@ class LingshuAdapter(ModelAdapter):
                 args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
         args.append(f"--batch_size {job.batch_size}")
+
+        if overwrite:
+            args.append("--overwrite")
 
         return f"{script} {' '.join(args)}"
 

@@ -15,7 +15,7 @@ class ModelAdapter(ABC):
     """Interface that every model adapter must implement."""
 
     @abstractmethod
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         """
         Return the full command line (script path + CLI args).
 

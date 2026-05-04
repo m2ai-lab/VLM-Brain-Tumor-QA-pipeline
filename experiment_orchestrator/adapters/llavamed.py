@@ -20,7 +20,7 @@ class LLaVaMedAdapter(ModelAdapter):
         "montage_slice": "axial_slices_montage.png",
     }
 
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         script = posixpath.join(
             project_root, "testing_scripts/QA_testing_llava_med.py"
         )
@@ -39,6 +39,9 @@ class LLaVaMedAdapter(ModelAdapter):
             args.append(f"--image_dir {job.image_dir}")
             if job.variant in self._IMAGE_FILENAME:
                 args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
+
+        if overwrite:
+            args.append("--overwrite")
 
         return f"{script} {' '.join(args)}"
 

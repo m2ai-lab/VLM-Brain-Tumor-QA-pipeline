@@ -18,7 +18,8 @@ from experiment_orchestrator.config_resolver import ResolvedJob
 class Med3DVLMAdapter(ModelAdapter):
     """Builds CLI commands for Med3DVLM testing scripts."""
 
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
+        ov = " --overwrite" if overwrite else ""
         if job.variant == "blank":
             script = posixpath.join(
                 project_root, "testing_scripts/QA_testing_Med3DVLM_blank.py"
@@ -30,6 +31,7 @@ class Med3DVLMAdapter(ModelAdapter):
                 f" --model_path {job.model_path}"
                 f" --image_path {job.image_path}"
                 f" --batch_size {job.batch_size}"
+                f"{ov}"
             )
         else:
             script = posixpath.join(
@@ -42,6 +44,7 @@ class Med3DVLMAdapter(ModelAdapter):
                 f" --model_path {job.model_path}"
                 f" --image_dir {job.image_dir}"
                 f" --batch_size {job.batch_size}"
+                f"{ov}"
             )
 
     def validate(self, job: ResolvedJob) -> None:

@@ -32,14 +32,18 @@ def get_row_id(assigned_id: Any, question: str) -> str:
     return f"{assigned_id}|||{question}"
 
 
-def load_checkpoint(output_path: str) -> set:
+def load_checkpoint(output_path: str, overwrite: bool = False) -> set:
     """
     Return the set of get_row_id(ID, Question) values already written to output_path.
 
-    If the file does not exist yet (fresh run), returns an empty set.
-    The output CSV is written by save_checkpoint() in append mode, so this
-    correctly picks up any partial progress from a previous run.
+    If overwrite is True, deletes the existing file and returns an empty set.
+    Otherwise, if the file does not exist yet (fresh run), returns an empty set.
     """
+    if overwrite and os.path.exists(output_path):
+        print(f"[checkpoint] Overwrite flag set. Deleting {output_path}")
+        os.remove(output_path)
+        return set()
+
     if not os.path.exists(output_path):
         return set()
 

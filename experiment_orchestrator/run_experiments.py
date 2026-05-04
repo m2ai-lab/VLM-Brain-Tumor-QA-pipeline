@@ -162,6 +162,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--debug", action="store_true",
         help="Enable verbose debug logging.",
     )
+    modes.add_argument(
+        "--overwrite", action="store_true",
+        help="Overwrite existing result CSVs instead of resuming from checkpoints.",
+    )
 
     return parser.parse_args(argv)
 
@@ -363,7 +367,11 @@ def main(argv: list[str] | None = None) -> int:
             logger.error("Validation failed for %s: %s", job.job_name, e)
             return 1
 
-        command = adapter.build_command(job, suite.global_config.project_root)
+        command = adapter.build_command(
+            job=job, 
+            project_root=suite.global_config.project_root,
+            overwrite=args.overwrite
+        )
 
         if job.environment not in suite.environments:
             logger.error(

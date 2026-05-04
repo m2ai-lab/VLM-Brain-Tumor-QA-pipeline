@@ -37,7 +37,7 @@ class OpenAIVersaAdapter(ModelAdapter):
         "multi_montage_slice": "axial_slices_montage.png coronal_slices_montage.png sagittal_slices_montage.png",
     }
 
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         if job.variant not in self.SUPPORTED_VARIANTS:
             raise ValueError(
                 f"Unknown OpenAI variant '{job.variant}'. "
@@ -65,6 +65,9 @@ class OpenAIVersaAdapter(ModelAdapter):
 
         # Parallel request batching (threading)
         args.append(f"--batch_size {job.batch_size}")
+
+        if overwrite:
+            args.append("--overwrite")
 
         return f"{script} {' '.join(args)}"
 

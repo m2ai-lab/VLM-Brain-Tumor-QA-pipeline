@@ -153,7 +153,7 @@ def main(args):
         print(f"Limiting to first {args.limit} rows.")
         qa_data = qa_data.head(args.limit)
 
-    completed_ids = load_checkpoint(args.output_path)
+    completed_ids = load_checkpoint(args.output_path, overwrite=args.overwrite)
     total = len(qa_data)
     batch_size = args.batch_size
     print(f"Running inference with batch_size={batch_size} on {total} rows.")
@@ -202,6 +202,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=2,
                         help="Number of patients per batch. (Each patient has 3 montages).")
     parser.add_argument('--limit', type=int, default=None)
+    parser.add_argument('--overwrite', action='store_true', help="Overwrite existing output and start fresh.")
 
     args = parser.parse_args()
     main(args)

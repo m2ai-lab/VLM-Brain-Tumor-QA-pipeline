@@ -159,7 +159,7 @@ def main(args):
         qa_data = qa_data.head(args.limit)
 
     # Resume from checkpoint: skip rows already written to output
-    completed_ids = load_checkpoint(args.output_path)
+    completed_ids = load_checkpoint(args.output_path, overwrite=args.overwrite)
     if completed_ids:
         print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
 
@@ -215,6 +215,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=4,
                         help="Number of QA rows to process per model.generate() call.")
     parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
+    parser.add_argument('--overwrite', action='store_true', help="Overwrite existing output and start fresh.")
 
     args = parser.parse_args()
     main(args)

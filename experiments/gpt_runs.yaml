@@ -1,4 +1,4 @@
 runs:
-  - models: [GPT5Mini]
-    tests: ["text_only","single_slice_shuffled","multi_slice_shuffled","multi_slice","multi_montage_human","human_multi_slice",]
+  - models: [Lingshu-32B]
+    tests: ["blank"]
     runs_per_experiment: 3

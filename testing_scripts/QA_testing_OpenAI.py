@@ -196,7 +196,7 @@ def process_row(idx: int, row: pd.Series, args: argparse.Namespace) -> dict:
 
 def main(args: argparse.Namespace) -> None:
     # 1. Load progress
-    processed_ids = load_checkpoint(args.output_path)
+    processed_ids = load_checkpoint(args.output_path, overwrite=args.overwrite)
     qa_data = pd.read_csv(args.qa_path)
     if args.limit:
         qa_data = qa_data.head(args.limit)
@@ -252,5 +252,6 @@ if __name__ == "__main__":
         "--text_only", action="store_true",
         help="Skip all image inputs; send only the question text (pure LLM call).",
     )
+    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output and start fresh.")
 
     main(parser.parse_args())

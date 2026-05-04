@@ -36,7 +36,7 @@ class MedGemmaAdapter(ModelAdapter):
         "montage_slice": "axial_slices_montage.png",
     }
 
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         script_rel = self.VARIANT_SCRIPTS.get(job.variant)
         if script_rel is None:
             raise ValueError(
@@ -59,6 +59,9 @@ class MedGemmaAdapter(ModelAdapter):
                 args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
         args.append(f"--batch_size {job.batch_size}")
+
+        if overwrite:
+            args.append("--overwrite")
 
         return f"{script} {' '.join(args)}"
 

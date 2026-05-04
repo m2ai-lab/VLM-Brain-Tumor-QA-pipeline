@@ -24,7 +24,7 @@ class MedImageInsightAdapter(ModelAdapter):
         "montage_slice": "axial_slices_montage.png",
     }
 
-    def build_command(self, job: ResolvedJob, project_root: str) -> str:
+    def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         script = posixpath.join(
             project_root, "testing_scripts/QA_testing_MedImageInsight.py"
         )
@@ -42,6 +42,9 @@ class MedImageInsightAdapter(ModelAdapter):
                 args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
 
         args.append(f"--batch_size {job.batch_size}")
+
+        if overwrite:
+            args.append("--overwrite")
 
         return f"{script} {' '.join(args)}"
 
