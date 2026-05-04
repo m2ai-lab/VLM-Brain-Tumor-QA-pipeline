@@ -47,7 +47,7 @@ def process_slices(image_dir: str) -> list:
     """Loads Axial/Coronal/Sagittal PNGs from a directory into a list of PIL Images."""
     slices = []
     for name in slice_names:
-        slice_path = path.join(image_dir, f'{name}.png')
+        slice_path = path.join(image_dir, name)
         if path.exists(slice_path):
             slices.append(Image.open(slice_path).convert("RGB"))
         else:

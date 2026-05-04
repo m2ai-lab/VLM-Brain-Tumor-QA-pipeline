@@ -57,7 +57,7 @@ class OpenAIVersaAdapter(ModelAdapter):
             args.append(f"--image_path {job.image_path}")
         else:
             args.append(f"--image_dir {job.image_dir}")
-            args.append(f"--image_filename {self._IMAGE_FILENAME[job.variant]}")
+            args.append(f'--image_filename "{self._IMAGE_FILENAME[job.variant]}"')
 
         # Optional deployment override (e.g. gpt-4.1-2025-04-14)
         if getattr(job, "deployment", None):
