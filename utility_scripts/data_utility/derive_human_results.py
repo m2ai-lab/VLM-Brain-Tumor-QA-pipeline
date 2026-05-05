@@ -49,7 +49,7 @@ def main(args):
     input_dataset.drop(columns=["q_id"], inplace=True)
 
     print("Saving the matched dataset...")
-    new_human_path = args.input_results_path.replace("_results.csv", "_human_results.csv")
+    new_human_path = args.input_results_path.replace("_results", "_human_results")
     input_dataset.to_csv(new_human_path, index=False)
 
     print("Done!")
