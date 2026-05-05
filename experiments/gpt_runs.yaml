@@ -1,4 +1,4 @@
 runs:
   - models: [GPT5Mini]
-    tests: ["mutli_slice"]
+    tests: ["multi_slice","multi_slice_shuffled","multi_montage"]
     runs_per_experiment: 3
