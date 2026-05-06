@@ -59,7 +59,9 @@ def analyze_category(pattern, base_path):
             if "Question" not in df.columns and qa_df is not None:
                 if len(df) == len(qa_df):
                     df["Question"] = qa_df["Question"]
-            
+            if "Answer" not in df.columns and qa_df is not None:
+                if len(df) == len(qa_df):
+                    df["Answer"] = qa_df["Answer"]
             required = ['Question', 'Answer', 'predicted_answer']
             if not all(col in df.columns for col in required):
                 continue
