@@ -6,131 +6,130 @@
 
 # Exit on error
 set -e
+# 1. Determine Project Root and Bootstrap Config
+PROJECT_ROOT=$(cd "$(dirname "$0")" && pwd)
+echo "Project root detected as: $PROJECT_ROOT"
 
-echo "Starting project setup..."
-
-# 1. Create base directories
-mkdir -p models QApairs logs datasets environments/envs environments/requirements
-echo "Directories created: models/, QApairs/, logs/, datasets/, environments/envs/, environments/requirements/"
-
-# 2. Download External Datasets (UCSF-PDGM Images, Metadata & BraTS Annotations)
-# Automated Image Download (NIfTI Derivatives)
-# We use a python utility to handle the multi-file download from the TCIA GitHub mirror
-echo "--- Starting Automated UCSF-PDGM Image Download ---"
-python3 utility_scripts/download_ucsf_pdgm.py
-
-echo "Images and metadata pulled into datasets/ folder."
-
-
-
-# 3. Bootstrap config
 if [ ! -f "config.yaml" ]; then
     cp config.example.yaml config.yaml
-    echo "⚠️ config.yaml created from template. Please update it with your paths."
-fi
-
-# 4. Create Main Orchestrator Environment (venv)
-echo "--- Creating Main Orchestrator Environment (vlm-orchestrator) ---"
-if [ ! -d "environments/envs/vlm-orchestrator" ]; then
-    python3 -m venv environments/envs/vlm-orchestrator
-    source environments/envs/vlm-orchestrator/bin/activate
-    pip install --upgrade pip
-    pip install -r environments/requirements/orchestrator_reqs.txt
-    echo "Main environment ready."
-    deactivate
+    # Update project_root in the newly created config.yaml
+    # Use | as delimiter in sed to handle slashes in paths
+    sed -i "s|^project_root:.*|project_root: $PROJECT_ROOT|" config.yaml
+    echo "✅ config.yaml created and project_root updated."
 else
-    echo "environments/envs/vlm-orchestrator already exists. Skipping..."
+    echo "ℹ️ config.yaml already exists. Skipping bootstrap."
 fi
 
-# 5. Download Models
-echo "--- Downloading Models ---"
-# We run this using the orchestrator environment
-source environments/envs/vlm-orchestrator/bin/activate
-python utility_scripts/model_download.py
-deactivate
-echo "Models downloaded to models/"
+# Helper function for Y/N prompts
+confirm() {
+    local prompt="$1"
+    read -p "$prompt [y/N]: " response
+    case "$response" in
+        [yY][eE][sS]|[yY]) 
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
 
-# 6. Create Individual Environments for Models
-# We use venv for each to ensure isolation. 
+# 2. Create base directories
+mkdir -p models QApairs logs datasets environments/envs environments/requirements
+echo "Directories ensured: models/, QApairs/, logs/, datasets/, environments/envs/"
 
-# -- MedGemma Environment --
-echo "--- Creating MedGemma Environment (vlm-medgemma) ---"
-if [ ! -d "environments/envs/vlm-medgemma" ]; then
-    python3 -m venv environments/envs/vlm-medgemma
-    source environments/envs/vlm-medgemma/bin/activate
-    pip install --upgrade pip
-    pip install -r environments/requirements/medgemma_reqs.txt
-    echo "MedGemma environment ready."
-    deactivate
+# 3. Download External Datasets (UCSF-PDGM Images, Metadata)
+if confirm "Do you want to download the UCSF-PDGM datasets automatically?"; then
+    echo "--- Starting Automated UCSF-PDGM Image Download ---"
+    python3 utility_scripts/download_ucsf_pdgm.py
+    echo "Images and metadata pulled into datasets/ folder."
 else
-    echo "environments/envs/vlm-medgemma already exists. Skipping..."
+    echo "Skipping dataset download. Please ensure files are in datasets/ or update config.yaml."
 fi
 
-# -- Lingshu-32B Environment --
-echo "--- Creating Lingshu Environment (vlm-lingshu) ---"
-if [ ! -d "environments/envs/vlm-lingshu" ]; then
-    python3 -m venv environments/envs/vlm-lingshu
-    source environments/envs/vlm-lingshu/bin/activate
-    pip install --upgrade pip
-    pip install -r environments/requirements/lingshu_reqs.txt
-    echo "Lingshu environment ready."
-    deactivate
-else
-    echo "environments/envs/vlm-lingshu already exists. Skipping..."
-fi
-
-# -- Med3DVLM Environment --
-echo "--- Creating Med3DVLM Environment (vlm-med3dvlm) ---"
-if [ ! -d "environments/envs/vlm-med3dvlm" ]; then
-    if [ ! -d "models/Med3DVLM" ]; then
-        git clone https://github.com/mirthAI/Med3DVLM.git models/Med3DVLM
+# 4. Create Main Orchestrator Environment
+if confirm "Do you want to create the main Python environments?"; then
+    echo "--- Creating Main Orchestrator Environment (vlm-orchestrator) ---"
+    if [ ! -d "environments/envs/vlm-orchestrator" ]; then
+        python3 -m venv environments/envs/vlm-orchestrator
+        source environments/envs/vlm-orchestrator/bin/activate
+        pip install --upgrade pip
+        pip install -r environments/requirements/orchestrator_reqs.txt
+        echo "Main environment ready."
+        deactivate
+    else
+        echo "environments/envs/vlm-orchestrator already exists. Skipping..."
     fi
-    python3 -m venv environments/envs/vlm-med3dvlm
-    source environments/envs/vlm-med3dvlm/bin/activate
-    pip install --upgrade pip
-    pip install -r environments/requirements/med3dvlm_reqs.txt
-    echo "Med3DVLM environment ready."
-    deactivate
-else
-    echo "environments/envs/vlm-med3dvlm already exists. Skipping..."
-fi
 
-# -- LLaVA-Med Environment --
-echo "--- Creating LLaVA-Med Environment (vlm-llavamed) ---"
-if [ ! -d "environments/envs/vlm-llavamed" ]; then
-    if [ ! -d "models/LLaVA-Med_Extension" ]; then
-        echo "--- Downloading LLaVA-Med Extension Model/Code ---"
-        git clone https://github.com/m2ai-lab/LLaVA-Med_Extension models/LLaVA-Med_Extension
+    # 5. Download Models
+    if confirm "Do you want to download the model weights now?"; then
+        echo "--- Downloading Models ---"
+        source environments/envs/vlm-orchestrator/bin/activate
+        python utility_scripts/model_download.py
+        deactivate
+        echo "Models downloaded to models/"
+    else
+        echo "Skipping model download. You will need to provide weights manually in models/."
     fi
-    python3 -m venv environments/envs/vlm-llavamed
-    source environments/envs/vlm-llavamed/bin/activate
-    pip install --upgrade pip
-    pip install -r environments/requirements/llavamed_reqs.txt
-    echo "LLaVA-Med environment ready."
-    deactivate
-else
-    echo "environments/envs/vlm-llavamed already exists. Skipping..."
-fi
 
-# -- MedImageInsight Environment --
-echo "--- Creating MedImageInsight Environment (vlm-medimageinsight) ---"
-if [ ! -d "environments/envs/vlm-medimageinsight" ]; then
-    python3 -m venv environments/envs/vlm-medimageinsight
-    source environments/envs/vlm-medimageinsight/bin/activate
-    pip install --upgrade pip
-    pip install -r environments/requirements/medimageinsight_reqs.txt
-    echo "MedImageInsight environment ready."
-    deactivate
+    # 6. Create Individual Environments for Models
+    echo "--- Setting up model-specific environments ---"
+    
+    # MedGemma
+    if [ ! -d "environments/envs/vlm-medgemma" ]; then
+        python3 -m venv environments/envs/vlm-medgemma
+        source environments/envs/vlm-medgemma/bin/activate
+        pip install --upgrade pip
+        pip install -r environments/requirements/medgemma_reqs.txt
+        deactivate
+    fi
+
+    # Lingshu-32B
+    if [ ! -d "environments/envs/vlm-lingshu" ]; then
+        python3 -m venv environments/envs/vlm-lingshu
+        source environments/envs/vlm-lingshu/bin/activate
+        pip install --upgrade pip
+        pip install -r environments/requirements/lingshu_reqs.txt
+        deactivate
+    fi
+
+    # Med3DVLM
+    if [ ! -d "environments/envs/vlm-med3dvlm" ]; then
+        if [ ! -d "models/Med3DVLM" ]; then
+            git clone https://github.com/mirthAI/Med3DVLM.git models/Med3DVLM
+        fi
+        python3 -m venv environments/envs/vlm-med3dvlm
+        source environments/envs/vlm-med3dvlm/bin/activate
+        pip install --upgrade pip
+        pip install -r environments/requirements/med3dvlm_reqs.txt
+        deactivate
+    fi
+
+    # LLaVA-Med
+    if [ ! -d "environments/envs/vlm-llavamed" ]; then
+        if [ ! -d "models/LLaVA-Med_Extension" ]; then
+            git clone https://github.com/m2ai-lab/LLaVA-Med_Extension models/LLaVA-Med_Extension
+        fi
+        python3 -m venv environments/envs/vlm-llavamed
+        source environments/envs/vlm-llavamed/bin/activate
+        pip install --upgrade pip
+        pip install -r environments/requirements/llavamed_reqs.txt
+        deactivate
+    fi
+
+    # MedImageInsight
+    if [ ! -d "environments/envs/vlm-medimageinsight" ]; then
+        python3 -m venv environments/envs/vlm-medimageinsight
+        source environments/envs/vlm-medimageinsight/bin/activate
+        pip install --upgrade pip
+        pip install -r environments/requirements/medimageinsight_reqs.txt
+        deactivate
+    fi
 else
-    echo "environments/envs/vlm-medimageinsight already exists. Skipping..."
+    echo "Skipping environment creation."
 fi
 
 echo "=================================================================="
 echo "Setup complete!"
-echo "Environments created in environments/envs/"
-echo "Models downloaded in models/"
-echo ""
-echo "To run experiments, use the main orchestrator environment:"
-echo "source environments/envs/vlm-orchestrator/bin/activate"
-echo "python experiment_orchestrator/run_experiments.py ..."
+echo "Check config.yaml to ensure all paths are correct for your system."
 echo "=================================================================="

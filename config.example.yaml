@@ -14,15 +14,12 @@
 # Absolute path to the cloned repo on your cluster
 project_root: /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-
 
-# Shared scratch space for large data that stays outside the repo
-scratch_root: /scratch/group/CX000019_DS1/vlm-brain-mri
 
 # ── Data directories ─────────────────────────────────────────────────────────
 # Root directory for raw NIfTI volumes (one subdirectory per patient, e.g. PDGM-0001_nifti/)
-nifti_root: /scratch/user/shghosh/UCSF-PDGM-v5
+nifti_root: "{project_root}/datasets/UCSF-PDGM-v5"
 
-# Root for raw DICOM data (institution-specific, used by create_dataset.py)
-raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
+
 
 # ── QA CSV datasets ───────────────────────────────────────────────────────────
 qa_path: "{project_root}/datasets/qa_dataset.csv"
@@ -64,6 +61,8 @@ deid_to_newID_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/De-Identified/RITM06093
 newID_to_accession_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/Identified/RITM0609393A_Patient_Cohort_id_20251006.csv
 seq_type_path: /mnt/fac/CX000019_DS1/neuroimaging_seqtype.csv
 pdgm_notes_path: "{scratch_root}/ucsf_pdgm_notes.csv"
+# Root for raw DICOM data (institution-specific, used by create_dataset.py)
+raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
 
 # ── Segmentation model (used by best_slice_extraction_2d.py) ─────────────────
 swinunetr_weights_path: "{models_base}/model_swinvit.pt"

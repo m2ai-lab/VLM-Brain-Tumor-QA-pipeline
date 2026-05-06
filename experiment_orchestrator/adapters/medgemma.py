@@ -25,8 +25,7 @@ class MedGemmaAdapter(ModelAdapter):
         "multi_slice":     "testing_scripts/QA_testing_medgemma_multi_slice.py",
         "single_slice":    "testing_scripts/QA_testing_medgemma_single_slice.py",
         "montage_slice":   "testing_scripts/QA_testing_medgemma_single_slice.py",
-        "contrast_montage_slice": "testing_scripts/QA_testing_medgemma_contrast_montage.py",
-        "contrast_slices": "testing_scripts/QA_testing_medgemma_contrast_slices.py",
+        "multi_montage_slice": "testing_scripts/QA_testing_medgemma_contrast_montage.py",
         "blank":           "testing_scripts/QA_testing_medgemma_blank.py",
     }
 
