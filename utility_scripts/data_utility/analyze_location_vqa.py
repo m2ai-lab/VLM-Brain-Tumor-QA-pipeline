@@ -30,7 +30,7 @@ def run_analysis():
     
     # Find all CSV files recursively
     # Filtering for 'text_only' in name and NOT 'wrongs'
-    all_files = glob.glob(f"{base_path}/**/*text_only*.csv", recursive=True)
+    all_files = glob.glob(f"{base_path}/**/*text_only|blank*.csv", recursive=True)
     target_files = [f for f in all_files if "wrongs" not in f]
     
     if not target_files:
