@@ -4,9 +4,15 @@ import os
 import re
 import sys
 from collections import Counter
+import math
+try:
+    from scipy.stats import norm
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
 
 # ── Dynamic Config Resolution ──────────────────────────────────────────────────
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:   
     sys.path.insert(0, _PROJECT_ROOT)
 from config_utils import load_config
@@ -23,13 +29,37 @@ def normalize(text):
     text = re.sub(r'^[a-z0-9][\s\).\-]+', '', text)
     return text.strip()
 
+def calculate_stats(correct, total, p0=0.25):
+    """
+    Calculates Z-score and p-value for a proportion test.
+    p0: null hypothesis proportion (default 0.25 for 4-choice questions)
+    """
+    if total == 0:
+        return 0.0, 1.0
+    
+    p_hat = correct / total
+    
+    # Standard Error for null hypothesis
+    se = math.sqrt((p0 * (1 - p0)) / total)
+    
+    if se == 0:
+        return 0.0, 1.0
+    
+    z = (p_hat - p0) / se
+    
+    if SCIPY_AVAILABLE:
+        # Two-tailed p-value
+        p_val = 2 * (1 - norm.cdf(abs(z)))
+    else:
+        # Simple approximation if scipy is missing
+        # z=1.96 approx p=0.05
+        p_val = -1.0 
+        
+    return z, p_val
+
 def analyze_category(pattern, base_path):
     """
     Analyzes a specific category (e.g., 'text_only' or 'blank') across all models.
-    Returns: 
-      - results: {model: {correct, total}}
-      - correct_questions: {model: Counter({question_text: count_correct})}
-      - all_questions: {model: set(all_location_questions)}
     """
     results = {}
     correct_questions = {}
@@ -55,13 +85,13 @@ def analyze_category(pattern, base_path):
         try:
             df = pd.read_csv(file_path)
             
-            # Handle missing Question column
-            if "Question" not in df.columns and qa_df is not None:
-                if len(df) == len(qa_df):
+            # Handle missing Question/Answer columns
+            if qa_df is not None and len(df) == len(qa_df):
+                if "Question" not in df.columns:
                     df["Question"] = qa_df["Question"]
-            if "Answer" not in df.columns and qa_df is not None:
-                if len(df) == len(qa_df):
+                if "Answer" not in df.columns:
                     df["Answer"] = qa_df["Answer"]
+            
             required = ['Question', 'Answer', 'predicted_answer']
             if not all(col in df.columns for col in required):
                 continue
@@ -90,49 +120,55 @@ def run_analysis():
         print("Error: output_base not found in config.")
         return
 
-    print("Analyzing files... please wait.")
+    # Chance level (null hypothesis)
+    p0 = 0.25 # Assuming 4 choices on average
+
+    print(f"Analyzing files... (Null Hypothesis Chance Level: {p0})")
     text_results, text_correct_maps, _ = analyze_category("text_only", base_path)
     blank_results, blank_correct_maps, _ = analyze_category("blank", base_path)
 
     all_models = sorted(set(text_results.keys()) | set(blank_results.keys()))
 
-    print("\n" + "="*85)
-    print(f"{'Model':<20} | {'Text Only':<12} | {'Blank':<12} | {'Overlap Count'}")
-    print("-" * 85)
+    # Enhanced Header for Statistics
+    header = f"{'Model':<18} | {'Text: Acc':<12} | {'T-Z':<6} | {'T-p':<6} | {'Blank: Acc':<12} | {'B-Z':<6} | {'B-p':<6}"
+    print("\n" + "="*len(header))
+    print(header)
+    print("-" * len(header))
 
     model_blank_correct = {}
 
     for model in all_models:
-        text_stats = text_results.get(model, {'correct': 0, 'total': 0})
-        blank_stats = blank_results.get(model, {'correct': 0, 'total': 0})
+        t_res = text_results.get(model, {'correct': 0, 'total': 0})
+        b_res = blank_results.get(model, {'correct': 0, 'total': 0})
         
-        text_q_set = set(text_correct_maps.get(model, {}).keys())
-        blank_q_set = set(blank_correct_maps.get(model, {}).keys())
-        overlap_qs = text_q_set.intersection(blank_q_set)
+        t_z, t_p = calculate_stats(t_res['correct'], t_res['total'], p0)
+        b_z, b_p = calculate_stats(b_res['correct'], b_res['total'], p0)
         
-        # Store for "All Models Always Correct in Blank" analysis
-        model_blank_correct[model] = blank_q_set
+        t_acc = f"{t_res['correct']}/{t_res['total']}"
+        b_acc = f"{b_res['correct']}/{b_res['total']}"
         
-        text_str = f"{text_stats['correct']}/{text_stats['total']}"
-        blank_str = f"{blank_stats['correct']}/{blank_stats['total']}"
-        
-        print(f"{model:<20} | {text_str:<12} | {blank_str:<12} | {len(overlap_qs)}")
+        # Formatting p-values
+        t_p_str = f"{t_p:.3f}" if t_p >= 0.001 else "<.001"
+        b_p_str = f"{b_p:.3f}" if b_p >= 0.001 else "<.001"
+        if t_p < 0: t_p_str = "N/A"
+        if b_p < 0: b_p_str = "N/A"
 
-    print("="*85)
+        print(f"{model:<18} | {t_acc:<12} | {t_z:>6.2f} | {t_p_str:<6} | {b_acc:<12} | {b_z:>6.2f} | {b_p_str:<6}")
+        
+        model_blank_correct[model] = set(blank_correct_maps.get(model, {}).keys())
 
-    # UPDATED: Questions EVERY model got right in BLANK mode
+    print("="*len(header))
+    if not SCIPY_AVAILABLE:
+        print("\nNOTE: scipy not found. p-values are not calculated. Please install scipy for full stats.")
+
+    # Questions EVERY model got right in BLANK mode
     print("\n" + "="*85)
     print("QUESTIONS EVERY MODEL GOT RIGHT (Blank Mode Only)")
     print("="*85)
     
-    if not all_models:
-        print("No models found.")
-    else:
-        # Start with the blank correct set of the first model
+    if all_models:
         first_model = all_models[0]
         always_correct_blank = model_blank_correct.get(first_model, set()).copy()
-        
-        # Intersect with all other models
         for model in all_models[1:]:
             always_correct_blank = always_correct_blank.intersection(model_blank_correct.get(model, set()))
             
@@ -144,7 +180,7 @@ def run_analysis():
                 q_display = (q[:120] + '...') if len(q) > 120 else q
                 print(f"  {i+1}. {q_display}")
 
-    # Display Top 3 Overlapping Questions per Model (Text-Only vs Blank)
+    # Top 3 Overlapping
     print("\n" + "="*85)
     print("TOP 3 OVERLAPPING QUESTIONS PER MODEL (Correct in both Text and Blank)")
     print("="*85)
@@ -153,10 +189,7 @@ def run_analysis():
         text_q_map = text_correct_maps.get(model, {})
         blank_q_map = blank_correct_maps.get(model, {})
         overlap_qs = set(text_q_map.keys()).intersection(set(blank_q_map.keys()))
-        
-        if not overlap_qs:
-            continue
-            
+        if not overlap_qs: continue
         print(f"\n>>> MODEL: {model}")
         sorted_overlap = sorted(overlap_qs, key=lambda q: text_q_map[q] + blank_q_map[q], reverse=True)
         for i, q in enumerate(sorted_overlap[:3]):
