@@ -49,6 +49,9 @@ def analyze_category(pattern, base_path):
         try:
             df = pd.read_csv(file_path)
             required = ['Question', 'Answer', 'predicted_answer']
+            if "Question" not in df.columns and len(df) == len(qa_df):
+                qa_df = pd.read_csv(_cfg.get("qa_path"))
+                df["Question"] = qa_df["Question"]
             if not all(col in df.columns for col in required):
                 continue
                 
