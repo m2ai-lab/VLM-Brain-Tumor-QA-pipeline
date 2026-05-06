@@ -88,22 +88,35 @@ def _extract_panel(nifti_path: str,
         return None
     try:
         img_obj = nib.load(nifti_path)
+        img_obj = nib.as_closest_canonical(img_obj)
         img = img_obj.get_fdata(dtype=np.float32)
         if img.ndim == 4:
             img = img[..., 0]
 
         mask = None
         if mask_path and os.path.exists(mask_path):
-            mask = nib.load(mask_path).get_fdata(dtype=np.float32)
+            mask_obj = nib.load(mask_path)
+            mask_obj = nib.as_closest_canonical(mask_obj)
+            mask = mask_obj.get_fdata(dtype=np.float32)
 
         idx = _best_index(img, mask, axis=axis)
         
+        # In canonical RAS: 0=Sagittal (L-R), 1=Coronal (P-A), 2=Axial (I-S)
         if axis == 0:   # Sagittal
+            # Extract Y-Z plane. 
+            # We want Anterior (Y) at top? No, usually Superior (Z) at top, Anterior (Y) to the right.
             plane = img[idx, :, :]
+            plane = np.rot90(plane) # Superior up
         elif axis == 1: # Coronal
+            # Extract X-Z plane.
+            # Superior (Z) at top, Right (X) to the right?
             plane = img[:, idx, :]
+            plane = np.rot90(plane) # Superior up
         else:           # Axial
+            # Extract X-Y plane.
+            # Anterior (Y) at top, Right (X) to the right.
             plane = img[:, :, idx]
+            plane = np.rot90(plane) # Anterior up
 
         # Robust percentile normalisation
         v_min, v_max = np.percentile(plane, [0.5, 99.5])
@@ -113,8 +126,8 @@ def _extract_panel(nifti_path: str,
         else:
             plane = np.zeros_like(plane, dtype=np.uint8)
 
-        # Rotate to standard anatomical display
-        pil_img = Image.fromarray(plane).transpose(Image.ROTATE_90).convert("RGB")
+        # Standard PIL Image conversion
+        pil_img = Image.fromarray(plane).convert("RGB")
         pil_img.thumbnail((thumb_px, thumb_px), Image.LANCZOS)
 
         canvas = Image.new("RGB", (thumb_px, thumb_px), BG_COLOR)

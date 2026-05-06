@@ -97,16 +97,24 @@ def _extract_axial_slice(nifti_path: str,
     if not os.path.exists(nifti_path):
         return None
     try:
-        img = nib.load(nifti_path).get_fdata(dtype=np.float32)
+        img_obj = nib.load(nifti_path)
+        img_obj = nib.as_closest_canonical(img_obj)
+        img = img_obj.get_fdata(dtype=np.float32)
         if img.ndim == 4:
             img = img[..., 0]
 
         mask = None
         if mask_path and os.path.exists(mask_path):
-            mask = nib.load(mask_path).get_fdata(dtype=np.float32)
+            mask_obj = nib.load(mask_path)
+            mask_obj = nib.as_closest_canonical(mask_obj)
+            mask = mask_obj.get_fdata(dtype=np.float32)
 
         z_idx = _best_axial_index(img, mask)
+        
+        # In canonical RAS, axis 2 is Axial (I-S). 
+        # Plane [:, :] is X-Y. Rot90 puts Anterior (Y) at top.
         plane = img[:, :, z_idx]
+        plane = np.rot90(plane)
 
         # Robust percentile normalisation (mirrors montage_slices.py)
         v_min, v_max = np.percentile(plane, [0.5, 99.5])
@@ -116,8 +124,8 @@ def _extract_axial_slice(nifti_path: str,
         else:
             plane = np.zeros_like(plane, dtype=np.uint8)
 
-        # Rotate to standard anatomical orientation (matches montage_slices.py)
-        pil_img = Image.fromarray(plane).transpose(Image.ROTATE_90).convert("RGB")
+        # Standard anatomical display
+        pil_img = Image.fromarray(plane).convert("RGB")
         pil_img.thumbnail((thumb_px, thumb_px), Image.LANCZOS)
 
         # Centre on a square canvas
