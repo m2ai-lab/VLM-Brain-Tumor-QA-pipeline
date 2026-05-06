@@ -98,7 +98,7 @@ def run_analysis():
     print(f"{'Model':<20} | {'Text Only':<12} | {'Blank':<12} | {'Overlap Count'}")
     print("-" * 85)
 
-    model_both_correct = {}
+    model_blank_correct = {}
 
     for model in all_models:
         text_stats = text_results.get(model, {'correct': 0, 'total': 0})
@@ -108,8 +108,8 @@ def run_analysis():
         blank_q_set = set(blank_correct_maps.get(model, {}).keys())
         overlap_qs = text_q_set.intersection(blank_q_set)
         
-        # Store for "All Models Always Correct" analysis
-        model_both_correct[model] = overlap_qs
+        # Store for "All Models Always Correct in Blank" analysis
+        model_blank_correct[model] = blank_q_set
         
         text_str = f"{text_stats['correct']}/{text_stats['total']}"
         blank_str = f"{blank_stats['correct']}/{blank_stats['total']}"
@@ -118,39 +118,39 @@ def run_analysis():
 
     print("="*85)
 
-    # NEW: Questions EVERY model got right in BOTH Text-Only and Blank
+    # UPDATED: Questions EVERY model got right in BLANK mode
     print("\n" + "="*85)
-    print("QUESTIONS EVERY MODEL GOT RIGHT (In both Text-Only and Blank)")
+    print("QUESTIONS EVERY MODEL GOT RIGHT (Blank Mode Only)")
     print("="*85)
     
     if not all_models:
         print("No models found.")
     else:
-        # Start with the overlap of the first model
+        # Start with the blank correct set of the first model
         first_model = all_models[0]
-        always_correct = model_both_correct.get(first_model, set()).copy()
+        always_correct_blank = model_blank_correct.get(first_model, set()).copy()
         
         # Intersect with all other models
         for model in all_models[1:]:
-            always_correct = always_correct.intersection(model_both_correct.get(model, set()))
+            always_correct_blank = always_correct_blank.intersection(model_blank_correct.get(model, set()))
             
-        if not always_correct:
-            print("No questions were answered correctly by every model across both modes.")
+        if not always_correct_blank:
+            print("No questions were answered correctly by every model in Blank mode.")
         else:
-            print(f"Total Questions Always Correct: {len(always_correct)}")
-            for i, q in enumerate(sorted(list(always_correct))):
+            print(f"Total Questions Always Correct in Blank: {len(always_correct_blank)}")
+            for i, q in enumerate(sorted(list(always_correct_blank))):
                 q_display = (q[:120] + '...') if len(q) > 120 else q
                 print(f"  {i+1}. {q_display}")
 
-    # Display Top 3 Overlapping Questions per Model
+    # Display Top 3 Overlapping Questions per Model (Text-Only vs Blank)
     print("\n" + "="*85)
-    print("TOP 3 OVERLAPPING QUESTIONS PER MODEL")
+    print("TOP 3 OVERLAPPING QUESTIONS PER MODEL (Correct in both Text and Blank)")
     print("="*85)
     
     for model in all_models:
         text_q_map = text_correct_maps.get(model, {})
         blank_q_map = blank_correct_maps.get(model, {})
-        overlap_qs = model_both_correct.get(model, set())
+        overlap_qs = set(text_q_map.keys()).intersection(set(blank_q_map.keys()))
         
         if not overlap_qs:
             continue
