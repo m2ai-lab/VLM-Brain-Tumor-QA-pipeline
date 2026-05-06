@@ -29,10 +29,15 @@ def analyze_category(pattern, base_path):
     Returns: 
       - results: {model: {correct, total}}
       - correct_questions: {model: Counter({question_text: count_correct})}
+      - all_questions: {model: set(all_location_questions)}
     """
     results = {}
     correct_questions = {}
+    all_questions = {}
     
+    qa_path = _cfg.get("qa_path")
+    qa_df = pd.read_csv(qa_path) if qa_path and os.path.exists(qa_path) else None
+
     search_pattern = os.path.join(base_path, f"**/*{pattern}*.csv")
     all_files = glob.glob(search_pattern, recursive=True)
     target_files = [f for f in all_files if "wrongs" not in f]
@@ -45,13 +50,17 @@ def analyze_category(pattern, base_path):
         if model_name not in results:
             results[model_name] = {'correct': 0, 'total': 0}
             correct_questions[model_name] = Counter()
+            all_questions[model_name] = set()
             
         try:
             df = pd.read_csv(file_path)
+            
+            # Handle missing Question column (added by user)
+            if "Question" not in df.columns and qa_df is not None:
+                if len(df) == len(qa_df):
+                    df["Question"] = qa_df["Question"]
+            
             required = ['Question', 'Answer', 'predicted_answer']
-            if "Question" not in df.columns and len(df) == len(qa_df):
-                qa_df = pd.read_csv(_cfg.get("qa_path"))
-                df["Question"] = qa_df["Question"]
             if not all(col in df.columns for col in required):
                 continue
                 
@@ -61,15 +70,17 @@ def analyze_category(pattern, base_path):
             results[model_name]['total'] += len(subset)
             
             for _, row in subset.iterrows():
+                q_text = row['Question'].strip()
+                all_questions[model_name].add(q_text)
+                
                 if normalize(row['Answer']) == normalize(row['predicted_answer']):
                     results[model_name]['correct'] += 1
-                    # Track correct question text
-                    correct_questions[model_name][row['Question'].strip()] += 1
+                    correct_questions[model_name][q_text] += 1
             
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
             
-    return results, correct_questions
+    return results, correct_questions, all_questions
 
 def run_analysis():
     base_path = _cfg.get("output_base")
@@ -78,8 +89,8 @@ def run_analysis():
         return
 
     print("Analyzing files... please wait.")
-    text_results, text_correct_maps = analyze_category("text_only", base_path)
-    blank_results, blank_correct_maps = analyze_category("blank", base_path)
+    text_results, text_correct_maps, _ = analyze_category("text_only", base_path)
+    blank_results, blank_correct_maps, blank_all_maps = analyze_category("blank", base_path)
 
     all_models = sorted(set(text_results.keys()) | set(blank_results.keys()))
 
@@ -91,7 +102,6 @@ def run_analysis():
         text_stats = text_results.get(model, {'correct': 0, 'total': 0})
         blank_stats = blank_results.get(model, {'correct': 0, 'total': 0})
         
-        # Calculate Overlap: Questions correct in at least one run of BOTH categories
         text_q_set = set(text_correct_maps.get(model, {}).keys())
         blank_q_set = set(blank_correct_maps.get(model, {}).keys())
         overlap_qs = text_q_set.intersection(blank_q_set)
@@ -102,6 +112,34 @@ def run_analysis():
         print(f"{model:<20} | {text_str:<12} | {blank_str:<12} | {len(overlap_qs)}")
 
     print("="*85)
+
+    # NEW: Questions every model got wrong in Blank mode
+    print("\n" + "="*85)
+    print("QUESTIONS EVERY MODEL GOT WRONG (Blank Mode)")
+    print("="*85)
+    
+    # 1. Identify all unique location questions seen in any blank run
+    all_blank_qs = set()
+    for q_set in blank_all_maps.values():
+        all_blank_qs.update(q_set)
+        
+    # 2. Identify all questions that were EVER answered correctly in blank mode by ANY model
+    ever_correct_blank = set()
+    for q_map in blank_correct_maps.values():
+        ever_correct_blank.update(q_map.keys())
+        
+    # 3. Intersection of (All Blank Questions) and (Not Ever Correct)
+    always_wrong_blank = all_blank_qs - ever_correct_blank
+    
+    if not always_wrong_blank:
+        print("No questions were wrong for every model across all blank runs!")
+    else:
+        print(f"Total Questions Always Wrong: {len(always_wrong_blank)}")
+        for i, q in enumerate(sorted(list(always_wrong_blank))[:10]): # Show top 10 for brevity
+            q_display = (q[:100] + '...') if len(q) > 100 else q
+            print(f"  {i+1}. {q_display}")
+        if len(always_wrong_blank) > 10:
+            print(f"  ... and {len(always_wrong_blank) - 10} more.")
 
     # Display Top 3 Overlapping Questions per Model
     print("\n" + "="*85)
@@ -117,18 +155,9 @@ def run_analysis():
             continue
             
         print(f"\n>>> MODEL: {model}")
-        
-        # Sort overlap questions by combined frequency (total times correct across all runs)
-        # This highlights questions the model is consistently good at in both modes.
-        sorted_overlap = sorted(
-            overlap_qs, 
-            key=lambda q: text_q_map[q] + blank_q_map[q], 
-            reverse=True
-        )
-        
+        sorted_overlap = sorted(overlap_qs, key=lambda q: text_q_map[q] + blank_q_map[q], reverse=True)
         for i, q in enumerate(sorted_overlap[:3]):
             combined_hits = text_q_map[q] + blank_q_map[q]
-            # Print a truncated version of the question for readability
             q_display = (q[:100] + '...') if len(q) > 100 else q
             print(f"  {i+1}. [Hits: {combined_hits}] {q_display}")
 

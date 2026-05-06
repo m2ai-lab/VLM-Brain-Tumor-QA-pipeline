@@ -1,3 +1,2 @@
 runs:
   - models: [MedGemma1.5]
-    tests: ["multi_slice_shuffled"]
