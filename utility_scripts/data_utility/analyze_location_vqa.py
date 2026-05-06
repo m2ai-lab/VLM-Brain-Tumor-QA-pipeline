@@ -55,7 +55,7 @@ def analyze_category(pattern, base_path):
         try:
             df = pd.read_csv(file_path)
             
-            # Handle missing Question column (added by user)
+            # Handle missing Question column
             if "Question" not in df.columns and qa_df is not None:
                 if len(df) == len(qa_df):
                     df["Question"] = qa_df["Question"]
@@ -90,13 +90,15 @@ def run_analysis():
 
     print("Analyzing files... please wait.")
     text_results, text_correct_maps, _ = analyze_category("text_only", base_path)
-    blank_results, blank_correct_maps, blank_all_maps = analyze_category("blank", base_path)
+    blank_results, blank_correct_maps, _ = analyze_category("blank", base_path)
 
     all_models = sorted(set(text_results.keys()) | set(blank_results.keys()))
 
     print("\n" + "="*85)
     print(f"{'Model':<20} | {'Text Only':<12} | {'Blank':<12} | {'Overlap Count'}")
     print("-" * 85)
+
+    model_both_correct = {}
 
     for model in all_models:
         text_stats = text_results.get(model, {'correct': 0, 'total': 0})
@@ -106,6 +108,9 @@ def run_analysis():
         blank_q_set = set(blank_correct_maps.get(model, {}).keys())
         overlap_qs = text_q_set.intersection(blank_q_set)
         
+        # Store for "All Models Always Correct" analysis
+        model_both_correct[model] = overlap_qs
+        
         text_str = f"{text_stats['correct']}/{text_stats['total']}"
         blank_str = f"{blank_stats['correct']}/{blank_stats['total']}"
         
@@ -113,43 +118,39 @@ def run_analysis():
 
     print("="*85)
 
-    # NEW: Questions every model got wrong in Blank mode
+    # NEW: Questions EVERY model got right in BOTH Text-Only and Blank
     print("\n" + "="*85)
-    print("QUESTIONS EVERY MODEL GOT WRONG (Blank Mode)")
+    print("QUESTIONS EVERY MODEL GOT RIGHT (In both Text-Only and Blank)")
     print("="*85)
     
-    # 1. Identify all unique location questions seen in any blank run
-    all_blank_qs = set()
-    for q_set in blank_all_maps.values():
-        all_blank_qs.update(q_set)
-        
-    # 2. Identify all questions that were EVER answered correctly in blank mode by ANY model
-    ever_correct_blank = set()
-    for q_map in blank_correct_maps.values():
-        ever_correct_blank.update(q_map.keys())
-        
-    # 3. Intersection of (All Blank Questions) and (Not Ever Correct)
-    always_wrong_blank = all_blank_qs - ever_correct_blank
-    
-    if not always_wrong_blank:
-        print("No questions were wrong for every model across all blank runs!")
+    if not all_models:
+        print("No models found.")
     else:
-        print(f"Total Questions Always Wrong: {len(always_wrong_blank)}")
-        for i, q in enumerate(sorted(list(always_wrong_blank))[:10]): # Show top 10 for brevity
-            q_display = (q[:100] + '...') if len(q) > 100 else q
-            print(f"  {i+1}. {q_display}")
-        if len(always_wrong_blank) > 10:
-            print(f"  ... and {len(always_wrong_blank) - 10} more.")
+        # Start with the overlap of the first model
+        first_model = all_models[0]
+        always_correct = model_both_correct.get(first_model, set()).copy()
+        
+        # Intersect with all other models
+        for model in all_models[1:]:
+            always_correct = always_correct.intersection(model_both_correct.get(model, set()))
+            
+        if not always_correct:
+            print("No questions were answered correctly by every model across both modes.")
+        else:
+            print(f"Total Questions Always Correct: {len(always_correct)}")
+            for i, q in enumerate(sorted(list(always_correct))):
+                q_display = (q[:120] + '...') if len(q) > 120 else q
+                print(f"  {i+1}. {q_display}")
 
     # Display Top 3 Overlapping Questions per Model
     print("\n" + "="*85)
-    print("TOP 3 OVERLAPPING QUESTIONS (Correct in both Text-Only and Blank)")
+    print("TOP 3 OVERLAPPING QUESTIONS PER MODEL")
     print("="*85)
     
     for model in all_models:
         text_q_map = text_correct_maps.get(model, {})
         blank_q_map = blank_correct_maps.get(model, {})
-        overlap_qs = set(text_q_map.keys()).intersection(set(blank_q_map.keys()))
+        overlap_qs = model_both_correct.get(model, set())
         
         if not overlap_qs:
             continue
