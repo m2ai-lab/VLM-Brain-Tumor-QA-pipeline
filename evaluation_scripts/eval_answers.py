@@ -221,7 +221,9 @@ def stage1_eval_accuracy(args: argparse.Namespace) -> dict[str, float]:
             "Predicted_Answer": results_df["predicted_answer"].iloc[:len(is_right)].values
         })
         wrong_df = wrong_df[~pd.Series(is_right)]
+        right_df = wrong_df[pd.Series(is_right)]
         wrong_df.to_csv(write_path, index=False)
+        right_df.to_csv(write_path.replace("wrongs", "rights"), index=False)
 
         total_right = sum(is_right)
         acc = total_right / len(results_df) if len(results_df) > 0 else 0.0
