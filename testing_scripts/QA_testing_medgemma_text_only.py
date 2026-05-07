@@ -66,11 +66,11 @@ def _parse_response(raw_response: str) -> dict:
         return {"reasoning": f"Parsing error: {str(e)}", "answer": "Error"}
 
 
-def run_batch(model, processor, batch_rows: list[dict], blank_image: Image.Image) -> list[dict]:
+def run_batch(model, processor, batch_rows: list[dict]) -> list[dict]:
     """
-    Run batched blank-variant inference.
+    Run batched text_only-variant inference.
 
-    All rows in the batch share the same blank (black) image.  We still build
+    All rows in the batch share the same text_only prompts.  We still build
     N independent prompts so question text varies correctly across the batch.
     """
     results: list[dict] = []
@@ -136,7 +136,7 @@ def main(args):
 
     total = len(qa_data)
     batch_size = args.batch_size
-    print(f"Running blank inference with batch_size={batch_size} on {total} rows.")
+    print(f"Running text_only inference with batch_size={batch_size} on {total} rows.")
 
     rows_list = qa_data.to_dict("records")
     df_index = list(range(len(rows_list)))
@@ -157,7 +157,7 @@ def main(args):
         print(f"Processing rows {batch_start + 1}–{batch_end}/{total} "
               f"(batch of {len(pending_records)})...")
 
-        responses = run_batch(model, processor, list(pending_records), blank_image)
+        responses = run_batch(model, processor, list(pending_records))
 
         batch_df = qa_data.iloc[list(pending_df_indices)].copy()
         save_checkpoint(
