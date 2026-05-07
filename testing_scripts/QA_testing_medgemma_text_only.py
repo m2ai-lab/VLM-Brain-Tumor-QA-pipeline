@@ -130,6 +130,14 @@ def main(args):
         print(f"Limiting to first {args.limit} rows.")
         qa_data = qa_data.head(args.limit)
 
+    # If shuffled is specified, use the "Shuffled Question" column
+    if args.shuffled:
+        if "Shuffled Question" in qa_data.columns:
+            print("Using 'Shuffled Question' column instead of 'Question' as requested.")
+            qa_data["Question"] = qa_data["Shuffled Question"]
+        else:
+            print("WARNING: --shuffled specified but 'Shuffled Question' column not found. Using original questions.")
+
     completed_ids = load_checkpoint(args.output_path)
     if completed_ids:
         print(f"Resuming: {len(completed_ids)} rows already completed, skipping.")
@@ -181,6 +189,8 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=4,
                         help="Number of QA rows per model.generate() call.")
     parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
+    parser.add_argument('--overwrite', action='store_true', help="Overwrite existing output and start fresh.")
+    parser.add_argument('--shuffled', action='store_true', help="Use 'Shuffled Question' column if available.")
 
     args = parser.parse_args()
     main(args)

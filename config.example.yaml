@@ -53,16 +53,7 @@ llavamed_model_path: "{models_base}/LLaVA-Med_Extension/llava-med-v1.5-mistral-7
 llavamed_repo_dir: "{models_base}/LLaVA-Med_Extension"
 
 # ── SLURM defaults ────────────────────────────────────────────────────────────
-mail_user: your.email@institution.edu
-log_dir: /home/remote/%u/logs
-
-# ── Mapping files (used by create_dataset.py) ─────────────────────────────────
-deid_to_newID_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/De-Identified/RITM0609393A_Patient_Cohort_De_id_20251006.csv
-newID_to_accession_path: /mnt/fac/CX000019_DS1/CTSI/Radiology/Identified/RITM0609393A_Patient_Cohort_id_20251006.csv
-seq_type_path: /mnt/fac/CX000019_DS1/neuroimaging_seqtype.csv
-pdgm_notes_path: "{scratch_root}/ucsf_pdgm_notes.csv"
-# Root for raw DICOM data (institution-specific, used by create_dataset.py)
-raw_dicom_root: /mnt/fac/CX000019_DS1/CTSI/Radiology
+log_dir: "{project_root}/logs"
 
 # ── Segmentation model (used by best_slice_extraction_2d.py) ─────────────────
 swinunetr_weights_path: "{models_base}/model_swinvit.pt"

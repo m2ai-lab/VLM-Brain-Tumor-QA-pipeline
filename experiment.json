@@ -52,71 +52,59 @@
       "tests": [
         {
           "name": "mri_single",
-          "variant": "single_slice",
-          "output_path": "{output_base}/MedGemma1.5/mri_single_slice_results.csv"
+          "variant": "single_slice"
         },
         {
           "name": "mri_multi",
-          "variant": "multi_slice",
-          "output_path": "{output_base}/MedGemma1.5/mri_multi_slice_results.csv"
+          "variant": "multi_slice"
         },
-                {
+        {
           "name": "mri_montage_single",
-          "variant": "montage_slice",
-          "output_path": "{output_base}/MedGemma1.5/mri_montage_single_results.csv"
+          "variant": "montage_slice"
         },
         {
           "name": "mri_montage_multi",
           "variant": "multi_montage_slice",
-          "qa_path": "{qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/mri_montage_multi_results.csv"
+          "qa_path": "{qa_path}"
         },
         {
           "name": "black_image",
           "variant": "blank",
-          "image_path": "{blank_png}",
-          "output_path": "{output_base}/MedGemma1.5/black_image_results.csv"
+          "image_path": "{blank_png}"
         },
         {
           "name": "reshuffled_single",
           "variant": "single_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/single_slice_reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "reshuffled_multi",
           "variant": "multi_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/multi_slice_reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "human_single",
           "variant": "single_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/human_single_slice_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_multi",
           "variant": "multi_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/human_multi_slice_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_montage_single",
           "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/human_montage_single_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_montage_multi",
           "variant": "multi_montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedGemma1.5/human_montage_multi_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "text_only",
-          "variant": "text_only",
-          "output_path": "{output_base}/MedGemma1.5/text_only_results.csv"
+          "variant": "text_only"
         }
 
       ]
@@ -131,26 +119,22 @@
       "tests": [
         {
           "name": "mri",
-          "variant": "full_nifti",
-          "output_path": "{output_base}/Med3DVLM/mri_results.csv"
+          "variant": "full_nifti"
         },
         {
           "name": "black_image",
           "variant": "blank",
-          "image_path": "{blank_nifti}",
-          "output_path": "{output_base}/Med3DVLM/black_image_results.csv"
+          "image_path": "{blank_nifti}"
         },
         {
           "name": "reshuffled",
           "variant": "full_nifti",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/Med3DVLM/reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "human",
           "variant": "full_nifti",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/Med3DVLM/human_results.csv"
+          "qa_path": "{human_qa_path}"
         }
       ]
     },
@@ -163,20 +147,17 @@
       "tests": [
         {
           "name": "text_only",
-          "variant": "text_only",
-          "output_path": "{output_base}/Qwen/text_only_results.csv"
+          "variant": "text_only"
         },
         {
           "name": "reshuffled",
           "variant": "text_only",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/Qwen/text_only_reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "human",
           "variant": "text_only",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/Qwen/human_results.csv"
+          "qa_path": "{human_qa_path}"
         }
       ]
     },
@@ -190,31 +171,26 @@
       "tests": [
         {
           "name": "mri",
-          "variant": "single_slice",
-          "output_path": "{output_base}/MedImageInsight/mri_results.csv"
+          "variant": "single_slice"
         },
         {
           "name": "mri_montage",
-          "variant": "montage_slice",
-          "output_path": "{output_base}/MedImageInsight/mri_montage_results.csv"
+          "variant": "montage_slice"
         },
         {
           "name": "blank",
           "variant": "blank",
-          "image_path": "{blank_png}",
-          "output_path": "{output_base}/MedImageInsight/blank_results.csv"
+          "image_path": "{blank_png}"
         },
         {
           "name": "reshuffled",
           "variant": "single_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/MedImageInsight/reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "human",
           "variant": "single_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/MedImageInsight/human_results.csv"
+          "qa_path": "{human_qa_path}"
         }
       ]
     },
@@ -227,31 +203,26 @@
       "tests": [
         {
           "name": "mri",
-          "variant": "single_slice",
-          "output_path": "{output_base}/LLaVA/mri_results.csv"
+          "variant": "single_slice"
         },
         {
           "name": "mri_montage",
-          "variant": "montage_slice",
-          "output_path": "{output_base}/LLaVA/mri_montage_results.csv"
+          "variant": "montage_slice"
         },
         {
           "name": "black_image",
           "variant": "blank",
-          "image_path": "{blank_png}",
-          "output_path": "{output_base}/LLaVA/black_image_results.csv"
+          "image_path": "{blank_png}"
         },
         {
           "name": "reshuffled",
           "variant": "single_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/LLaVA/reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "human",
           "variant": "single_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/LLaVA/human_results.csv"
+          "qa_path": "{human_qa_path}"
         }
         
       ]
@@ -273,70 +244,58 @@
       "tests": [
         {
           "name": "mri_single",
-          "variant": "single_slice",
-          "output_path": "{output_base}/GPT5Mini/mri_single_results.csv"
+          "variant": "single_slice"
         },
         {
           "name": "mri_multi",
-          "variant": "multi_slice",
-          "output_path": "{output_base}/GPT5Mini/mri_multi_results.csv"
+          "variant": "multi_slice"
         },
         {
           "name": "mri_montage_single",
-          "variant": "montage_slice",
-          "output_path": "{output_base}/GPT5Mini/mri_montage_single_results.csv"
+          "variant": "montage_slice"
         },
         {
           "name": "mri_montage_multi",
-          "variant": "multi_montage_slice",
-          "output_path": "{output_base}/GPT5Mini/mri_montage_multi_results.csv"
+          "variant": "multi_montage_slice"
         },
         {
           "name": "black_image",
           "variant": "blank",
-          "image_path": "{blank_png}",
-          "output_path": "{output_base}/GPT5Mini/blank_results.csv"
+          "image_path": "{blank_png}"
         },
         {
           "name": "reshuffled_single",
           "variant": "single_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/reshuffled_single_results.csv"
+          "shuffled": true
         },
         {
           "name": "reshuffled_multi",
           "variant": "multi_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/reshuffled_multi_results.csv"
+          "shuffled": true
         },
         {
           "name": "human_mri_single",
           "variant": "single_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/human_mri_single_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_mri_multi",
           "variant": "multi_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/human_mri_multi_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_mri_montage_single",
           "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/human_mri_montage_single_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_mri_montage_multi",
           "variant": "multi_montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/GPT5Mini/human_mri_montage_multi_results.csv"
-        },        
+          "qa_path": "{human_qa_path}"
+        },       
         {
           "name": "text_only",
-          "variant": "text_only",
-          "output_path": "{output_base}/GPT5Mini/text_only_results.csv"
+          "variant": "text_only"
         }
       ]
     },
@@ -358,37 +317,31 @@
       "tests": [
         {
           "name": "mri",
-          "variant": "single_slice",
-          "output_path": "{output_base}/Lingshu/mri_results.csv"
+          "variant": "single_slice"
         },
         {
           "name": "mri_montage",
-          "variant": "montage_slice",
-          "output_path": "{output_base}/Lingshu/mri_montage_results.csv"
+          "variant": "montage_slice"
         },
         {
           "name": "reshuffled",
           "variant": "single_slice",
-          "qa_path": "{reshuffled_qa_path}",
-          "output_path": "{output_base}/Lingshu/reshuffled_results.csv"
+          "shuffled": true
         },
         {
           "name": "black_image",
           "variant": "blank",
-          "image_path": "{blank_png}",
-          "output_path": "{output_base}/Lingshu/black_image_results.csv"
+          "image_path": "{blank_png}"
         },
         {
           "name": "human_mri",
           "variant": "single_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/Lingshu/human_mri_results.csv"
+          "qa_path": "{human_qa_path}"
         },
         {
           "name": "human_mri_montage",
           "variant": "montage_slice",
-          "qa_path": "{human_qa_path}",
-          "output_path": "{output_base}/Lingshu/human_mri_montage_results.csv"
+          "qa_path": "{human_qa_path}"
         }
       ]
     }

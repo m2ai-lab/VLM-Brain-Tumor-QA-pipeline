@@ -18,6 +18,14 @@ def main(args):
     if getattr(args, 'limit', None):
         print(f"Limiting to first {args.limit} rows.")
         df = df.head(args.limit)
+
+    # If shuffled is specified, use the "Shuffled Question" column
+    if getattr(args, "shuffled", False):
+        if "Shuffled Question" in df.columns:
+            print("Using 'Shuffled Question' column instead of 'Question' as requested.")
+            df["Question"] = df["Shuffled Question"]
+        else:
+            print("WARNING: --shuffled specified but 'Shuffled Question' column not found. Using original questions.")
     
     # 1. Generate LLaVA-Med JSONL input
     print("Converting QA rows into JSONL format expected by LLaVA-Med...")
@@ -89,6 +97,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_path', type=str, default=_cfg.get("llavamed_model_path"))
     parser.add_argument('--llava_repo_dir', type=str, default=_cfg.get("llavamed_repo_dir"))
     parser.add_argument('--limit', type=int, default=None, help="Limit number of rows for testing")
+    parser.add_argument('--shuffled', action='store_true', help="Use 'Shuffled Question' column if available.")
 
     args = parser.parse_args()
     main(args)

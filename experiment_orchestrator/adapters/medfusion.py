@@ -21,11 +21,13 @@ class MedFusionAdapter(ModelAdapter):
             job.model_path, "testing/RunMedicalGroundedFusionVLM.py"
         )
         ov = " --overwrite" if overwrite else ""
+        sh = " --shuffled" if job.shuffled else ""
         return (
             f"{script}"
             f" --qa_path {job.qa_path}"
             f" --output_path {job.output_path}"
             f"{ov}"
+            f"{sh}"
         )
 
     def validate(self, job: ResolvedJob) -> None:

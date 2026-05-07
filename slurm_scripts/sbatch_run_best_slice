@@ -7,20 +7,36 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=20G
-#SBATCH --output=/home/remote/%u/logs/%x_%j.out
-#SBATCH --error=/home/remote/%u/logs/%x_%j.err
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+
+# Get the absolute path to the project root (one level up from this script)
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+cd "$PROJECT_ROOT" || exit 1
+
+# Ensure logs directory exists
+mkdir -p logs
 
 # 1. Load the cluster's Conda module
 module load miniforge3
 
-# 1. Complete isolation
+# 2. Prevent package leakage
 export PYTHONNOUSERSITE=1
-export PYTHONPATH=""
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH}"
 
-# 2. Force library priority
-export LD_LIBRARY_PATH="/home/remote/shghosh/.conda/environments/envs/format/lib:$LD_LIBRARY_PATH"
+# 3. Dynamic environment detection
+ENV_PATH=$(conda env list | grep -E '^format\s' | awk '{print $NF}')
 
-# 4. Use the full path to your python (as you did before)
-/home/remote/shghosh/.conda/environments/envs/format/bin/python /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/data_pipeline/best_slice_extraction_2d.py
+if [ -z "$ENV_PATH" ]; then
+    echo "ERROR: Environment 'format' not found for user $USER."
+    echo "Please create it using: conda create -n format python=3.10"
+    exit 1
+fi
+
+DYNAMIC_PYTHON="${ENV_PATH}/bin/python"
+
+# 4. Run the script
+"$DYNAMIC_PYTHON" data_pipeline/best_slice_extraction_2d.py
+
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"

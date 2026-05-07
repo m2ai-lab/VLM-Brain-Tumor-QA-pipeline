@@ -7,20 +7,21 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=20G
-#SBATCH --output=/home/remote/%u/logs/%x_%j.out
-#SBATCH --error=/home/remote/%u/logs/%x_%j.err
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
 
-# 1. Load the cluster's Conda module
-module load miniforge3
+# Get the absolute path to the project root
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+cd "$PROJECT_ROOT" || exit 1
 
-# 1. Complete isolation
-export PYTHONNOUSERSITE=1
-export PYTHONPATH=""
+# Ensure logs directory exists
+mkdir -p logs
 
-# 2. Force library priority
-export LD_LIBRARY_PATH="/scratch/user/jlateef/medgemma_env/lib:$LD_LIBRARY_PATH"
+# Dynamic environment detection for MedGemma
+ENV_PATH=$(conda env list | grep -E '^vlm-medgemma\s' | awk '{print $NF}')
+DYNAMIC_PYTHON="${ENV_PATH}/bin/python"
 
 # 4. Use the full path to your python (as you did before)
-/scratch/user/jlateef/medgemma_env/bin/python /scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/finetune_scripts/model_finetune_3.py
+"$DYNAMIC_PYTHON" finetune_scripts/model_finetune_3.py
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"

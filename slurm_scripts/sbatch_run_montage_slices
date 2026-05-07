@@ -6,27 +6,36 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
-#SBATCH --output=/home/remote/%u/logs/%x_%j.out
-#SBATCH --error=/home/remote/%u/logs/%x_%j.err
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
 
-# ── Environment isolation (mirrors sbatch_run_best_slice) ─────────────────────
+# Get the absolute path to the project root (one level up from this script)
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+cd "$PROJECT_ROOT" || exit 1
+
+# Ensure logs directory exists
+mkdir -p logs
+
+# ── Environment isolation ─────────────────────────────────────────────────────
 module load miniforge3
 
 export PYTHONNOUSERSITE=1
-export PYTHONPATH=""
-export LD_LIBRARY_PATH="/home/remote/shghosh/.conda/environments/envs/format/lib:$LD_LIBRARY_PATH"
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH}"
 
-PYTHON=/home/remote/shghosh/.conda/environments/envs/format/bin/python
-SCRIPT=/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF-/data_pipeline/montage_slices.py
+# Dynamic environment detection
+ENV_PATH=$(conda env list | grep -E '^format\s' | awk '{print $NF}')
+if [ -z "$ENV_PATH" ]; then
+    echo "ERROR: Environment 'format' not found for user $USER."
+    echo "Please create it using: conda create -n format python=3.10"
+    exit 1
+fi
+DYNAMIC_PYTHON="${ENV_PATH}/bin/python"
 
 # ── Run ───────────────────────────────────────────────────────────────────────
-# All paths are resolved from config.yaml by default.
-# Pass --overwrite to regenerate existing montages.
-# Pass --pdgm_id UCSF-PDGM-XXXX to debug a single patient.
 echo "Starting montage generation at $(date)"
 echo "------------------------------------------------------------"
 
-$PYTHON "$SCRIPT"
+"$DYNAMIC_PYTHON" data_pipeline/montage_slices.py
 
 echo "------------------------------------------------------------"
 echo "Job finished at $(date)"

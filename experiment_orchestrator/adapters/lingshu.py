@@ -50,6 +50,8 @@ class LingshuAdapter(ModelAdapter):
 
         if overwrite:
             args.append("--overwrite")
+        if job.shuffled:
+            args.append("--shuffled")
 
         return f"{script} {' '.join(args)}"
 

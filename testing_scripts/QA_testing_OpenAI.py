@@ -201,6 +201,14 @@ def main(args: argparse.Namespace) -> None:
     if args.limit:
         qa_data = qa_data.head(args.limit)
 
+    # If shuffled is specified, use the "Shuffled Question" column
+    if getattr(args, "shuffled", False):
+        if "Shuffled Question" in qa_data.columns:
+            _dbg("Using 'Shuffled Question' column instead of 'Question' as requested.")
+            qa_data["Question"] = qa_data["Shuffled Question"]
+        else:
+            _dbg("WARNING: --shuffled specified but 'Shuffled Question' column not found. Using original questions.")
+
     to_process = []
     for idx, row in qa_data.iterrows():
         if get_row_id(row["Assigned ID"], row["Question"]) not in processed_ids:
@@ -253,5 +261,6 @@ if __name__ == "__main__":
         help="Skip all image inputs; send only the question text (pure LLM call).",
     )
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output and start fresh.")
+    parser.add_argument("--shuffled", action="store_true", help="Use 'Shuffled Question' column if available.")
 
     main(parser.parse_args())

@@ -16,6 +16,7 @@ class QwenAdapter(ModelAdapter):
 
     def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         ov = " --overwrite" if overwrite else ""
+        shuffled = " --shuffled" if job.shuffled else ""
         if job.variant == "text_only":
             script = posixpath.join(
                 project_root, "testing_scripts/QA_testing_Qwen.py"
@@ -27,6 +28,7 @@ class QwenAdapter(ModelAdapter):
                 f" --model_path {job.model_path}"
                 f" --batch_size {job.batch_size}"
                 f"{ov}"
+                f"{shuffled}"
             )
         else:
             # Add other Qwen variants here if needed

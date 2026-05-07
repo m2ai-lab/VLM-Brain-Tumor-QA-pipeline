@@ -20,6 +20,8 @@ class Med3DVLMAdapter(ModelAdapter):
 
     def build_command(self, job: ResolvedJob, project_root: str, overwrite: bool = False) -> str:
         ov = " --overwrite" if overwrite else ""
+        sh = " --shuffled" if job.shuffled else ""
+        
         if job.variant == "blank":
             script = posixpath.join(
                 project_root, "testing_scripts/QA_testing_Med3DVLM_blank.py"
@@ -32,6 +34,7 @@ class Med3DVLMAdapter(ModelAdapter):
                 f" --image_path {job.image_path}"
                 f" --batch_size {job.batch_size}"
                 f"{ov}"
+                f"{sh}"
             )
         else:
             script = posixpath.join(
@@ -45,6 +48,7 @@ class Med3DVLMAdapter(ModelAdapter):
                 f" --image_dir {job.image_dir}"
                 f" --batch_size {job.batch_size}"
                 f"{ov}"
+                f"{sh}"
             )
 
     def validate(self, job: ResolvedJob) -> None:

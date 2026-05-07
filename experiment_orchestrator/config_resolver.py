@@ -64,6 +64,7 @@ class ResolvedJob:
     output_path: str        # with _runN suffix
     slurm_params: dict = field(default_factory=dict)
     batch_size: int = 4     # resolved: model override → global default
+    shuffled: bool = False
 
 
 
@@ -126,8 +127,17 @@ def resolve_all(suite: ExperimentSuite) -> list[ResolvedJob]:
                 else suite.global_config.batch_size
             )
 
+            # Resolve output_path: use test.output_path if set, else use default pattern
+            base_output_path = test.output_path
+            if not base_output_path:
+                base_output_path = os.path.join(
+                    suite.global_config.output_base,
+                    model_name,
+                    f"{test.name}_results.csv"
+                )
+
             for run in range(1, num_runs + 1):
-                output_path = _make_run_output_path(test.output_path, run, num_runs)
+                output_path = _make_run_output_path(base_output_path, run, num_runs)
 
                 jobs.append(
                     ResolvedJob(
@@ -146,6 +156,7 @@ def resolve_all(suite: ExperimentSuite) -> list[ResolvedJob]:
                         output_path=output_path,
                         slurm_params=slurm,
                         batch_size=effective_batch_size,
+                        shuffled=test.shuffled,
                     )
                 )
 

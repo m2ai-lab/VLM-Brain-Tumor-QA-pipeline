@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=lingshu_smoke_test
-#SBATCH --output=/home/remote/%u/logs/lingshu_smoke_test_%j.out
-#SBATCH --error=/home/remote/%u/logs/lingshu_smoke_test_%j.err
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --gpus-per-node=1
@@ -16,8 +16,12 @@ echo "Node: $HOSTNAME"
 echo "Job ID: $SLURM_JOB_ID"
 echo "----------------------------------------"
 
-# 1. Navigate to project root
-cd /mnt/scratch/group/CX000019_DS1/vlm-brain-mri/QA-BrainTumor-VLM-UCSF- || cd .
+# Get the absolute path to the project root
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+cd "$PROJECT_ROOT" || exit 1
+
+# Ensure logs directory exists
+mkdir -p logs
 
 # 2. Activate isolated Lingshu environment (created by setup.sh)
 source environments/envs/vlm-lingshu/bin/activate

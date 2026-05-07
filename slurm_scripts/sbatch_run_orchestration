@@ -6,22 +6,20 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --output=/home/remote/%u/logs/Orchestration_%j.out
-#SBATCH --error=/home/remote/%u/logs/Orchestration_%j.err
-#SBATCH --mail-user=shiv.ghosh@ucsf.edu
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+#SBATCH --mail-user=your.email@institution.edu
 #SBATCH --mail-type=ALL
 
-# SLURM_SUBMIT_DIR is set by SLURM to the directory where sbatch was called.
-# Always submit this script from the project root:
-#   cd /path/to/QA-BrainTumor-VLM-UCSF-
-#   sbatch slurm_scripts/sbatch_run_orchestration
-PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
+# Get the absolute path to the project root (one level up from this script)
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+cd "$PROJECT_ROOT" || exit 1
+
+# Ensure logs directory exists
+mkdir -p logs
 
 if [ ! -f "${PROJECT_ROOT}/config.yaml" ]; then
-    echo "ERROR: config.yaml not found in SLURM_SUBMIT_DIR=${PROJECT_ROOT}"
-    echo "Submit this script from the project root directory:"
-    echo "  cd /path/to/QA-BrainTumor-VLM-UCSF-"
-    echo "  sbatch slurm_scripts/sbatch_run_orchestration"
+    echo "ERROR: config.yaml not found in ${PROJECT_ROOT}"
     exit 1
 fi
 

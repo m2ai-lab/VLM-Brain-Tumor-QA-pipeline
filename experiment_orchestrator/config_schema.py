@@ -77,7 +77,7 @@ class TestConfig(BaseModel):
 
     name: str = Field(description="Unique name for this test (e.g., 'multi_slice').")
     variant: str = Field(description="Adapter-understood variant key.")
-    output_path: str = Field(description="Where results CSV is written.")
+    output_path: Optional[str] = Field(default=None, description="Where results CSV is written.")
 
     # Optional overrides (inherit from model → global if unset)
     qa_path: Optional[str] = None
@@ -87,6 +87,7 @@ class TestConfig(BaseModel):
     runs_per_experiment: Optional[int] = None
     slurm_overrides: dict = {}
     enabled: bool = True
+    shuffled: bool = False
 
 
 class ModelConfig(BaseModel):
