@@ -115,9 +115,6 @@ def run_batch(model, processor, batch_rows: list[dict], blank_image: Image.Image
 def main(args):
     model_id = args.model_path
 
-    if not path.exists(args.image_path):
-        raise FileNotFoundError(f"Blank image not found: {args.image_path}")
-
     print(f"Loading MedGemma from {model_id}...")
     processor = AutoProcessor.from_pretrained(model_id)
 
@@ -127,9 +124,6 @@ def main(args):
         device_map="auto",
         trust_remote_code=True
     )
-
-    # Load the shared blank image once
-    blank_image = Image.open(args.image_path).convert("RGB")
 
     qa_data = pd.read_csv(args.qa_path)
     if getattr(args, 'limit', None):
