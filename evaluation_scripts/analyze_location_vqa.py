@@ -64,6 +64,7 @@ def analyze_category(pattern, base_path):
     results = {}
     correct_questions = {}
     all_questions = {}
+    num_runs = {}
     
     qa_path = _cfg.get("qa_path")
     qa_df = pd.read_csv(qa_path) if qa_path and os.path.exists(qa_path) else None
@@ -73,14 +74,23 @@ def analyze_category(pattern, base_path):
     target_files = [f for f in all_files if "wrongs" not in f]
 
     for file_path in target_files:
+        # Determine model name from directory or filename if needed
         model_name = os.path.dirname(file_path).split(os.sep)[-1]
-        if not model_name:
-            model_name = "Root"
+        if model_name == "Responses" or model_name == "Results" or not model_name:
+            # Fallback to filename prefix if directory is generic
+            fname = os.path.basename(file_path)
+            if "_" in fname:
+                model_name = fname.split("_")[0]
+            else:
+                model_name = "Root"
             
         if model_name not in results:
             results[model_name] = {'correct': 0, 'total': 0}
             correct_questions[model_name] = Counter()
             all_questions[model_name] = set()
+            num_runs[model_name] = 0
+            
+        num_runs[model_name] += 1
             
         try:
             df = pd.read_csv(file_path)
@@ -112,7 +122,7 @@ def analyze_category(pattern, base_path):
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
             
-    return results, correct_questions, all_questions
+    return results, correct_questions, all_questions, num_runs
 
 def run_analysis():
     base_path = _cfg.get("output_base")
@@ -124,8 +134,8 @@ def run_analysis():
     p0 = 0.25 # Assuming 4 choices on average
 
     print(f"Analyzing files... (Null Hypothesis Chance Level: {p0})")
-    text_results, text_correct_maps, _ = analyze_category("text_only", base_path)
-    blank_results, blank_correct_maps, _ = analyze_category("blank", base_path)
+    text_results, text_correct_maps, text_qs, text_runs = analyze_category("text_only", base_path)
+    blank_results, blank_correct_maps, blank_qs, blank_runs = analyze_category("blank", base_path)
 
     all_models = sorted(set(text_results.keys()) | set(blank_results.keys()))
 
@@ -192,10 +202,32 @@ def run_analysis():
         if not overlap_qs: continue
         print(f"\n>>> MODEL: {model}")
         sorted_overlap = sorted(overlap_qs, key=lambda q: text_q_map[q] + blank_q_map[q], reverse=True)
-        for i, q in enumerate(sorted_overlap[:50]):
+        for i, q in enumerate(sorted_overlap[:8]):
             combined_hits = text_q_map[q] + blank_q_map[q]
             q_display = (q[:100] + '...') if len(q) > 200 else q
             print(f"  {i+1}. [Hits: {combined_hits}] {q_display}")
+
+    # SPECIFIC: Qwen Text-Only Overlap Across All Runs
+    print("\n" + "="*85)
+    print("QUESTIONS QWEN GOT RIGHT ON ALL TEXT-ONLY RUNS")
+    print("="*85)
+    
+    qwen_models = [m for m in all_models if "qwen" in m.lower()]
+    for model in qwen_models:
+        runs = text_runs.get(model, 0)
+        if runs <= 1: continue # Only interesting if multiple runs
+        
+        correct_map = text_correct_maps.get(model, {})
+        always_correct = [q for q, count in correct_map.items() if count == runs]
+        
+        print(f"\n>>> MODEL: {model} ({runs} runs analyzed)")
+        if not always_correct:
+            print("  No 'location' questions were answered correctly across all runs.")
+        else:
+            print(f"  Total consistent 'location' answers: {len(always_correct)}")
+            for i, q in enumerate(sorted(always_correct)[:15]): # Show top 15
+                q_display = (q[:120] + '...') if len(q) > 120 else q
+                print(f"    {i+1}. {q_display}")
 
     print("\n" + "="*85)
 
