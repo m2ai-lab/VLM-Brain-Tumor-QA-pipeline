@@ -192,9 +192,9 @@ def run_analysis():
         if not overlap_qs: continue
         print(f"\n>>> MODEL: {model}")
         sorted_overlap = sorted(overlap_qs, key=lambda q: text_q_map[q] + blank_q_map[q], reverse=True)
-        for i, q in enumerate(sorted_overlap[:3]):
+        for i, q in enumerate(sorted_overlap[:50]):
             combined_hits = text_q_map[q] + blank_q_map[q]
-            q_display = (q[:100] + '...') if len(q) > 100 else q
+            q_display = (q[:100] + '...') if len(q) > 200 else q
             print(f"  {i+1}. [Hits: {combined_hits}] {q_display}")
 
     print("\n" + "="*85)
