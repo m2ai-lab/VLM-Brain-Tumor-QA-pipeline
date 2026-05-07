@@ -106,18 +106,26 @@ def analyze_category(pattern, base_path):
             if not all(col in df.columns for col in required):
                 continue
                 
-            mask = df['Question'].str.contains(r'location|where', case=False, na=False)
-            subset = df[mask]
+            # Location-specific mask for the main stats table
+            loc_mask = df['Question'].str.contains(r'location|where', case=False, na=False)
+            loc_subset = df[loc_mask]
             
-            results[model_name]['total'] += len(subset)
+            results[model_name]['total'] += len(loc_subset)
             
-            for _, row in subset.iterrows():
-                q_text = row['Question'].strip()
+            # Process ALL questions for consistency counting
+            for _, row in df.iterrows():
+                q_text = str(row['Question']).strip()
                 all_questions[model_name].add(q_text)
                 
-                if normalize(row['Answer']) == normalize(row['predicted_answer']):
-                    results[model_name]['correct'] += 1
+                is_correct = normalize(row['Answer']) == normalize(row['predicted_answer'])
+                
+                if is_correct:
+                    # Global counter for ANY correct question
                     correct_questions[model_name][q_text] += 1
+                    
+                    # Also increment location-specific count for the main table if it matches
+                    if loc_mask.iloc[row.name if hasattr(row, 'name') else 0]:
+                        results[model_name]['correct'] += 1
             
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
@@ -207,9 +215,9 @@ def run_analysis():
             q_display = (q[:100] + '...') if len(q) > 200 else q
             print(f"  {i+1}. [Hits: {combined_hits}] {q_display}")
 
-    # SPECIFIC: Qwen Text-Only Overlap Across All Runs
+    # SPECIFIC: Qwen Text-Only Overlap Across All Runs (Global Consistency)
     print("\n" + "="*85)
-    print("QUESTIONS QWEN GOT RIGHT ON ALL TEXT-ONLY RUNS")
+    print("QUESTIONS QWEN GOT RIGHT ON ALL TEXT-ONLY RUNS (Global Consistency)")
     print("="*85)
     
     qwen_models = [m for m in all_models if "qwen" in m.lower()]
@@ -222,10 +230,10 @@ def run_analysis():
         
         print(f"\n>>> MODEL: {model} ({runs} runs analyzed)")
         if not always_correct:
-            print("  No 'location' questions were answered correctly across all runs.")
+            print("  No questions were answered correctly across all runs.")
         else:
-            print(f"  Total consistent 'location' answers: {len(always_correct)}")
-            for i, q in enumerate(sorted(always_correct)[:15]): # Show top 15
+            print(f"  Total globally consistent answers: {len(always_correct)}")
+            for i, q in enumerate(sorted(always_correct)[:20]): # Show top 20
                 q_display = (q[:120] + '...') if len(q) > 120 else q
                 print(f"    {i+1}. {q_display}")
 
