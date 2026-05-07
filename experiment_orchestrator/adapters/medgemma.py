@@ -53,6 +53,8 @@ class MedGemmaAdapter(ModelAdapter):
 
         if job.variant == "blank":
             args.append(f"--image_path {job.image_path}")
+        elif job.variant == "text_only":
+            pass # No image path is needed for text only
         else:
             args.append(f"--image_dir {job.image_dir}")
             if job.variant in self._IMAGE_FILENAME:

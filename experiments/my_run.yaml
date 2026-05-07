@@ -1,2 +1,3 @@
 runs:
   - models: [MedGemma1.5]
+    tests: ["text_only"]
