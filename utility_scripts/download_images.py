@@ -3,17 +3,17 @@ import requests
 import json
 import sys
 
-def download_ucsf_pdgm(target_dir):
+def download_dataset(target_dir):
     """
-    Downloads UCSF-PDGM NIfTI images from the data-nih/tcia GitHub mirror.
+    Downloads NIfTI images from the data-nih/tcia GitHub mirror.
     This is an automated alternative to the 142GB manual TCIA download.
     """
-    print(f"--- Automated UCSF-PDGM Image Download to {target_dir} ---")
+    print(f"--- Automated Image Download to {target_dir} ---")
     
     # Ensure directory exists
     os.makedirs(target_dir, exist_ok=True)
     
-    # GitHub API URL for the ucsf-pdgm release
+    # GitHub API URL for the dataset release
     api_url = "https://api.github.com/repos/data-nih/tcia/releases/tags/ucsf-pdgm"
     
     try:
@@ -53,7 +53,5 @@ def download_ucsf_pdgm(target_dir):
     print("Download complete.")
 
 if __name__ == "__main__":
-    # Default to datasets/ucsf-pdgm-images relative to project root
-    # We expect this to be called from the project root
-    target = os.path.join("datasets", "ucsf-pdgm-images")
-    download_ucsf_pdgm(target)
+    target = os.path.join("datasets", "Images")
+    download_dataset(target)

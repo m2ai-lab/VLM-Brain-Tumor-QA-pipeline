@@ -12,7 +12,8 @@ MODELS_TO_DOWNLOAD = {
     "google/medgemma-1.1-4b-it": "medgemma-1.5-4b-it", # Mapping to config name
     "lingshu-medical-mllm/Lingshu-32B": "Lingshu-32B",
     "Qwen/Qwen2.5-7B-Instruct": "Qwen2.5-7B-Instruct",
-    "lion-ai/MedImageInsights": "MedImageInsights"
+    "lion-ai/MedImageInsights": "MedImageInsights",
+    
 }
 
 def download_models(models_base_dir, specific_model=None):
