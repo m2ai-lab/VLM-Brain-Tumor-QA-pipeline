@@ -87,15 +87,15 @@ Our models achieve the following performance on the UCSF-PDGM-VQA benchmark:
 
 | Model Name | Slice Accuracy | Human Subset | Montage | Reshuffled | Text-Only |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Qwen3-8B** | - | - | - | 47.73 | 52.57 |
-| **LLaVA-Med-1.5** | 59.14 | 59.60 | 59.05 | 40.55 | - |
-| **MedImageInsight** | 20.77 | 29.69 | 18.68 | 28.01 | - |
-| **Med3DVLM-Qwen-2.5-7B - 3D** | 26.91 | - | 42.42 | 38.55 | - |
-| **MedGemma-1.5-4B - Single Slice** | 55.37 | 51.69 | 43.38 | 43.38 | - |
-| **MedGemma-1.5-4B - Multi Slice** | 63.57 | 59.08 | - | 51.16 | - |
-| **Lingshu-32B** | 61.40 | 63.20 | 66.04 | 52.17 | - |
-| **GPT5-mini - Single Slice** | 34.70 | 64.30 | 32.39 | 19.87 | 18.57 |
-| **GPT5-mini - Multi Slice** | - | - | - | - | - |
+| **Qwen3-8B**                      |     - |     - |     - | 47.73 | 52.57 |
+| **LLaVA-Med-1.5**                  | 59.14 | 59.60 | 59.05 | 40.55 |     - |
+| **MedImageInsight**                | 20.77 | 29.69 | 18.68 | 28.01 |     - |
+| **Med3DVLM-Qwen-2.5-7B - 3D**      | 26.91 |     - | 42.42 | 38.55 |     - |
+| **Lingshu-32B**                    | 61.40 | 63.20 | 66.04 | 52.17 |     - |
+| **MedGemma-1.5-4B - Single Slice** | 55.37 | 51.69 | 43.38 | 43.38 |     - |
+| **MedGemma-1.5-4B - Multi Slice**  | 63.57 | 59.08 |     - | 51.16 |     - |
+| **GPT5-mini - Single Slice**       | 34.70 | 38.59 | 32.39 | 19.87 | 18.57 |
+| **GPT5-mini - Multi Slice**        | 23.67 | 27.45 |     - | 22.19 |     - |
 
 ---
 
