@@ -18,7 +18,7 @@ python data_pipeline/montage_slices.py \\
     --qa_path  /path/to/qa.csv \\
     --nifti_root /mnt/scratch/UCSF-PDGM-v5 \\
     --output_dir /path/to/montages \\
-    --cols 4 --thumb_px 256
+    --cols 10 --thumb_px 256
 
 # Debug a single patient
 python data_pipeline/montage_slices.py --pdgm_id UCSF-PDGM-0005 --overwrite
@@ -165,25 +165,19 @@ def _add_label(img: Image.Image, label: str, font) -> Image.Image:
 
 def _build_montage(panels: list[tuple[str, Image.Image]],
                    cols: int,
-                   thumb_px: int,
-                   title: str = "") -> Image.Image:
+                   thumb_px: int) -> Image.Image:
     font       = _get_font(FONT_SIZE)
-    title_font = _get_font(FONT_SIZE + 4)
     rows       = (len(panels) + cols - 1) // cols
-    title_h    = (FONT_SIZE + 16) if title else 0
     total_w    = cols * thumb_px + (cols + 1) * BORDER_PX
-    total_h    = rows * thumb_px + (rows + 1) * BORDER_PX + title_h
+    total_h    = rows * thumb_px + (rows + 1) * BORDER_PX 
 
     canvas = Image.new("RGB", (total_w, total_h), BG_COLOR)
-    if title:
-        ImageDraw.Draw(canvas).text((BORDER_PX, BORDER_PX), title,
-                                    font=title_font, fill=TEXT_COLOR)
 
     for idx, (label, panel) in enumerate(panels):
         col = idx % cols
         row = idx // cols
         x   = BORDER_PX + col * (thumb_px + BORDER_PX)
-        y   = title_h + BORDER_PX + row * (thumb_px + BORDER_PX)
+        y   = BORDER_PX + row * (thumb_px + BORDER_PX)
         canvas.paste(_add_label(panel, label, font), (x, y))
 
     return canvas
@@ -285,8 +279,7 @@ def process_patient(pdgm_id: str,
 
             panels.append((label, panel))
 
-        title   = f"{name.capitalize()} Montage  |  {pdgm_id}  |  {len(panels)} sequences"
-        montage = _build_montage(panels, cols=cols, thumb_px=thumb_px, title=title)
+        montage = _build_montage(panels, cols=cols, thumb_px=thumb_px)
         montage.save(str(out_path))
         print(f"  [OK]   {pdgm_id} -> {filename}  ({len(panels)} sequences)")
         any_created = True
@@ -359,7 +352,7 @@ if __name__ == "__main__":
              "Defaults to mask_dir in config.yaml.",
     )
     parser.add_argument(
-        "--cols", type=int, default=4,
+        "--cols", type=int, default=6,
         help="Number of columns in the montage grid.",
     )
     parser.add_argument(

@@ -59,7 +59,8 @@ def main(args):
         "--model-path", args.model_path,
         "--question-file", temp_q,
         "--image-folder", args.image_dir,
-        "--answers-file", args.output_path
+        "--answers-file", args.output_path,
+        "--temperature", "0",
     ]
     
     print(f"Running command: {' '.join(cmd)}")

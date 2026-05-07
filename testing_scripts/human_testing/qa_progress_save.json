@@ -1,0 +1,2173 @@
+{
+  "csv_path": "C:\\Users\\shivg\\OneDrive\\Desktop\\CS\\QA-BrainTumor-VLM-UCSF-\\datasets\\human_dataset.csv",
+  "rows": [
+    {
+      "Question": "What is the location of the cystic lesion?\n1) Left frontal lobe\n2) Right retrolenticular internal capsule/thalamus\n3) Left parietal lobe\n4) Right occipital lobe",
+      "Answer": "Right retrolenticular internal capsule/thalamus",
+      "Deidentified_Accession_Number": "A7982F6F6F5C1",
+      "Assigned ID": "UCSF-PDGM-0005",
+      "Accession_number": 10672000
+    },
+    {
+      "Question": "What is the intrinsic T1 signal intensity of the surrounding masslike hyperintensity around the right retrolenticular internal capsule/thalamic lesion?\n1) T1 hypointense\n2) T1 isointense\n3) T1 hyperintense\n4) T1 signal void",
+      "Answer": "T1 hyperintense",
+      "Deidentified_Accession_Number": "A7982F6F6F5C1",
+      "Assigned ID": "UCSF-PDGM-0005",
+      "Accession_number": 10672000
+    },
+    {
+      "Question": "What is the extent of the surrounding masslike T2/FLAIR hyperintensity around the lesion centered in the right retrolenticular internal capsule/thalamus?\n1) Limited to the thalamus only\n2) Extends into the superior temporal gyrus, insula, internal capsule, superior and inferior parietal lobule, and right posterior cerebral peduncle\n3) Confined to the internal capsule only\n4) Restricted to the superior temporal gyrus only",
+      "Answer": "Extends into the superior temporal gyrus, insula, internal capsule, superior and inferior parietal lobule, and right posterior cerebral peduncle",
+      "Deidentified_Accession_Number": "A7982F6F6F5C1",
+      "Assigned ID": "UCSF-PDGM-0005",
+      "Accession_number": 10672000
+    },
+    {
+      "Question": "What is the appearance of the enhancing peripheral margin of the mass centered in the right retrolenticular internal capsule/thalamus?\n1) Smooth\n2) Mildly irregular\n3) Completely non-enhancing\n4) Perfectly round",
+      "Answer": "Mildly irregular",
+      "Deidentified_Accession_Number": "A7982F6F6F5C1",
+      "Assigned ID": "UCSF-PDGM-0005",
+      "Accession_number": 10672000
+    },
+    {
+      "Question": "What is the marrow signal intensity within the skull base on the brain MRI?\n1) Abnormal\n2) Normal\n3) Reduced\n4) Increased",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "A7982F6F6F5C1",
+      "Assigned ID": "UCSF-PDGM-0005",
+      "Accession_number": 10672000
+    },
+    {
+      "Question": "What is the size of the heterogeneously enhancing lesion centered in the right insula and temporal stem? DIMENSION: (AP, transverse)\n1) 4.5 x 3.1 cm\n2) 5.5 x 4.1 cm\n3) 3.5 x 2.1 cm\n4) 6.5 x 5.1 cm",
+      "Answer": "4.5 x 3.1 cm",
+      "Deidentified_Accession_Number": "83188A6CED11B",
+      "Assigned ID": "UCSF-PDGM-0007",
+      "Accession_number": 10753655
+    },
+    {
+      "Question": "Which structure is specifically noted to have surrounding T2 FLAIR hyperintensity extension?\n1) Right optic tract\n2) Left optic tract\n3) Right cerebellar hemisphere\n4) Left cerebellar hemisphere",
+      "Answer": "Right optic tract",
+      "Deidentified_Accession_Number": "83188A6CED11B",
+      "Assigned ID": "UCSF-PDGM-0007",
+      "Accession_number": 10753655
+    },
+    {
+      "Question": "What is the extent and direction of the midline shift caused by mass effect from the right insula/temporal stem lesion?\n1) 10 mm right to left\n2) 5 mm left to right\n3) 15 mm right to left\n4) 20 mm left to right",
+      "Answer": "10 mm right to left",
+      "Deidentified_Accession_Number": "83188A6CED11B",
+      "Assigned ID": "UCSF-PDGM-0007",
+      "Accession_number": 10753655
+    },
+    {
+      "Question": "What is the suspected nature of the hypoenhancing mass in the sella?\n1) Pituitary adenoma\n2) Glioblastoma\n3) Craniopharyngioma\n4) Rathke cleft cyst",
+      "Answer": "Pituitary adenoma",
+      "Deidentified_Accession_Number": "83188A6CED11B",
+      "Assigned ID": "UCSF-PDGM-0007",
+      "Accession_number": 10753655
+    },
+    {
+      "Question": "Which sinus is the sellar mass suspicious for invading?\n1) Right cavernous sinus\n2) Left cavernous sinus\n3) Right frontal sinus\n4) Left frontal sinus",
+      "Answer": "Right cavernous sinus",
+      "Deidentified_Accession_Number": "83188A6CED11B",
+      "Assigned ID": "UCSF-PDGM-0007",
+      "Accession_number": 10753655
+    },
+    {
+      "Question": "What is the size of the lesion in the left frontal middle gyrus? DIMENSION: (AP x transverse x CC)\n1) 3.1 x 2.9 x 3.8 cm\n2) 2.1 x 1.9 x 2.8 cm\n3) 4.1 x 3.9 x 4.8 cm\n4) 1.1 x 0.9 x 1.8 cm",
+      "Answer": "3.1 x 2.9 x 3.8 cm",
+      "Deidentified_Accession_Number": "421AAB628F02F",
+      "Assigned ID": "UCSF-PDGM-0009",
+      "Accession_number": 10757830
+    },
+    {
+      "Question": "What is the greatest axial size of the heterogeneously enhancing tumor centered in the right basal ganglia/right lentiform nucleus? DIMENSION: (x, y)\n1) 5.0 x 3.2 cm\n2) 6.0 x 4.2 cm\n3) 4.0 x 2.2 cm\n4) 3.0 x 1.2 cm",
+      "Answer": "5.0 x 3.2 cm",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "Where is the heterogeneously enhancing infiltrative tumor centered?\n1) Right lentiform nuclei\n2) Left lentiform nuclei\n3) Right frontal lobe\n4) Left frontal lobe",
+      "Answer": "Right lentiform nuclei",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the right-to-left midline shift produced by the heterogeneously enhancing infiltrative GBM centered in the right basal ganglia?\n1) 4 mm\n2) 9 mm\n3) 14 mm\n4) 19 mm",
+      "Answer": "9 mm",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What type of signal abnormality is noted in the right and left medial temporal lobes?\n1) Nonenhancing masslike FLAIR signal abnormality\n2) Enhancing masslike T2 signal abnormality\n3) Nonenhancing masslike T1 signal abnormality\n4) Enhancing masslike FLAIR signal abnormality",
+      "Answer": "Nonenhancing masslike FLAIR signal abnormality",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the enhancement pattern of the dominant lesion in the right basal ganglia (right lentiform nucleus)?\n1) Patchy enhancement\n2) Uniform enhancement\n3) No enhancement\n4) Ring enhancement",
+      "Answer": "Patchy enhancement",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the degree of local mass effect on the frontal horn of the right lateral ventricle?\n1) Significant local mass effect\n2) Mild local mass effect\n3) No mass effect\n4) Moderate local mass effect",
+      "Answer": "Significant local mass effect",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "Where does the surrounding infiltrative T2 hyperintense and intermediate signal extend?\n1) Inferiorly into the right medial temporal lobe\n2) Superiorly into the left lateral temporal lobe\n3) Anteriorly into the left frontal operculum\n4) Laterally into the right parietal cortex",
+      "Answer": "Inferiorly into the right medial temporal lobe",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What abnormality is described extending into the anterior perforated substance?\n1) Nonenhancing masslike FLAIR signal abnormality\n2) Enhancing masslike FLAIR signal abnormality\n3) Nonenhancing masslike T2 signal abnormality\n4) Enhancing masslike T2 signal abnormality",
+      "Answer": "Nonenhancing masslike FLAIR signal abnormality",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the enhancement at the ependymal margin of the right lateral ventricle adjacent to the dominant lesion in the right basal ganglia?\n1) Evidence of extension\n2) No evidence of extension\n3) Smooth diffuse enhancement without extension\n4) Patchy enhancement confined away from the ependymal margin",
+      "Answer": "Evidence of extension",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the mass effect on the left lateral ventricle?\n1) Effacement  \n2) Compression  \n3) Displacement  \n4) No effect",
+      "Answer": "Effacement",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the extension of the infiltrative enhancement?\n1) To the margin of the right lateral ventricle\n2) To the margin of the left lateral ventricle\n3) To the margin of the third ventricle\n4) To the margin of the fourth ventricle",
+      "Answer": "To the margin of the right lateral ventricle",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What abnormality is noted in the forniceal columns?\n1) Nonenhancing masslike FLAIR signal abnormality\n2) Enhancing masslike FLAIR signal abnormality\n3) Nonenhancing masslike T2 signal abnormality\n4) Enhancing masslike T2 signal abnormality",
+      "Answer": "Nonenhancing masslike FLAIR signal abnormality",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the location of the dominant heterogeneously enhancing tumor?\n1) Right basal ganglia (right lentiform nuclei)\n2) Left basal ganglia\n3) Right frontal lobe\n4) Left frontal lobe",
+      "Answer": "Right basal ganglia (right lentiform nuclei)",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the enhancement status of distant lesions?\n1) No distant enhancing lesions identified\n2) Two distant enhancing lesions identified\n3) Multiple (>5) distant enhancing lesions identified\n4) Diffuse distant enhancing lesions throughout both cerebral hemispheres",
+      "Answer": "No distant enhancing lesions identified",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the abnormality noted in the left medial temporal lobe?\n1) Nonenhancing masslike FLAIR signal abnormality\n2) Enhancing masslike FLAIR signal abnormality\n3) Nonenhancing masslike T2 signal abnormality\n4) Enhancing masslike T2 signal abnormality",
+      "Answer": "Nonenhancing masslike FLAIR signal abnormality",
+      "Deidentified_Accession_Number": "2F316F2C2B11C",
+      "Assigned ID": "UCSF-PDGM-0015",
+      "Accession_number": 10828712
+    },
+    {
+      "Question": "What is the extent and direction of the midline shift due to mass effect?\n1) 3 mm left to right\n2) 8 mm left to right\n3) 3 mm right to left\n4) 8 mm right to left",
+      "Answer": "3 mm left to right",
+      "Deidentified_Accession_Number": "DA0B1BD977FFB",
+      "Assigned ID": "UCSF-PDGM-0017",
+      "Accession_number": 10855761
+    },
+    {
+      "Question": "What is the measurement of the retrocerebellar posterior fossa arachnoid cyst in the transverse dimension? DIMENSION: (TV)\n1) 9.7 cm\n2) 4.0 cm\n3) 4.7 cm\n4) 8.7 cm",
+      "Answer": "9.7 cm",
+      "Deidentified_Accession_Number": "DA0B1BD977FFB",
+      "Assigned ID": "UCSF-PDGM-0017",
+      "Accession_number": 10855761
+    },
+    {
+      "Question": "What is the degree of narrowing at the foramen magnum?\n1) Moderate\n2) Severe\n3) Mild\n4) None",
+      "Answer": "Moderate",
+      "Deidentified_Accession_Number": "DA0B1BD977FFB",
+      "Assigned ID": "UCSF-PDGM-0017",
+      "Accession_number": 10855761
+    },
+    {
+      "Question": "What is the location of the peripherally enhancing primary lesion?\n1) Left inferior frontal gyrus\n2) Right inferior frontal gyrus\n3) Left superior frontal gyrus\n4) Right superior frontal gyrus",
+      "Answer": "Right inferior frontal gyrus",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the diameter of the peripherally enhancing lesion centered in the lateral aspect of the right inferior frontal gyrus?\n1) 1.5 cm\n2) 2.1 cm\n3) 3.1 cm\n4) 4.2 cm",
+      "Answer": "2.1 cm",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What type of signal abnormality is noted in the right pulvinar nucleus of the thalamus?\n1) T1 hypointensity\n2) T2 hyperintensity\n3) FLAIR hypointensity\n4) T2 hypointensity",
+      "Answer": "T2 hyperintensity",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the enhancement pattern of the lesion centered in the lateral aspect of the right inferior frontal gyrus?\n1) Centrally enhancing\n2) Peripherally enhancing\n3) Non-enhancing\n4) Uniformly enhancing",
+      "Answer": "Peripherally enhancing",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the observed effect of the right inferior frontal gyrus lesion on surrounding structures?\n1) Severe mass effect  \n2) Mild local mass effect  \n3) No mass effect  \n4) Hydrocephalus",
+      "Answer": "Mild local mass effect",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the enhancement characteristic of the infiltrative component extending from the right inferior frontal gyrus into the right insula?\n1) Enhancing\n2) Nonenhancing\n3) Rim-enhancing\n4) No lesion present",
+      "Answer": "Nonenhancing",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the observed condition of extra-axial fluid collections?\n1) Abnormal\n2) Normal\n3) None observed\n4) Enlarged",
+      "Answer": "None observed",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the observed condition of hydrocephalus?\n1) Severe\n2) Mild\n3) None observed\n4) Moderate",
+      "Answer": "None observed",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the observed condition regarding intracranial herniation?\n1) Severe\n2) Mild\n3) None observed\n4) Moderate",
+      "Answer": "None observed",
+      "Deidentified_Accession_Number": "F20278F9812F1",
+      "Assigned ID": "UCSF-PDGM-0018",
+      "Accession_number": 10869237
+    },
+    {
+      "Question": "What is the size of the right parietal mass centered in the inferior parietal lobule? DIMENSION: (AP, transverse, CC)\n1) 5.5 x 4.4 x 4.5 cm\n2) 6.5 x 5.4 x 5.5 cm\n3) 4.5 x 3.4 x 3.5 cm\n4) 7.5 x 6.4 x 6.5 cm",
+      "Answer": "5.5 x 4.4 x 4.5 cm",
+      "Deidentified_Accession_Number": "E819FA649B8B2",
+      "Assigned ID": "UCSF-PDGM-0022",
+      "Accession_number": 10908346
+    },
+    {
+      "Question": "Where is the mass located?\n1) Right inferior parietal lobule\n2) Left inferior parietal lobule\n3) Right inferior frontal lobule\n4) Left inferior frontal lobule",
+      "Answer": "Right inferior parietal lobule",
+      "Deidentified_Accession_Number": "E819FA649B8B2",
+      "Assigned ID": "UCSF-PDGM-0022",
+      "Accession_number": 10908346
+    },
+    {
+      "Question": "Is there evidence of hydrocephalus?\n1) No evidence\n2) Mild hydrocephalus\n3) Moderate hydrocephalus\n4) Severe hydrocephalus",
+      "Answer": "No evidence",
+      "Deidentified_Accession_Number": "E819FA649B8B2",
+      "Assigned ID": "UCSF-PDGM-0022",
+      "Accession_number": 10908346
+    },
+    {
+      "Question": "What is the degree of leftward midline shift at the level of the thalamus?\n1) 1 mm leftward\n2) 4 mm leftward\n3) 7 mm leftward\n4) 10 mm leftward",
+      "Answer": "4 mm leftward",
+      "Deidentified_Accession_Number": "E819FA649B8B2",
+      "Assigned ID": "UCSF-PDGM-0022",
+      "Accession_number": 10908346
+    },
+    {
+      "Question": "What is the composition of the right parietal mass centered in the inferior parietal lobule?\n1) Partially solid and cystic\n2) Completely solid\n3) Completely cystic\n4) Completely calcified",
+      "Answer": "Partially solid and cystic",
+      "Deidentified_Accession_Number": "E819FA649B8B2",
+      "Assigned ID": "UCSF-PDGM-0022",
+      "Accession_number": 10908346
+    },
+    {
+      "Question": "Does the more solid component of the right parietal mass (centered in the inferior parietal lobule) extend into the thalamus?\n1) Yes, into the right thalamus\n2) No, does not extend into the thalamus\n3) Yes, into the left thalamus\n4) Inconclusive",
+      "Answer": "Yes, into the right thalamus",
+      "Deidentified_Accession_Number": "E819FA649B8B2",
+      "Assigned ID": "UCSF-PDGM-0022",
+      "Accession_number": 10908346
+    },
+    {
+      "Question": "What is the size of the peripherally enhancing predominantly cystic mass within the right parieto-occipital lobe? DIMENSION: (x, y, z)\n1) 6.1 x 4.5 x 5.2 cm\n2) 7.1 x 5.5 x 6.2 cm\n3) 5.1 x 3.5 x 4.2 cm\n4) 8.1 x 6.5 x 7.2 cm",
+      "Answer": "6.1 x 4.5 x 5.2 cm",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What type of signal abnormality surrounds the right parieto-occipital lobe mass?\n1) FLAIR hyperintense signal\n2) T1 hyperintense signal\n3) T2 hypointense signal\n4) No surrounding signal abnormality",
+      "Answer": "FLAIR hyperintense signal",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the likely diagnosis for the peripherally enhancing predominantly cystic mass in the right parieto-occipital lobe?\n1) High grade glioma\n2) Meningioma\n3) Low grade glioma\n4) Abscess",
+      "Answer": "High grade glioma",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the degree of midline shift caused by mass effect from the right parieto-occipital mass?\n1) 7 mm leftward midline shift\n2) 2 mm leftward midline shift\n3) 12 mm leftward midline shift\n4) No midline shift",
+      "Answer": "7 mm leftward midline shift",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the location of the peripherally enhancing predominantly cystic mass within the brain?\n1) Right parieto-occipital lobe\n2) Left parieto-occipital lobe\n3) Right frontal lobe\n4) Left temporal lobe",
+      "Answer": "Right parieto-occipital lobe",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the nature of the mass within the right parieto-occipital lobe?\n1) Predominantly cystic\n2) Predominantly solid\n3) Densely calcified\n4) Completely hemorrhagic",
+      "Answer": "Predominantly cystic",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "How does the surrounding FLAIR signal abnormality involve the corpus callosum?\n1) Extending medially into the splenium\n2) No involvement of the corpus callosum\n3) Extending into the genu of the corpus callosum\n4) Extending into the anterior body of the corpus callosum",
+      "Answer": "Extending medially into the splenium",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the condition of the right temporal horn?\n1) Mild prominence suggesting early entrapment\n2) Normal appearance\n3) Severe entrapment\n4) Marked prominence suggesting advanced entrapment",
+      "Answer": "Mild prominence suggesting early entrapment",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the enhancement pattern of the mass within the right parieto-occipital lobe?\n1) Peripherally enhancing\n2) Centrally enhancing\n3) Uniformly enhancing\n4) No enhancement",
+      "Answer": "Peripherally enhancing",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "How does the FLAIR hyperintense signal abnormality extend into the right temporal lobe subcortical white matter?\n1) Extending anteriorly into the subcortical white matter including the temporal stem\n2) No extension into the temporal lobe subcortical white matter\n3) Extending posteriorly into the subcortical white matter excluding the temporal stem\n4) Extending laterally into the subcortical white matter excluding the temporal stem",
+      "Answer": "Extending anteriorly into the subcortical white matter including the temporal stem",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the condition of the sulci in the right cerebral hemisphere?\n1) Effacement observed\n2) Normal appearance\n3) Dilated sulci\n4) Asymmetric enlargement of sulci",
+      "Answer": "Effacement observed",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "What is the enhancement pattern of the subependymal region adjacent to the right parieto-occipital mass?\n1) No definite abnormal enhancement\n2) Abnormal enhancement observed\n3) Uniform enhancement\n4) Peripheral enhancement",
+      "Answer": "No definite abnormal enhancement",
+      "Deidentified_Accession_Number": "87F0EBC4D1543",
+      "Assigned ID": "UCSF-PDGM-0025",
+      "Accession_number": 10926580
+    },
+    {
+      "Question": "Which gyrus is involved in the enhancing mass at the left temporoparietal junction?\n1) Superior Temporal Gyrus\n2) Inferior Frontal Gyrus\n3) Precentral Gyrus\n4) Postcentral Gyrus",
+      "Answer": "Superior Temporal Gyrus",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What type of enhancement is observed in the mass centered at the left temporoparietal junction (involving the left superior and middle temporal gyri, angular gyrus, and supramarginal gyrus)?\n1) Heterogeneously Enhancing\n2) Uniformly Enhancing\n3) Non-Enhancing\n4) Rim-Only Enhancing",
+      "Answer": "Heterogeneously Enhancing",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What is the condition of the posterior body and temporal horn of the left lateral ventricle?\n1) Partial Effacement\n2) Complete Effacement\n3) No Effacement\n4) Enlarged",
+      "Answer": "Partial Effacement",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What is the location of the additional scattered foci of T2/FLAIR signal hyperintensity?\n1) Periventricular and subcortical white matter\n2) Cortical gray matter\n3) Cerebellar white matter\n4) Brainstem",
+      "Answer": "Periventricular and subcortical white matter",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What is the marrow signal intensity within the skull base?\n1) Normal\n2) Abnormal\n3) Increased\n4) Decreased",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What is the location of the inferior focus of enhancement?\n1) Left Middle Temporal Gyrus\n2) Right Middle Temporal Gyrus\n3) Left Inferior Frontal Gyrus\n4) Right Inferior Frontal Gyrus",
+      "Answer": "Left Middle Temporal Gyrus",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What is the condition of the left temporal horn?\n1) No trapping\n2) Trapping present\n3) Markedly enlarged with hydrocephalus\n4) Completely effaced",
+      "Answer": "No trapping",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "What ventricle\u2019s subependymal surface is contacted by the enhancement from the left temporoparietal mass?\n1) Left lateral ventricle\n2) Right lateral ventricle\n3) Third ventricle\n4) Fourth ventricle",
+      "Answer": "Left lateral ventricle",
+      "Deidentified_Accession_Number": "12A1EAAE24879",
+      "Assigned ID": "UCSF-PDGM-0026",
+      "Accession_number": 10940662
+    },
+    {
+      "Question": "Which lobes are involved in the multifocal enhancing brain lesions?\n1) Medial left posterior frontal, medial left parietal, and medial left occipital lobes\n2) Right temporal lobe only\n3) Left cerebellar hemisphere only\n4) Brainstem (pons) only",
+      "Answer": "Medial left posterior frontal, medial left parietal, and medial left occipital lobes",
+      "Deidentified_Accession_Number": "ADCF7343BCFCD",
+      "Assigned ID": "UCSF-PDGM-0029",
+      "Accession_number": 10957443
+    },
+    {
+      "Question": "What is the enhancement pattern of the multifocal masslike brain lesions (e.g., medial left posterior frontal/parietal lobes and medial left occipital lobe)?\n1) Heterogeneously enhancing\n2) Uniformly enhancing\n3) Non-enhancing\n4) Thin smooth ring-enhancing",
+      "Answer": "Heterogeneously enhancing",
+      "Deidentified_Accession_Number": "ADCF7343BCFCD",
+      "Assigned ID": "UCSF-PDGM-0029",
+      "Accession_number": 10957443
+    },
+    {
+      "Question": "What is the type of signal abnormality surrounding the enhancing brain lesions?\n1) Non-masslike FLAIR signal abnormality\n2) Masslike T1 signal abnormality\n3) Diffuse T1 hypointense signal abnormality\n4) Homogeneous T2 hypointense signal abnormality",
+      "Answer": "Non-masslike FLAIR signal abnormality",
+      "Deidentified_Accession_Number": "ADCF7343BCFCD",
+      "Assigned ID": "UCSF-PDGM-0029",
+      "Accession_number": 10957443
+    },
+    {
+      "Question": "What is the location of the large high-grade glioma (mass) described on MRI?\n1) Right Temporal Lobe\n2) Left Temporal Lobe\n3) Right Frontal Lobe\n4) Left Frontal Lobe",
+      "Answer": "Right Temporal Lobe",
+      "Deidentified_Accession_Number": "44E618DF73851",
+      "Assigned ID": "UCSF-PDGM-0030",
+      "Accession_number": 10965515
+    },
+    {
+      "Question": "What type of edema is associated with the large mass centered within the right temporal lobe?\n1) Vasogenic edema\n2) Cytotoxic edema\n3) Interstitial edema\n4) Osmotic edema",
+      "Answer": "Vasogenic edema",
+      "Deidentified_Accession_Number": "44E618DF73851",
+      "Assigned ID": "UCSF-PDGM-0030",
+      "Accession_number": 10965515
+    },
+    {
+      "Question": "What is the observed effect on the right temporal horn of the right lateral ventricle?\n1) Complete effacement\n2) Partial effacement\n3) No effacement\n4) Enlargement",
+      "Answer": "Complete effacement",
+      "Deidentified_Accession_Number": "44E618DF73851",
+      "Assigned ID": "UCSF-PDGM-0030",
+      "Accession_number": 10965515
+    },
+    {
+      "Question": "What is the observed volume loss in the brain?\n1) Moderate Cerebral and Cerebellar Volume Loss\n2) Severe Cerebral and Cerebellar Volume Loss\n3) Mild Cerebral and Cerebellar Volume Loss\n4) No Volume Loss",
+      "Answer": "Moderate Cerebral and Cerebellar Volume Loss",
+      "Deidentified_Accession_Number": "44E618DF73851",
+      "Assigned ID": "UCSF-PDGM-0030",
+      "Accession_number": 10965515
+    },
+    {
+      "Question": "What is the observed marrow signal intensity within the skull base?\n1) Normal Marrow Signal Intensity\n2) Abnormal Marrow Signal Intensity\n3) Increased Marrow Signal Intensity\n4) Decreased Marrow Signal Intensity",
+      "Answer": "Normal Marrow Signal Intensity",
+      "Deidentified_Accession_Number": "44E618DF73851",
+      "Assigned ID": "UCSF-PDGM-0030",
+      "Accession_number": 10965515
+    },
+    {
+      "Question": "What is the location of the mass?\n1) Anterior inferior left frontal lobe (left orbital gyri)\n2) Anterior inferior right frontal lobe (right orbital gyri)\n3) Left parietal lobe\n4) Right temporal lobe",
+      "Answer": "Anterior inferior left frontal lobe (left orbital gyri)",
+      "Deidentified_Accession_Number": "F295D684C1476",
+      "Assigned ID": "UCSF-PDGM-0031",
+      "Accession_number": 10972773
+    },
+    {
+      "Question": "What is the approximate size of the mass in the anterior inferior left frontal lobe (left orbital gyri)? DIMENSION: (AP x TRV x CC)\n1) 4.4 x 3.9 x 3.8 cm\n2) 5.4 x 4.9 x 4.8 cm\n3) 3.4 x 2.9 x 2.8 cm\n4) 6.4 x 5.9 x 5.8 cm",
+      "Answer": "4.4 x 3.9 x 3.8 cm",
+      "Deidentified_Accession_Number": "F295D684C1476",
+      "Assigned ID": "UCSF-PDGM-0031",
+      "Accession_number": 10972773
+    },
+    {
+      "Question": "What is the left-to-right midline shift caused by the left frontal lobe mass?\n1) 8 mm left-to-right\n2) 3 mm left-to-right\n3) 13 mm left-to-right\n4) 18 mm left-to-right",
+      "Answer": "8 mm left-to-right",
+      "Deidentified_Accession_Number": "F295D684C1476",
+      "Assigned ID": "UCSF-PDGM-0031",
+      "Accession_number": 10972773
+    },
+    {
+      "Question": "What is the size of the heterogeneously enhancing lesion centered in the left posterior temporal lobe (involving the left parahippocampal and fusiform gyrus)? DIMENSION: (AP, ML, CC)\n1) 6.6 x 3.4 x 2.9 cm\n2) 5.6 x 2.4 x 1.9 cm\n3) 7.6 x 4.4 x 3.9 cm\n4) 4.6 x 1.4 x 0.9 cm",
+      "Answer": "6.6 x 3.4 x 2.9 cm",
+      "Deidentified_Accession_Number": "33D296B8CFAE2",
+      "Assigned ID": "UCSF-PDGM-0032",
+      "Accession_number": 10981713
+    },
+    {
+      "Question": "Where is the heterogeneously enhancing lesion centered?\n1) Right frontal lobe\n2) Left posterior temporal lobe\n3) Right parietal lobe\n4) Left cerebellar hemisphere",
+      "Answer": "Left posterior temporal lobe",
+      "Deidentified_Accession_Number": "33D296B8CFAE2",
+      "Assigned ID": "UCSF-PDGM-0032",
+      "Accession_number": 10981713
+    },
+    {
+      "Question": "What is the nature of enhancement of the lesion centered in the left posterior temporal lobe?\n1) Homogeneous\n2) Heterogeneous\n3) Non-enhancing\n4) Ring-enhancing",
+      "Answer": "Heterogeneous",
+      "Deidentified_Accession_Number": "33D296B8CFAE2",
+      "Assigned ID": "UCSF-PDGM-0032",
+      "Accession_number": 10981713
+    },
+    {
+      "Question": "What regions are affected by the perilesional nonenhancing FLAIR signal abnormality?\n1) Left periatrial white matter and splenium of corpus callosum\n2) Right periatrial white matter and splenium of corpus callosum\n3) Left frontal lobe and genu of corpus callosum\n4) Right frontal lobe and body of corpus callosum",
+      "Answer": "Left periatrial white matter and splenium of corpus callosum",
+      "Deidentified_Accession_Number": "8F750D4314810",
+      "Assigned ID": "UCSF-PDGM-0035",
+      "Accession_number": 11040352
+    },
+    {
+      "Question": "What is the size of the enhancing mass straddling the left subinsular white matter, temporal stem, and superior temporal lobe near the hippocampus? DIMENSION: (AP x transverse x CC)\n1) 4.7 x 3.8 x 2.8 cm\n2) 5.7 x 4.8 x 3.8 cm\n3) 3.7 x 2.8 x 1.8 cm\n4) 6.7 x 5.8 x 4.8 cm",
+      "Answer": "4.7 x 3.8 x 2.8 cm",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "Where is the glioblastoma located?\n1) Left subinsular white matter and superficial/superior temporal lobe near the hippocampus\n2) Right subinsular white matter and superficial/superior temporal lobe near the hippocampus\n3) Left occipital lobe\n4) Right parietal lobe",
+      "Answer": "Left subinsular white matter and superficial/superior temporal lobe near the hippocampus",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "What is the surrounding FLAIR hyperintensity around the glioblastoma in the left frontal and temporal lobes likely composed of?\n1) Edema and nonenhancing tumor\n2) Edema and enhancing tumor\n3) Nonenhancing tumor only\n4) Enhancing tumor only",
+      "Answer": "Edema and nonenhancing tumor",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "What is the observed direction and magnitude of the midline shift?\n1) ~2 mm right-to-left\n2) ~7 mm right-to-left\n3) ~2 mm left-to-right\n4) ~7 mm left-to-right",
+      "Answer": "~2 mm right-to-left",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "What is the status of perfusion abnormalities corresponding to the left subinsular/superior temporal lobe glioblastoma mass?\n1) No significant abnormalities\n2) Mild perfusion abnormalities\n3) Moderate perfusion abnormalities\n4) Severe perfusion abnormalities",
+      "Answer": "No significant abnormalities",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "What is the condition of the CSF space superficial to the vermis?\n1) Prominent\n2) Normal\n3) Reduced\n4) Absent",
+      "Answer": "Prominent",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "What is the presence of hydrocephalus?\n1) No hydrocephalus\n2) Mild hydrocephalus\n3) Moderate hydrocephalus\n4) Severe hydrocephalus",
+      "Answer": "No hydrocephalus",
+      "Deidentified_Accession_Number": "34DF515E1DF57",
+      "Assigned ID": "UCSF-PDGM-0044",
+      "Accession_number": 11097040
+    },
+    {
+      "Question": "What is the size of the largest ill-defined lesion in the left insula? DIMENSION: (AP, transverse, CC)\n1) 6.5 x 2.2 x 3.0 cm\n2) 5.5 x 1.2 x 2.0 cm\n3) 7.5 x 3.2 x 4.0 cm\n4) 4.5 x 3.2 x 2.0 cm",
+      "Answer": "6.5 x 2.2 x 3.0 cm",
+      "Deidentified_Accession_Number": "778796ECA3D81",
+      "Assigned ID": "UCSF-PDGM-0048",
+      "Accession_number": 11140487
+    },
+    {
+      "Question": "What is the favored diagnosis for the multifocal rim-enhancing lesions involving the left frontal lobe, left insula, left superior thalamus, and left temporal region?\n1) Multifocal high-grade neoplasm\n2) Tumefactive demyelinating disease\n3) Stroke evolution\n4) Abscess",
+      "Answer": "Multifocal high-grade neoplasm",
+      "Deidentified_Accession_Number": "778796ECA3D81",
+      "Assigned ID": "UCSF-PDGM-0048",
+      "Accession_number": 11140487
+    },
+    {
+      "Question": "Which structure has mild mass effect?\n1) Left basal ganglia\n2) Right lateral ventricle\n3) Right occipital lobe\n4) Right thalamus",
+      "Answer": "Left basal ganglia",
+      "Deidentified_Accession_Number": "778796ECA3D81",
+      "Assigned ID": "UCSF-PDGM-0048",
+      "Accession_number": 11140487
+    },
+    {
+      "Question": "What abnormality is considered unlikely?\n1) Tumefactive demyelinating disease\n2) Expected evolution of stroke\n3) Lymphoma\n4) Multifocal high-grade neoplasm",
+      "Answer": "Tumefactive demyelinating disease",
+      "Deidentified_Accession_Number": "778796ECA3D81",
+      "Assigned ID": "UCSF-PDGM-0048",
+      "Accession_number": 11140487
+    },
+    {
+      "Question": "What is the location of the dominant mass?\n1) Posterior left frontal lobe\n2) Right parietal lobe\n3) Left occipital lobe\n4) Anterior right frontal lobe",
+      "Answer": "Posterior left frontal lobe",
+      "Deidentified_Accession_Number": "ED43840699945",
+      "Assigned ID": "UCSF-PDGM-0053",
+      "Accession_number": 11171727
+    },
+    {
+      "Question": "What is the approximate midline shift (in mm) caused by the posterior left frontal lobe mass?\n1) Approximately 4 mm\n2) Approximately 6 mm\n3) Approximately 10 mm\n4) Approximately 15 mm",
+      "Answer": "Approximately 6 mm",
+      "Deidentified_Accession_Number": "ED43840699945",
+      "Assigned ID": "UCSF-PDGM-0053",
+      "Accession_number": 11171727
+    },
+    {
+      "Question": "What type of tumor is suggested by the MRI findings?\n1) Gliosarcoma\n2) Low-grade astrocytoma\n3) Meningioma\n4) Pituitary adenoma",
+      "Answer": "Gliosarcoma",
+      "Deidentified_Accession_Number": "DFF609A9D146B",
+      "Assigned ID": "UCSF-PDGM-0064",
+      "Accession_number": 11252810
+    },
+    {
+      "Question": "What mass effect does the left parahippocampal gyrus mass have on adjacent structures?\n1) Compression on the temporal horn of the lateral ventricle\n2) Expansion of the temporal horn of the lateral ventricle\n3) Herniation of the cerebellar tonsils\n4) No mass effect on adjacent structures",
+      "Answer": "Compression on the temporal horn of the lateral ventricle",
+      "Deidentified_Accession_Number": "DFF609A9D146B",
+      "Assigned ID": "UCSF-PDGM-0064",
+      "Accession_number": 11252810
+    },
+    {
+      "Question": "What abnormal signal is observed surrounding the mass centered in the left parahippocampal gyrus?\n1) Surrounding FLAIR hyperintense signal\n2) Surrounding FLAIR hypointense signal\n3) Surrounding T1 hyperintense signal\n4) No abnormal surrounding signal",
+      "Answer": "Surrounding FLAIR hyperintense signal",
+      "Deidentified_Accession_Number": "DFF609A9D146B",
+      "Assigned ID": "UCSF-PDGM-0064",
+      "Accession_number": 11252810
+    },
+    {
+      "Question": "Where is the additional nodular enhancing focus located within the suprasellar region?\n1) Leftward aspect of the suprasellar cistern adjacent to the CN III root entry zone\n2) Rightward aspect of the suprasellar cistern adjacent to the optic chiasm\n3) Left cavernous sinus adjacent to the internal carotid artery\n4) Right prepontine cistern adjacent to the basilar artery",
+      "Answer": "Leftward aspect of the suprasellar cistern adjacent to the CN III root entry zone",
+      "Deidentified_Accession_Number": "DFF609A9D146B",
+      "Assigned ID": "UCSF-PDGM-0064",
+      "Accession_number": 11252810
+    },
+    {
+      "Question": "What is the size of the enhancing component of the mass centered in the right frontal and insular white matter? DIMENSION: (CC x AP x TV)\n1) 4.4 x 6.3 x 6.4 cm\n2) 3.4 x 5.3 x 5.4 cm\n3) 5.4 x 7.3 x 7.4 cm\n4) 6.4 x 8.3 x 8.4 cm",
+      "Answer": "4.4 x 6.3 x 6.4 cm",
+      "Deidentified_Accession_Number": "4D9C3C1D535DB",
+      "Assigned ID": "UCSF-PDGM-0065",
+      "Accession_number": 11271681
+    },
+    {
+      "Question": "What is the degree and direction of midline shift associated with the right frontal/insular mass?\n1) 0.5 cm rightward\n2) 1.5 cm rightward\n3) 2.5 cm rightward\n4) 1.5 cm leftward",
+      "Answer": "1.5 cm rightward",
+      "Deidentified_Accession_Number": "4D9C3C1D535DB",
+      "Assigned ID": "UCSF-PDGM-0065",
+      "Accession_number": 11271681
+    },
+    {
+      "Question": "What is the measured extent of subfalcine herniation due to mass effect?\n1) 9 mm\n2) 4 mm\n3) 14 mm\n4) 19 mm",
+      "Answer": "9 mm",
+      "Deidentified_Accession_Number": "985DA8141E323",
+      "Assigned ID": "UCSF-PDGM-0067",
+      "Accession_number": 11273740
+    },
+    {
+      "Question": "Which lobe contains a rim-enhancing lesion measuring 12 x 12 x 12 mm? DIMENSION: (AP, transverse, CC)\n1) Right posterior temporal lobe\n2) Left posterior temporal lobe\n3) Right frontal lobe\n4) Left frontal lobe",
+      "Answer": "Right posterior temporal lobe",
+      "Deidentified_Accession_Number": "985DA8141E323",
+      "Assigned ID": "UCSF-PDGM-0067",
+      "Accession_number": 11273740
+    },
+    {
+      "Question": "What is the most likely cause of the focus of increased perfusion in the right hippocampus?\n1) Sequela of seizure\n2) Ischemic stroke\n3) Tumor infiltration\n4) Infection",
+      "Answer": "Sequela of seizure",
+      "Deidentified_Accession_Number": "985DA8141E323",
+      "Assigned ID": "UCSF-PDGM-0067",
+      "Accession_number": 11273740
+    },
+    {
+      "Question": "What is the size of the right superior parietal lobule enhancing lesion? DIMENSION: (x, y)\n1) 4.2 x 4.0 cm\n2) 3.2 x 2.7 cm\n3) 5.2 x 5.0 cm\n4) 2.2 x 2.0 cm",
+      "Answer": "4.2 x 4.0 cm",
+      "Deidentified_Accession_Number": "38D067C226E39",
+      "Assigned ID": "UCSF-PDGM-0074",
+      "Accession_number": 10846904
+    },
+    {
+      "Question": "What is the size of the right inferior frontal gyrus enhancing lesion? DIMENSION: (x, y)\n1) 4.2 x 4.0 cm\n2) 3.2 x 2.7 cm\n3) 5.0 x 4.5 cm\n4) 3.0 x 3.0 cm",
+      "Answer": "3.2 x 2.7 cm",
+      "Deidentified_Accession_Number": "38D067C226E39",
+      "Assigned ID": "UCSF-PDGM-0074",
+      "Accession_number": 10846904
+    },
+    {
+      "Question": "What is the measured right-to-left midline shift?\n1) 3 mm\n2) 8 mm\n3) 13 mm\n4) 18 mm",
+      "Answer": "8 mm",
+      "Deidentified_Accession_Number": "38D067C226E39",
+      "Assigned ID": "UCSF-PDGM-0074",
+      "Accession_number": 10846904
+    },
+    {
+      "Question": "What is the nature of the dilated enhancing vascular structure located immediately anterior and superior to the right inferior frontal gyrus enhancing lesion?\n1) Venous varix\n2) Arterial aneurysm\n3) Dural arteriovenous fistula\n4) Venous thrombosis",
+      "Answer": "Venous varix",
+      "Deidentified_Accession_Number": "38D067C226E39",
+      "Assigned ID": "UCSF-PDGM-0074",
+      "Accession_number": 10846904
+    },
+    {
+      "Question": "What is the size of the irregularly enhancing lesion centered in the right parietal lobe? DIMENSION: (x, y, z)\n1) 5.2 x 4.4 x 4 cm\n2) 4.2 x 3.4 x 3 cm\n3) 6.2 x 5.4 x 5 cm\n4) 3.2 x 2.4 x 2 cm",
+      "Answer": "5.2 x 4.4 x 4 cm",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "Where is the main enhancing lesion centered?\n1) Right parietal lobe\n2) Left parietal lobe\n3) Right frontal lobe\n4) Left frontal lobe",
+      "Answer": "Right parietal lobe",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "What is the nature of enhancement of the lesion centered in the right parietal lobe?\n1) Irregularly enhancing\n2) Uniformly enhancing\n3) Non-enhancing\n4) Smoothly rim-enhancing",
+      "Answer": "Irregularly enhancing",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "What is the midline shift measurement and direction?\n1) 5 mm leftward\n2) 10 mm leftward\n3) 5 mm rightward\n4) 0 mm (no shift)",
+      "Answer": "5 mm leftward",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "What is the condition of the ventricles?\n1) Effacement with dilation of the right temporal horn\n2) Normal appearance\n3) Effacement without dilation\n4) Dilation of the left temporal horn",
+      "Answer": "Effacement with dilation of the right temporal horn",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "Where does the enhancing component of the right parietal lobe mass extend?\n1) Into the splenium of the corpus callosum\n2) Into the cerebellum\n3) Into the left frontal lobe\n4) Into the brainstem",
+      "Answer": "Into the splenium of the corpus callosum",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "What is the size of the adjacent smaller focus of enhancement in the right parasagittal parietal lobe? DIMENSION: (x, y, z)\n1) 1.3 x 0.8 x 1 cm\n2) 2.3 x 1.8 x 2 cm\n3) 0.3 x 0.8 x 0.5 cm\n4) 3.3 x 2.8 x 3 cm",
+      "Answer": "1.3 x 0.8 x 1 cm",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "What is the condition of the marrow signal intensity within the skull base?\n1) Normal\n2) Abnormal\n3) Increased\n4) Decreased",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "DC052FC7DA73E",
+      "Assigned ID": "UCSF-PDGM-0076",
+      "Accession_number": 11362040
+    },
+    {
+      "Question": "What is the size of the heterogeneously enhancing intraparenchymal mass centered in the right medial frontal lobe? DIMENSION: (AP, transverse, CC)\n1) 5.5 x 4.5 x 4.5 cm\n2) 4.5 x 3.5 x 3.5 cm\n3) 6.5 x 5.5 x 5.5 cm\n4) 3.5 x 2.5 x 2.5 cm",
+      "Answer": "5.5 x 4.5 x 4.5 cm",
+      "Deidentified_Accession_Number": "868E546FE7AA0",
+      "Assigned ID": "UCSF-PDGM-0077",
+      "Accession_number": 11367916
+    },
+    {
+      "Question": "Where is the intraparenchymal mass centered?\n1) Right medial frontal lobe\n2) Left medial temporal lobe\n3) Right cerebellar hemisphere\n4) Left parietal lobe",
+      "Answer": "Right medial frontal lobe",
+      "Deidentified_Accession_Number": "868E546FE7AA0",
+      "Assigned ID": "UCSF-PDGM-0077",
+      "Accession_number": 11367916
+    },
+    {
+      "Question": "What is the location of the enhancing lesion?\n1) Left cerebral hemisphere at the junction of the occipital, parietal, and temporal lobes\n2) Right cerebral hemisphere at the junction of the occipital, parietal, and temporal lobes\n3) Cerebellar vermis\n4) Brainstem (pons)",
+      "Answer": "Left cerebral hemisphere at the junction of the occipital, parietal, and temporal lobes",
+      "Deidentified_Accession_Number": "241EAC111972B",
+      "Assigned ID": "UCSF-PDGM-0079",
+      "Accession_number": 11372974
+    },
+    {
+      "Question": "What is the size of the enhancing lesion centered in the left cerebral hemisphere at the junction of the occipital, parietal, and temporal lobes? DIMENSION: (x, y, z)\n1) 5.0 x 3.6 x 3.4 cm\n2) 6.0 x 4.6 x 4.4 cm\n3) 4.0 x 2.6 x 2.4 cm\n4) 3.0 x 1.6 x 1.4 cm",
+      "Answer": "5.0 x 3.6 x 3.4 cm",
+      "Deidentified_Accession_Number": "241EAC111972B",
+      "Assigned ID": "UCSF-PDGM-0079",
+      "Accession_number": 11372974
+    },
+    {
+      "Question": "What is the effect of the enhancing lesion centered in the left cerebral hemisphere near the junction of the occipital, parietal, and temporal lobes on the left lateral ventricle?\n1) Compression\n2) Dilation\n3) Rightward midline shift\n4) No effect",
+      "Answer": "Compression",
+      "Deidentified_Accession_Number": "241EAC111972B",
+      "Assigned ID": "UCSF-PDGM-0079",
+      "Accession_number": 11372974
+    },
+    {
+      "Question": "What white matter regions are involved by the likely vasogenic edema surrounding the dominant left cerebral hemisphere lesion near the junction of the temporal, parietal, and occipital lobes?\n1) Temporal, occipital, and parietal white matter\n2) Frontal white matter\n3) Cerebellar white matter\n4) Brainstem white matter",
+      "Answer": "Temporal, occipital, and parietal white matter",
+      "Deidentified_Accession_Number": "241EAC111972B",
+      "Assigned ID": "UCSF-PDGM-0079",
+      "Accession_number": 11372974
+    },
+    {
+      "Question": "What is the size of the heterogeneously enhancing mass centered in the right middle and inferior frontal gyri (right frontal lobe)? DIMENSION: (CC, transverse, AP)\n1) 2.3 cm CC x 2.5 cm transverse x 1.9 cm AP\n2) 3.3 cm CC x 3.5 cm transverse x 2.9 cm AP\n3) 1.3 cm CC x 1.5 cm transverse x 0.9 cm AP\n4) 4.3 cm CC x 4.5 cm transverse x 3.9 cm AP",
+      "Answer": "2.3 cm CC x 2.5 cm transverse x 1.9 cm AP",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the location of the heterogeneously enhancing mass within the right frontal lobe?\n1) Right frontal lobe, centered within the right middle and inferior frontal gyri\n2) Left parietal lobe\n3) Left occipital lobe\n4) Right temporal lobe",
+      "Answer": "Right frontal lobe, centered within the right middle and inferior frontal gyri",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the nature of the edema surrounding the right frontal lobe mass centered in the right middle and inferior frontal gyri?\n1) Cytotoxic edema\n2) Vasogenic edema\n3) Interstitial edema\n4) Osmotic edema",
+      "Answer": "Vasogenic edema",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the effect of the surrounding vasogenic edema from the right frontal lobe mass on the right lateral ventricle?\n1) Severe effacement\n2) Moderate effacement\n3) Minimal effacement\n4) No effacement",
+      "Answer": "Minimal effacement",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the enhancement pattern of the right frontal lobe mass centered within the right middle and inferior frontal gyri?\n1) Homogeneous\n2) Heterogeneous\n3) Non-enhancing\n4) Rim-only enhancing",
+      "Answer": "Heterogeneous",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the perfusion characteristic of the right frontal lobe mass centered within the right middle and inferior frontal gyri?\n1) Decreased perfusion\n2) Increased perfusion\n3) Normal perfusion\n4) No perfusion",
+      "Answer": "Increased perfusion",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the effect of the right frontal lobe mass on midline structures?\n1) Severe midline shift\n2) Mild midline shift\n3) No midline shift\n4) Moderate midline shift",
+      "Answer": "No midline shift",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the extent of subcortical and periventricular T2/FLAIR hyperintensities?\n1) None\n2) Scattered\n3) Diffuse\n4) Single focal lesion only",
+      "Answer": "Scattered",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the location of the periventricular T2/FLAIR hyperintensities along the right lateral ventricle?\n1) Frontal horn of the right lateral ventricle\n2) Occipital horn of the right lateral ventricle\n3) Temporal horn of the right lateral ventricle\n4) Body of the left lateral ventricle",
+      "Answer": "Temporal horn of the right lateral ventricle",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the severity of the local mass effect caused by the surrounding vasogenic edema in the right frontal lobe?\n1) Severe\n2) Moderate\n3) Mild\n4) None",
+      "Answer": "Mild",
+      "Deidentified_Accession_Number": "84057A0BEE344",
+      "Assigned ID": "UCSF-PDGM-0080",
+      "Accession_number": 11392645
+    },
+    {
+      "Question": "What is the size of the heterogeneously enhancing hemorrhagic mass in the left frontoparietal region (extending from the inferior left precentral gyrus to the inferior parietal lobule)? DIMENSION: (CC, AP, TV)\n1) 4.4 x 6.6 x 4.7 cm\n2) 5.4 x 7.6 x 5.7 cm\n3) 3.4 x 5.6 x 3.7 cm\n4) 6.4 x 8.6 x 6.7 cm",
+      "Answer": "4.4 x 6.6 x 4.7 cm",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "Which lobes are involved by the left frontoparietal mass?\n1) Frontal and parietal\n2) Temporal and occipital\n3) Frontal and temporal\n4) Parietal and occipital",
+      "Answer": "Frontal and parietal",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the enhancement pattern of the left frontoparietal mass?\n1) Heterogeneous\n2) Homogeneous\n3) Non-enhancing\n4) Ring-enhancing",
+      "Answer": "Heterogeneous",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the displacement effect of the left frontoparietal mass on the ventricular system?\n1) Effacement of the left lateral ventricle\n2) Compression of the right lateral ventricle\n3) No displacement observed\n4) Effacement of the fourth ventricle",
+      "Answer": "Effacement of the left lateral ventricle",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the marrow signal intensity within the skull base?\n1) Normal\n2) Increased\n3) Decreased\n4) Absent",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the condition of the left A1 segment?\n1) Hypoplastic\n2) Normal caliber\n3) Aneurysmal dilation\n4) Occluded",
+      "Answer": "Hypoplastic",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the nature of the associated blood products in the left frontoparietal mass?\n1) Hemorrhagic\n2) Non-hemorrhagic\n3) Calcified\n4) Fibrotic",
+      "Answer": "Hemorrhagic",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the anterior extension of the enhancing aspect of the left frontoparietal mass?\n1) Inferior left precentral gyrus\n2) Superior left precentral gyrus\n3) Inferior right precentral gyrus\n4) Superior right precentral gyrus",
+      "Answer": "Inferior left precentral gyrus",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "To what brain region does the left frontoparietal mass extend posteriorly and inferiorly?\n1) Inferior parietal lobule\n2) Superior temporal gyrus\n3) Inferior frontal gyrus\n4) Cerebellar vermis",
+      "Answer": "Inferior parietal lobule",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the superior extension of the left frontoparietal mass?\n1) Superior parietal lobule\n2) Inferior parietal lobule\n3) Superior occipital lobule\n4) Inferior occipital lobule",
+      "Answer": "Superior parietal lobule",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the medial extension of the left frontoparietal mass?\n1) Through the margin of the body of left lateral ventricle\n2) Through the margin of the body of right lateral ventricle\n3) Through the margin of the body of third ventricle\n4) Through the margin of the body of fourth ventricle",
+      "Answer": "Through the margin of the body of left lateral ventricle",
+      "Deidentified_Accession_Number": "BF4C536F0BDF3",
+      "Assigned ID": "UCSF-PDGM-0082",
+      "Accession_number": 11419123
+    },
+    {
+      "Question": "What is the location of the primary lesion?\n1) Left Precentral Gyrus\n2) Right Precentral Gyrus\n3) Left Fusiform Gyrus\n4) Right Fusiform Gyrus",
+      "Answer": "Left Precentral Gyrus",
+      "Deidentified_Accession_Number": "174CADEB33AFF",
+      "Assigned ID": "UCSF-PDGM-0083",
+      "Accession_number": 11418822
+    },
+    {
+      "Question": "What is the size of the enhancing component of the lesion centered in the left precentral gyrus? DIMENSION: (CC, AP, TV)\n1) 2.2 x 1.8 x 1.8 cm\n2) 1.2 x 0.8 x 0.8 cm\n3) 3.2 x 2.8 x 2.8 cm\n4) 4.2 x 3.8 x 3.8 cm",
+      "Answer": "2.2 x 1.8 x 1.8 cm",
+      "Deidentified_Accession_Number": "174CADEB33AFF",
+      "Assigned ID": "UCSF-PDGM-0083",
+      "Accession_number": 11418822
+    },
+    {
+      "Question": "What is the location of the additional expansile T2/FLAIR hyperintense lesion with patchy peripheral enhancement?\n1) Left Fusiform Gyrus\n2) Right Fusiform Gyrus\n3) Left Precentral Gyrus\n4) Right Precentral Gyrus",
+      "Answer": "Left Fusiform Gyrus",
+      "Deidentified_Accession_Number": "174CADEB33AFF",
+      "Assigned ID": "UCSF-PDGM-0083",
+      "Accession_number": 11418822
+    },
+    {
+      "Question": "What is the size of the enhancing portion of the lesion in the left fusiform gyrus? DIMENSION: (x, y, z)\n1) 7 x 10 x 7 mm\n2) 4 x 7 x 4 mm\n3) 10 x 13 x 10 mm\n4) 13 x 16 x 13 mm",
+      "Answer": "7 x 10 x 7 mm",
+      "Deidentified_Accession_Number": "174CADEB33AFF",
+      "Assigned ID": "UCSF-PDGM-0083",
+      "Accession_number": 11418822
+    },
+    {
+      "Question": "What is the nature of the lesion centered in the left precentral gyrus?\n1) Mixed solid and cystic\n2) Purely solid\n3) Purely cystic\n4) Purely hemorrhagic",
+      "Answer": "Mixed solid and cystic",
+      "Deidentified_Accession_Number": "174CADEB33AFF",
+      "Assigned ID": "UCSF-PDGM-0083",
+      "Accession_number": 11418822
+    },
+    {
+      "Question": "What is the enhancement pattern extending into the central sulcus?\n1) Linear Enhancement Along a Vessel\n2) Diffuse Enhancement\n3) No Enhancement\n4) Peripheral Enhancement",
+      "Answer": "Linear Enhancement Along a Vessel",
+      "Deidentified_Accession_Number": "174CADEB33AFF",
+      "Assigned ID": "UCSF-PDGM-0083",
+      "Accession_number": 11418822
+    },
+    {
+      "Question": "What is the relationship of the surrounding FLAIR signal abnormality to the right hypothalamus?\n1) Effacement\n2) Compression\n3) Displacement\n4) Extension",
+      "Answer": "Extension",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the involvement of the right midbrain due to the surrounding FLAIR signal abnormality?\n1) Effacement\n2) Compression\n3) Displacement\n4) Extension",
+      "Answer": "Extension",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the involvement of the cerebral peduncle due to the surrounding FLAIR signal abnormality?\n1) Effacement\n2) Compression\n3) Displacement\n4) Extension",
+      "Answer": "Extension",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the relationship of the surrounding FLAIR signal abnormality to the right lentiform nucleus?\n1) No involvement of the right lentiform nucleus\n2) Compression of the right lentiform nucleus\n3) Displacement of the right lentiform nucleus\n4) Extension to involve the right lentiform nucleus",
+      "Answer": "Extension to involve the right lentiform nucleus",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the involvement of the right insula due to the surrounding FLAIR signal abnormality?\n1) Effacement\n2) Compression\n3) Displacement\n4) Extension",
+      "Answer": "Extension",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the relationship of the surrounding FLAIR signal abnormality to the thalamus?\n1) Effacement\n2) No involvement of the thalamus\n3) Involves the thalamus\n4) Isolated to the left frontal lobe only",
+      "Answer": "Involves the thalamus",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the relationship of the surrounding FLAIR signal abnormality to the right internal capsule?\n1) Extension into the right internal capsule\n2) No involvement of the right internal capsule\n3) Isolated involvement of the left internal capsule only\n4) Involvement limited to the cerebellum without internal capsule involvement",
+      "Answer": "Extension into the right internal capsule",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the involvement of the posterior right inferior parietal lobule due to the surrounding FLAIR signal abnormality?\n1) Effacement\n2) Compression\n3) Displacement\n4) Extension",
+      "Answer": "Extension",
+      "Deidentified_Accession_Number": "D228E10142255A",
+      "Assigned ID": "UCSF-PDGM-0159",
+      "Accession_number": 12182783
+    },
+    {
+      "Question": "What is the size of the right parietal-occipital hemorrhagic mass? DIMENSION: (AP, transverse, CC)\n1) 3.2 x 2.9 x 2.9 cm\n2) 4.2 x 3.9 x 3.9 cm\n3) 2.2 x 1.9 x 1.9 cm\n4) 5.2 x 4.9 x 4.9 cm",
+      "Answer": "3.2 x 2.9 x 2.9 cm",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the location of the hemorrhagic mass?\n1) Right parietal-occipital region\n2) Left frontal region\n3) Right temporal region\n4) Left parietal-occipital region",
+      "Answer": "Right parietal-occipital region",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the characteristic of the peripheral enhancement of the right parietal-occipital hemorrhagic mass?\n1) Irregular\n2) Smooth\n3) Uniform\n4) Absent",
+      "Answer": "Irregular",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the degree and direction of midline shift caused by the surrounding vasogenic edema?\n1) 2mm leftward\n2) 5mm rightward\n3) 7mm leftward\n4) No shift observed",
+      "Answer": "2mm leftward",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the condition of the atrium of the right lateral ventricle?\n1) Effaced\n2) Dilated\n3) Normal caliber\n4) Enlarged",
+      "Answer": "Effaced",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the condition of the bilateral parietal and occipital calvarium?\n1) Multiple T1 hyperintense foci\n2) Single T1 hyperintense focus\n3) Normal appearance\n4) Diffuse T1 hypointensity",
+      "Answer": "Multiple T1 hyperintense foci",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the condition of hydrocephalus in the findings?\n1) No hydrocephalus\n2) Mild hydrocephalus\n3) Severe hydrocephalus\n4) Inconclusive",
+      "Answer": "No hydrocephalus",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the condition of herniation described in the findings?\n1) No herniation\n2) Mild uncal herniation\n3) Severe tonsillar herniation\n4) Inconclusive for herniation",
+      "Answer": "No herniation",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the condition of extra-axial fluid collection?\n1) No extra-axial fluid collection\n2) Mild extra-axial fluid collection\n3) Severe extra-axial fluid collection\n4) Inconclusive",
+      "Answer": "No extra-axial fluid collection",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the enhancement pattern of the additional small 3 mm nodule posterior to the dominant right parietal-occipital mass?\n1) Rim enhancing\n2) Homogeneously enhancing\n3) Non-enhancing\n4) Nodular solid enhancing",
+      "Answer": "Rim enhancing",
+      "Deidentified_Accession_Number": "D419674D31057B",
+      "Assigned ID": "UCSF-PDGM-0160",
+      "Accession_number": 12184393
+    },
+    {
+      "Question": "What is the size of the right frontal/insular/temporal enhancing mass? DIMENSION: (AP x transverse x CC)\n1) 2.9 x 2.8 x 4 cm\n2) 1.9 x 1.8 x 3 cm\n3) 3.9 x 3.8 x 5 cm\n4) 4.9 x 4.8 x 6 cm",
+      "Answer": "2.9 x 2.8 x 4 cm",
+      "Deidentified_Accession_Number": "D492FEE80A032E",
+      "Assigned ID": "UCSF-PDGM-0161",
+      "Accession_number": 12208812
+    },
+    {
+      "Question": "How many satellite nodules are noted in the brain on this MRI?\n1) Six\n2) Eight\n3) Ten\n4) Twelve",
+      "Answer": "Eight",
+      "Deidentified_Accession_Number": "D492FEE80A032E",
+      "Assigned ID": "UCSF-PDGM-0161",
+      "Accession_number": 12208812
+    },
+    {
+      "Question": "Which structure has mass effect due to the 5 mm leftward midline shift?\n1) Right lateral ventricle\n2) Left lateral ventricle\n3) Third ventricle\n4) Fourth ventricle",
+      "Answer": "Right lateral ventricle",
+      "Deidentified_Accession_Number": "D492FEE80A032E",
+      "Assigned ID": "UCSF-PDGM-0161",
+      "Accession_number": 12208812
+    },
+    {
+      "Question": "Where is the faint enhancement observed?\n1) Right superior frontal gyrus nodule\n2) Right parietal white matter nodule\n3) Right middle temporal lobe nodule\n4) Left temporal stem nodule",
+      "Answer": "Right parietal white matter nodule",
+      "Deidentified_Accession_Number": "D492FEE80A032E",
+      "Assigned ID": "UCSF-PDGM-0161",
+      "Accession_number": 12208812
+    },
+    {
+      "Question": "What is the extent of the abnormal surrounding T2/FLAIR hyperintensity?\n1) Throughout much of the left frontal lobe and anterior left temporal lobe, extending across the genu of the corpus callosum into the right frontal lobe white matter\n2) Limited to the left occipital lobe only\n3) Confined to the right parietal lobe and right occipital lobe\n4) Isolated to the brainstem and cerebellum",
+      "Answer": "Throughout much of the left frontal lobe and anterior left temporal lobe, extending across the genu of the corpus callosum into the right frontal lobe white matter",
+      "Deidentified_Accession_Number": "D52A6FFFA28535",
+      "Assigned ID": "UCSF-PDGM-0162",
+      "Accession_number": 12204550
+    },
+    {
+      "Question": "What is the direction of the midline shift?\n1) Rightward\n2) Leftward\n3) Upward\n4) Downward",
+      "Answer": "Rightward",
+      "Deidentified_Accession_Number": "D52A6FFFA28535",
+      "Assigned ID": "UCSF-PDGM-0162",
+      "Accession_number": 12204550
+    },
+    {
+      "Question": "What is the observed midline shift direction?\n1) Trace rightward\n2) Significant leftward\n3) No midline shift\n4) Trace leftward",
+      "Answer": "Trace rightward",
+      "Deidentified_Accession_Number": "DCBED69CBD97BF",
+      "Assigned ID": "UCSF-PDGM-0166",
+      "Accession_number": 12303318
+    },
+    {
+      "Question": "What is the extent of the surrounding FLAIR hyperintensity involvement relative to the ventricular margin?\n1) Extending to the ventricular margin\n2) Confined to the right temporal lobe without ventricular contact\n3) Confined to the left occipital lobe without ventricular contact\n4) Limited to the cerebellum without ventricular contact",
+      "Answer": "Extending to the ventricular margin",
+      "Deidentified_Accession_Number": "DCBED69CBD97BF",
+      "Assigned ID": "UCSF-PDGM-0166",
+      "Accession_number": 12303318
+    },
+    {
+      "Question": "What is the presence of hydrocephalus?\n1) No hydrocephalus\n2) Hydrocephalus observed\n3) Mild hydrocephalus\n4) Severe hydrocephalus",
+      "Answer": "No hydrocephalus",
+      "Deidentified_Accession_Number": "DCBED69CBD97BF",
+      "Assigned ID": "UCSF-PDGM-0166",
+      "Accession_number": 12303318
+    },
+    {
+      "Question": "What is the size of the multilobulated, centrally located enhancing dominant lesion within the genu and body of the corpus callosum? DIMENSION: (AP, transverse, CC)\n1) 1.8 x 4.1 x 2.5 cm\n2) 0.8 x 3.1 x 1.5 cm\n3) 2.8 x 5.1 x 3.5 cm\n4) 3.8 x 6.1 x 4.5 cm",
+      "Answer": "1.8 x 4.1 x 2.5 cm",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What type of enhancement is observed in the lesion centrally within the genu and body of the corpus callosum?\n1) Solid and ring enhancement\n2) Patchy enhancement\n3) Linear enhancement\n4) No enhancement",
+      "Answer": "Solid and ring enhancement",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the size of the cystic component along the midline body of the corpus callosum? DIMENSION: (largest diameter)\n1) 1.3 cm\n2) 2.3 cm\n3) 3.3 cm\n4) 4.3 cm",
+      "Answer": "1.3 cm",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the size of the cystic lesion along the inferior margin of the corpus callosum? DIMENSION: (maximum diameter)\n1) 0.7 cm\n2) 1.7 cm\n3) 2.7 cm\n4) 3.7 cm",
+      "Answer": "1.7 cm",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the size of the lobulated lesion in the left superior frontal gyrus extending to the cingulate gyrus? DIMENSION: (craniocaudal)\n1) 2.5 cm\n2) 1.5 cm\n3) 3.5 cm\n4) 4.5 cm",
+      "Answer": "2.5 cm",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the size of the largest lesion in the superior right frontal gyrus? DIMENSION: (AP, TV)\n1) 2.0 x 2.4 cm\n2) 1.0 x 1.4 cm\n3) 3.0 x 3.4 cm\n4) 4.0 x 4.4 cm",
+      "Answer": "2.0 x 2.4 cm",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What type of enhancement is observed in the lesions located in the superior right frontal gyrus?\n1) Heterogeneous patchy enhancement\n2) Diffuse homogeneous enhancement\n3) No enhancement\n4) Smooth thin ring enhancement",
+      "Answer": "Heterogeneous patchy enhancement",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the size of the lesion in the left frontal periventricular white matter/corona radiata? DIMENSION: (single largest dimension)\n1) 1.5 cm\n2) 2.5 cm\n3) 3.5 cm\n4) 4.5 cm",
+      "Answer": "1.5 cm",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the enhancement pattern of the lesion in the left frontal periventricular white matter/corona radiata?\n1) Solid enhancement\n2) No enhancement\n3) Ring enhancement\n4) Heterogeneous patchy enhancement",
+      "Answer": "Solid enhancement",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What mass effect is described from the multifocal brain lesions?\n1) Effacement of the lateral ventricles\n2) Hydrocephalus\n3) Intracranial herniation\n4) No mass effect",
+      "Answer": "Effacement of the lateral ventricles",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the nature of the surrounding edema around the multifocal intracranial lesions?\n1) Vasogenic edema\n2) Cytotoxic edema\n3) No edema\n4) Inconclusive",
+      "Answer": "Vasogenic edema",
+      "Deidentified_Accession_Number": "DE57FA05731F96",
+      "Assigned ID": "UCSF-PDGM-0170",
+      "Accession_number": 12342573
+    },
+    {
+      "Question": "What is the size of the enhancing component of the right posterior temporal and parietal glioblastoma? DIMENSION: (AP, transverse, CC)\n1) 5.3 x 5.3 x 5.4 cm\n2) 4.2 x 4.2 x 4.3 cm\n3) 6.3 x 6.3 x 6.4 cm\n4) 3.8 x 3.8 x 3.9 cm",
+      "Answer": "5.3 x 5.3 x 5.4 cm",
+      "Deidentified_Accession_Number": "D718DEED652F13",
+      "Assigned ID": "UCSF-PDGM-0172",
+      "Accession_number": 12358506
+    },
+    {
+      "Question": "What is the location of the glioblastoma?\n1) Right posterior temporal and parietal regions\n2) Left anterior frontal region\n3) Right occipital lobe\n4) Left parietal lobe",
+      "Answer": "Right posterior temporal and parietal regions",
+      "Deidentified_Accession_Number": "D718DEED652F13",
+      "Assigned ID": "UCSF-PDGM-0172",
+      "Accession_number": 12358506
+    },
+    {
+      "Question": "What is the extent of the surrounding edema associated with the large right posterior temporal and parietal glioblastoma?\n1) Extensive surrounding edema\n2) Mild surrounding edema\n3) No surrounding edema\n4) Moderate surrounding edema",
+      "Answer": "Extensive surrounding edema",
+      "Deidentified_Accession_Number": "D718DEED652F13",
+      "Assigned ID": "UCSF-PDGM-0172",
+      "Accession_number": 12358506
+    },
+    {
+      "Question": "What is the midline shift (right-to-left) caused by edema/mass effect from the large right posterior temporal and parietal glioblastoma?\n1) Approximately 7 mm right to left\n2) Approximately 2 mm right to left\n3) Approximately 12 mm right to left\n4) Approximately 17 mm right to left",
+      "Answer": "Approximately 7 mm right to left",
+      "Deidentified_Accession_Number": "D718DEED652F13",
+      "Assigned ID": "UCSF-PDGM-0172",
+      "Accession_number": 12358506
+    },
+    {
+      "Question": "What is the nature of the several nonspecific subcortical white matter T2 hyperintensities?\n1) Nonspecific and incidental (not tumor)\n2) Indicative of tumor spread\n3) Suggestive of infection\n4) Related to trauma",
+      "Answer": "Nonspecific and incidental (not tumor)",
+      "Deidentified_Accession_Number": "D718DEED652F13",
+      "Assigned ID": "UCSF-PDGM-0172",
+      "Accession_number": 12358506
+    },
+    {
+      "Question": "What is the effect on the sulci within the right cerebral hemisphere?\n1) Diffuse effacement\n2) Mild widening\n3) Focal effacement limited to the left frontal lobe\n4) No change",
+      "Answer": "Diffuse effacement",
+      "Deidentified_Accession_Number": "D718DEED652F13",
+      "Assigned ID": "UCSF-PDGM-0172",
+      "Accession_number": 12358506
+    },
+    {
+      "Question": "What is the enhancement characteristic of the mass in the left parietal lobe extending to the ependymal surface of the left trigone?\n1) Heterogeneously enhancing\n2) Homogeneously enhancing\n3) Non-enhancing\n4) Rim enhancing",
+      "Answer": "Heterogeneously enhancing",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the suspected diagnosis for the heterogeneously enhancing mass in the left parietal lobe extending to the ependymal surface of the left trigone?\n1) High grade glioma\n2) Low grade glioma\n3) Meningioma\n4) Primary CNS lymphoma",
+      "Answer": "High grade glioma",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "Where is the left parietal lobe mass located relative to the left arcuate fasciculus on DTI?\n1) Inferior and medial\n2) Superior and lateral\n3) Anterior and lateral\n4) Posterior and superior",
+      "Answer": "Inferior and medial",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the characteristic of the surrounding FLAIR signal around the heterogeneously enhancing mass in the left parietal lobe?\n1) Nonsuppression\n2) Complete suppression\n3) Mild hypointensity\n4) No FLAIR signal abnormality",
+      "Answer": "Nonsuppression",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the status of the ventricles?\n1) No hydrocephalus\n2) Hydrocephalus present\n3) Enlarged ventricles\n4) Compressed ventricles",
+      "Answer": "No hydrocephalus",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the status of the extra-axial spaces?\n1) No collection\n2) Subdural collection present\n3) Enlarged extra-axial spaces\n4) Compressed extra-axial spaces",
+      "Answer": "No collection",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the relationship of the left parietal lobe mass to the ependymal surface of the left trigone?\n1) Mass extends to the ependymal surface of the left trigone\n2) Mass is confined to the extra-axial space and does not contact the ependyma\n3) Mass is located in the right parietal lobe and is distant from the ependymal surface\n4) Mass causes obstructive hydrocephalus without extension to the ependymal surface",
+      "Answer": "Mass extends to the ependymal surface of the left trigone",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the T1 signal intensity of the heterogeneously enhancing mass in the left parietal lobe?\n1) T1 hypointense\n2) T1 hyperintense\n3) T1 isointense\n4) T1 uniformly bright (fat-signal)",
+      "Answer": "T1 hypointense",
+      "Deidentified_Accession_Number": "D36FA6EF842CAE",
+      "Assigned ID": "UCSF-PDGM-0173",
+      "Accession_number": 12360852
+    },
+    {
+      "Question": "What is the size of the largest mass centered at the callosal splenium extending into/around the bilateral atria of the lateral ventricles? DIMENSION: (x, y)\n1) 8 x 7 cm\n2) 6 x 5 cm\n3) 4 x 3 cm\n4) 10 x 9 cm",
+      "Answer": "8 x 7 cm",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "Where is the largest intracranial mass located?\n1) Callosal splenium\n2) Left anterior insula/frontal operculum\n3) Left posterior limb of the internal capsule\n4) Right frontal lobe",
+      "Answer": "Callosal splenium",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the size of the second mass in the left anterior insula/frontal operculum? DIMENSION: (x, y)\n1) 4.7 x 3 cm\n2) 6.0 x 4.0 cm\n3) 3.5 x 2.0 cm\n4) 8.0 x 7.0 cm",
+      "Answer": "4.7 x 3 cm",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the enhancement characteristic of the second mass in the left anterior insula/frontal operculum?\n1) Nonenhancing\n2) Marked solid enhancement\n3) Heterogeneous enhancement\n4) Smooth ring enhancement",
+      "Answer": "Nonenhancing",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the size of the third mass within the left posterior limb of the internal capsule? DIMENSION: (maximal diameter)\n1) 1.5 cm\n2) 2.5 cm\n3) 3.5 cm\n4) 4.5 cm",
+      "Answer": "1.5 cm",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the location of the third intracranial mass?\n1) Left posterior limb of the internal capsule\n2) Callosal splenium\n3) Left anterior insula/frontal operculum\n4) Right temporal lobe",
+      "Answer": "Left posterior limb of the internal capsule",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the enhancement characteristic of the periatrial component along the left posterior and retrosplenial cingulate/precuneus?\n1) Avid solid enhancement\n2) Heterogeneous enhancement\n3) Nonenhancing\n4) Mild enhancement",
+      "Answer": "Avid solid enhancement",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the characteristic of the temporal horns?\n1) Mildly prominent\n2) Normal caliber\n3) Severely effaced\n4) Markedly enlarged",
+      "Answer": "Mildly prominent",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the condition of the extra-axial spaces?\n1) Normal\n2) Effaced\n3) Enlarged\n4) Reduced",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the condition of the marrow signal intensity within the skull base, calvarium, and facial skeleton?\n1) Normal\n2) Reduced\n3) Increased\n4) Effaced",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the condition of the suprasellar and ambient cisterns?\n1) Effaced\n2) Normal\n3) Enlarged\n4) Patent and widened",
+      "Answer": "Effaced",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the enhancement characteristic of the right periatrial component of the mass centered at the callosal splenium?\n1) Heterogeneous enhancement\n2) Avid solid enhancement\n3) Nonenhancing\n4) Ring enhancement",
+      "Answer": "Heterogeneous enhancement",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the perfusion characteristic of the expanded splenial portion of the heterogeneously enhancing mass centered at the callosal splenium?\n1) Increased perfusion\n2) Reduced perfusion\n3) Normal perfusion\n4) No perfusion",
+      "Answer": "Increased perfusion",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "What is the enhancement characteristic of the expanded splenial portion of the heterogeneously enhancing mass centered at the callosal splenium?\n1) Mild enhancement\n2) Solid enhancement\n3) Nonenhancing\n4) Ring enhancement",
+      "Answer": "Mild enhancement",
+      "Deidentified_Accession_Number": "D07608C4C96595",
+      "Assigned ID": "UCSF-PDGM-0174",
+      "Accession_number": 12361353
+    },
+    {
+      "Question": "Which structures does the left insular glioma extend to involve?\n1) Striatum and frontal/temporal operculum\n2) Cerebellum and pons\n3) Occipital lobe and hippocampus\n4) Parietal lobe and thalamus",
+      "Answer": "Striatum and frontal/temporal operculum",
+      "Deidentified_Accession_Number": "D27D30ECEC2353",
+      "Assigned ID": "UCSF-PDGM-0176",
+      "Accession_number": 12365827
+    },
+    {
+      "Question": "What is the size of the right inferior temporal lobe mass? DIMENSION: (cm; x, y, z)\n1) 5.5 cm x 3.9 cm x 4.4 cm\n2) 4.5 cm x 2.9 cm x 3.4 cm\n3) 6.5 cm x 4.9 cm x 5.4 cm\n4) 3.5 cm x 1.9 cm x 2.4 cm",
+      "Answer": "5.5 cm x 3.9 cm x 4.4 cm",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What type of enhancement does the right inferior temporal lobe mass demonstrate?\n1) Homogeneous enhancement\n2) Heterogeneous enhancement\n3) No enhancement\n4) Linear enhancement",
+      "Answer": "Heterogeneous enhancement",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the extent of right-to-left midline shift due to mass effect?\n1) 0 mm right to left\n2) 7 mm right to left\n3) 12 mm right to left\n4) 17 mm right to left",
+      "Answer": "7 mm right to left",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the condition of the ventricles?\n1) Hydrocephalus present\n2) Effacement of the right lateral ventricle\n3) Normal ventricles\n4) Enlargement of the left lateral ventricle",
+      "Answer": "Effacement of the right lateral ventricle",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the appearance of the extra-axial spaces?\n1) Normal\n2) Abnormal\n3) Effaced\n4) Enlarged",
+      "Answer": "Normal",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the condition of the visualized orbits?\n1) Unremarkable\n2) Abnormal\n3) Enlarged\n4) Effaced",
+      "Answer": "Unremarkable",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the imaging appearance of the multifocal periventricular white matter disease around the left (contralateral) occipital horn?\n1) Nonenhancing linear T2\n2) Enhancing nodular T2\n3) Diffuse cortical enhancement\n4) No periventricular white matter abnormality",
+      "Answer": "Nonenhancing linear T2",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the condition of the uncal herniation?\n1) Significant mass effect\n2) No uncal herniation\n3) Mild mass effect\n4) Hydrocephalus",
+      "Answer": "Significant mass effect",
+      "Deidentified_Accession_Number": "D13991CFE2D21B",
+      "Assigned ID": "UCSF-PDGM-0178",
+      "Accession_number": 12394271
+    },
+    {
+      "Question": "What is the size of the peripherally enhancing mass centered in the left middle temporal gyrus? DIMENSION: (AP, transverse, CC)\n1) 4.2 x 2.7 x 3.8 cm\n2) 5.2 x 3.7 x 4.8 cm\n3) 3.2 x 1.7 x 2.8 cm\n4) 6.2 x 4.7 x 5.8 cm",
+      "Answer": "4.2 x 2.7 x 3.8 cm",
+      "Deidentified_Accession_Number": "D125C3AB1E961B",
+      "Assigned ID": "UCSF-PDGM-0180",
+      "Accession_number": 12417441
+    },
+    {
+      "Question": "What is the size of the extra-axial mass overlying the left inferior frontal gyrus? DIMENSION: (maximum diameter)\n1) 6 mm\n2) 8 mm\n3) 10 mm\n4) 12 mm",
+      "Answer": "8 mm",
+      "Deidentified_Accession_Number": "D125C3AB1E961B",
+      "Assigned ID": "UCSF-PDGM-0180",
+      "Accession_number": 12417441
+    },
+    {
+      "Question": "What is the location of the peripherally enhancing heterogeneous irregularly shaped mass in the left temporal lobe?\n1) Left middle temporal gyrus\n2) Right middle temporal gyrus\n3) Left inferior frontal gyrus\n4) Right inferior frontal gyrus",
+      "Answer": "Left middle temporal gyrus",
+      "Deidentified_Accession_Number": "D125C3AB1E961B",
+      "Assigned ID": "UCSF-PDGM-0180",
+      "Accession_number": 12417441
+    },
+    {
+      "Question": "What is the size of the enhancing mass in the right superior temporal lobe? DIMENSION: (AP, transverse, CC)\n1) 4.5 x 3.8 x 3.3 cm\n2) 5.5 x 4.8 x 4.3 cm\n3) 3.5 x 2.8 x 2.3 cm\n4) 6.5 x 5.8 x 5.3 cm",
+      "Answer": "4.5 x 3.8 x 3.3 cm",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What is the location of the enhancing right temporal lobe mass?\n1) Right superior temporal lobe\n2) Left inferior temporal lobe\n3) Right parietal lobe\n4) Left frontal lobe",
+      "Answer": "Right superior temporal lobe",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What effect does the right superior temporal lobe mass have on the surrounding structures?\n1) Exerts mass effect on the temporal horn and atrium of the right lateral ventricle\n2) Compresses the left lateral ventricle\n3) Causes a 10 mm midline shift\n4) No effect on surrounding structures",
+      "Answer": "Exerts mass effect on the temporal horn and atrium of the right lateral ventricle",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What is the extent of the surrounding T2 signal prolongation around the right superior temporal lobe mass?\n1) Extends into the anterior temporal lobe and parietal lobe white matter\n2) Limited to the right superior temporal lobe only\n3) Extends into the frontal lobe white matter\n4) No surrounding T2 signal prolongation",
+      "Answer": "Extends into the anterior temporal lobe and parietal lobe white matter",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What is the size of the T2 signal prolongation lesion in the left splenium of the corpus callosum? DIMENSION: (x, y)\n1) 12 x 6 mm\n2) 15 x 9 mm\n3) 9 x 3 mm\n4) 18 x 12 mm",
+      "Answer": "12 x 6 mm",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What pattern is described for the mild periventricular white matter T2 signal prolongation?\n1) Commonly seen with senescent change\n2) Indicative of gliosis\n3) Suggestive of demyelination\n4) Associated with acute ischemia",
+      "Answer": "Commonly seen with senescent change",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What is the most likely diagnosis for the enhancing mass occupying the right superior temporal lobe?\n1) High-grade glioma\n2) Low-grade glioma\n3) Vestibular schwannoma\n4) Pituitary macroadenoma",
+      "Answer": "High-grade glioma",
+      "Deidentified_Accession_Number": "D4B72CD5252E67",
+      "Assigned ID": "UCSF-PDGM-0183",
+      "Accession_number": 12498524
+    },
+    {
+      "Question": "What is the location of the brain tumor?\n1) Left Frontal Lobe\n2) Right Parietal Operculum\n3) Left Parietal Operculum\n4) Right Frontal Lobe",
+      "Answer": "Left Parietal Operculum",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What is the size of the enhancing portion of the tumor centered in the left parietal operculum? DIMENSION: (AP, TRV, CC)\n1) 2.6 x 2.9 x 2.6 cm\n2) 3.6 x 3.9 x 3.6 cm\n3) 1.6 x 1.9 x 1.6 cm\n4) 4.6 x 4.9 x 4.6 cm",
+      "Answer": "2.6 x 2.9 x 2.6 cm",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What type of tumor is most consistent with the heterogeneous mass centered in the left parietal operculum?\n1) Low-grade glioma\n2) Glioblastoma\n3) Meningioma\n4) Pituitary adenoma",
+      "Answer": "Glioblastoma",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What anatomical structure does the surrounding T2/FLAIR signal hyperintensity (edema/infiltrating tumor) from the left parietal opercular mass extend to?\n1) Precentral gyrus\n2) Postcentral gyrus\n3) Occipital lobe\n4) Temporal lobe",
+      "Answer": "Precentral gyrus",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What anatomical structure does the enhancing portion of the tumor (centered in the left parietal operculum) extend to?\n1) Precentral gyrus  \n2) Postcentral gyrus  \n3) Occipital lobe  \n4) Temporal lobe",
+      "Answer": "Postcentral gyrus",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What is the condition of the left lateral ventricle?\n1) Normal\n2) Mild effacement\n3) Severe effacement\n4) Enlarged",
+      "Answer": "Mild effacement",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What is the most consistent diagnosis for the heterogeneous mass centered in the left parietal operculum?\n1) Low-grade glioma\n2) Glioblastoma\n3) Meningioma\n4) Pituitary adenoma",
+      "Answer": "Glioblastoma",
+      "Deidentified_Accession_Number": "D365908761AFAA",
+      "Assigned ID": "UCSF-PDGM-0184",
+      "Accession_number": 12522649
+    },
+    {
+      "Question": "What is the size of the right medial frontoparietal mass? DIMENSION: (AP x transverse x CC)\n1) 5.4 x 4.8 x 2.6 cm\n2) 6.4 x 5.8 x 3.6 cm\n3) 4.4 x 3.8 x 1.6 cm\n4) 7.4 x 6.8 x 4.6 cm",
+      "Answer": "5.4 x 4.8 x 2.6 cm",
+      "Deidentified_Accession_Number": "DF5B79D97F9E5C",
+      "Assigned ID": "UCSF-PDGM-0185",
+      "Accession_number": 12559716
+    },
+    {
+      "Question": "What is the location of the identified mass?\n1) Right medial frontoparietal region\n2) Left medial frontoparietal region\n3) Right posterior parietal region\n4) Left posterior parietal region",
+      "Answer": "Right medial frontoparietal region",
+      "Deidentified_Accession_Number": "DF5B79D97F9E5C",
+      "Assigned ID": "UCSF-PDGM-0185",
+      "Accession_number": 12559716
+    },
+    {
+      "Question": "What is the measured midline shift?\n1) 8 mm to the left\n2) 3 mm to the left\n3) 13 mm to the left\n4) 8 mm to the right",
+      "Answer": "8 mm to the left",
+      "Deidentified_Accession_Number": "DF5B79D97F9E5C",
+      "Assigned ID": "UCSF-PDGM-0185",
+      "Accession_number": 12559716
+    },
+    {
+      "Question": "What functional regions are involved by the large right medial frontoparietal mass?\n1) Sensorimotor regions\n2) Occipital regions\n3) Temporal regions\n4) Cerebellar regions",
+      "Answer": "Sensorimotor regions",
+      "Deidentified_Accession_Number": "DF5B79D97F9E5C",
+      "Assigned ID": "UCSF-PDGM-0185",
+      "Accession_number": 12559716
+    },
+    {
+      "Question": "What is the extent of surrounding edema associated with the right medial frontoparietal mass?\n1) Extensive surrounding right frontal and parietal white matter edema\n2) Minimal surrounding right frontal and parietal white matter edema\n3) Extensive surrounding left frontal and parietal white matter edema\n4) Minimal surrounding left frontal and parietal white matter edema",
+      "Answer": "Extensive surrounding right frontal and parietal white matter edema",
+      "Deidentified_Accession_Number": "DF5B79D97F9E5C",
+      "Assigned ID": "UCSF-PDGM-0185",
+      "Accession_number": 12559716
+    },
+    {
+      "Question": "What is the presence of other mass lesions?\n1) No other mass lesion is identified\n2) One additional mass lesion is identified\n3) Two additional mass lesions are identified\n4) Multiple additional mass lesions are identified",
+      "Answer": "No other mass lesion is identified",
+      "Deidentified_Accession_Number": "DF5B79D97F9E5C",
+      "Assigned ID": "UCSF-PDGM-0185",
+      "Accession_number": 12559716
+    },
+    {
+      "Question": "Which brain structure is directly involved by the mass extension from the left temporal lobe?\n1) Left Insula\n2) Right Insula\n3) Left Occipital Lobe\n4) Right Occipital Lobe",
+      "Answer": "Left Insula",
+      "Deidentified_Accession_Number": "D30AD2A1FC932D",
+      "Assigned ID": "UCSF-PDGM-0187",
+      "Accession_number": 12574845
+    },
+    {
+      "Question": "What is the direction of the brain midline shift?\n1) Rightward Shift\n2) Leftward Shift\n3) No Shift\n4) Upward Shift",
+      "Answer": "Rightward Shift",
+      "Deidentified_Accession_Number": "D30AD2A1FC932D",
+      "Assigned ID": "UCSF-PDGM-0187",
+      "Accession_number": 12574845
+    },
+    {
+      "Question": "What is the condition of the intracranial vasculature?\n1) Patent without hemodynamically significant stenosis or occlusion\n2) Occluded intracranial vasculature\n3) Hemodynamically significant intracranial stenosis\n4) Collapsed intracranial vasculature",
+      "Answer": "Patent without hemodynamically significant stenosis or occlusion",
+      "Deidentified_Accession_Number": "D30AD2A1FC932D",
+      "Assigned ID": "UCSF-PDGM-0187",
+      "Accession_number": 12574845
+    },
+    {
+      "Question": "What is the involvement of the left M2 MCA branches in relation to the left temporal/insular high-grade glioma?\n1) Courses through the glioma\n2) Completely occluded\n3) Abuts the tumor\n4) Displaced to the right",
+      "Answer": "Abuts the tumor",
+      "Deidentified_Accession_Number": "D30AD2A1FC932D",
+      "Assigned ID": "UCSF-PDGM-0187",
+      "Accession_number": 12574845
+    },
+    {
+      "Question": "What is the effect on the left lateral ventricle?\n1) Entrapment\n2) Enlargement\n3) No Effect\n4) Effacement (compression)",
+      "Answer": "Effacement (compression)",
+      "Deidentified_Accession_Number": "D30AD2A1FC932D",
+      "Assigned ID": "UCSF-PDGM-0187",
+      "Accession_number": 12574845
+    },
+    {
+      "Question": "What is the condition of the surrounding temporal cortex adjacent to the left temporal lobe mass?\n1) Markedly thickened and expanded\n2) Normal thickness\n3) Diffusely atrophied\n4) Severely thinned",
+      "Answer": "Markedly thickened and expanded",
+      "Deidentified_Accession_Number": "D30AD2A1FC932D",
+      "Assigned ID": "UCSF-PDGM-0187",
+      "Accession_number": 12574845
+    }
+  ],
+  "current": 67,
+  "elapsed": 19454.03390312195,
+  "answers": {
+    "0": "2) Right retrolenticular internal capsule/thalamus",
+    "1": "3) T1 hyperintense",
+    "2": "2) Extends into the superior temporal gyrus, insula, internal capsule, superior and inferior parietal lobule, and right posterior cerebral peduncle",
+    "3": "2) Mildly irregular",
+    "4": "2) Normal",
+    "5": "1) 4.5 x 3.1 cm",
+    "6": "1) Right optic tract",
+    "7": "1) 10 mm right to left",
+    "8": "1) Pituitary adenoma",
+    "9": "1) Right cavernous sinus",
+    "10": "1) 3.1 x 2.9 x 3.8 cm",
+    "11": "2) 6.0 x 4.2 cm",
+    "12": "1) Right lentiform nuclei",
+    "13": "1) 4 mm",
+    "14": "1) Nonenhancing masslike FLAIR signal abnormality",
+    "15": "1) Patchy enhancement",
+    "16": "1) Significant local mass effect",
+    "17": "1) Inferiorly into the right medial temporal lobe",
+    "18": "1) Nonenhancing masslike FLAIR signal abnormality",
+    "19": "4) Patchy enhancement confined away from the ependymal margin",
+    "20": "2) Compression",
+    "21": "1) To the margin of the right lateral ventricle",
+    "22": "1) Nonenhancing masslike FLAIR signal abnormality",
+    "23": "1) Right basal ganglia (right lentiform nuclei)",
+    "24": "1) No distant enhancing lesions identified",
+    "25": "1) Nonenhancing masslike FLAIR signal abnormality",
+    "26": "1) 3 mm left to right",
+    "27": "1) 9.7 cm",
+    "28": "2) Severe",
+    "29": "3) Left superior frontal gyrus",
+    "30": "2) 2.1 cm",
+    "31": "2) T2 hyperintensity",
+    "32": "2) Peripherally enhancing",
+    "33": "2) Mild local mass effect",
+    "34": "2) Nonenhancing",
+    "35": "3) None observed",
+    "36": "3) None observed",
+    "37": "3) None observed",
+    "38": "1) 5.5 x 4.4 x 4.5 cm",
+    "39": "1) Right inferior parietal lobule",
+    "40": "1) No evidence",
+    "41": "2) 4 mm leftward",
+    "42": "1) Partially solid and cystic",
+    "43": "1) Yes, into the right thalamus",
+    "44": "1) 6.1 x 4.5 x 5.2 cm",
+    "45": "1) FLAIR hyperintense signal",
+    "46": "1) High grade glioma",
+    "47": "1) 7 mm leftward midline shift",
+    "48": "1) Right parieto-occipital lobe",
+    "49": "1) Predominantly cystic",
+    "50": "1) Extending medially into the splenium",
+    "51": "1) Mild prominence suggesting early entrapment",
+    "52": "1) Peripherally enhancing",
+    "53": "3) Extending posteriorly into the subcortical white matter excluding the temporal stem",
+    "54": "1) Effacement observed",
+    "55": "1) No definite abnormal enhancement",
+    "56": "1) Superior Temporal Gyrus",
+    "57": "1) Heterogeneously Enhancing",
+    "58": "1) Partial Effacement",
+    "59": "1) Periventricular and subcortical white matter",
+    "60": "1) Normal",
+    "61": "1) Left Middle Temporal Gyrus",
+    "63": "1) Left lateral ventricle",
+    "64": "1) Medial left posterior frontal, medial left parietal, and medial left occipital lobes",
+    "65": "1) Heterogeneously enhancing",
+    "66": "3) Diffuse T1 hypointense signal abnormality"
+  },
+  "can_answer": {
+    "0": "Yes",
+    "1": "Yes",
+    "2": "Yes",
+    "3": "Yes",
+    "4": "Yes",
+    "5": "Yes",
+    "6": "Yes",
+    "7": "Yes",
+    "8": "Yes",
+    "9": "Yes",
+    "10": "Yes",
+    "11": "Yes",
+    "12": "Yes",
+    "13": "Yes",
+    "14": "Yes",
+    "15": "Yes",
+    "16": "Yes",
+    "17": "Yes",
+    "18": "Yes",
+    "19": "No",
+    "20": "Yes",
+    "21": "Yes",
+    "22": "Yes",
+    "23": "Yes",
+    "24": "Yes",
+    "25": "Yes",
+    "26": "Yes",
+    "27": "Yes",
+    "28": "Yes",
+    "29": "Yes",
+    "30": "Yes",
+    "31": "Yes",
+    "32": "Yes",
+    "33": "Yes",
+    "34": "Yes",
+    "35": "Yes",
+    "36": "Yes",
+    "37": "Yes",
+    "38": "Yes",
+    "39": "Yes",
+    "40": "Yes",
+    "41": "Yes",
+    "42": "Yes",
+    "43": "Yes",
+    "44": "Yes",
+    "45": "Yes",
+    "46": "Yes",
+    "47": "Yes",
+    "48": "Yes",
+    "49": "Yes",
+    "50": "Yes",
+    "51": "Yes",
+    "52": "Yes",
+    "53": "Yes",
+    "54": "Yes",
+    "55": "Yes",
+    "56": "Yes",
+    "57": "Yes",
+    "58": "Yes",
+    "59": "Yes",
+    "60": "Yes",
+    "61": "Yes",
+    "63": "Yes",
+    "65": "Yes",
+    "66": "Yes"
+  },
+  "clinically_relevant": {
+    "0": "Yes",
+    "1": "Yes",
+    "2": "Yes",
+    "3": "Yes",
+    "4": "Yes",
+    "5": "Yes",
+    "6": "Yes",
+    "7": "Yes",
+    "8": "Yes",
+    "9": "Yes",
+    "10": "Yes",
+    "11": "Yes",
+    "12": "Yes",
+    "13": "Yes",
+    "14": "Yes",
+    "15": "Yes",
+    "16": "Yes",
+    "17": "No",
+    "18": "No",
+    "19": "No",
+    "20": "Yes",
+    "21": "Yes",
+    "22": "No",
+    "23": "Yes",
+    "24": "Yes",
+    "25": "No",
+    "26": "Yes",
+    "27": "Yes",
+    "28": "No",
+    "29": "Yes",
+    "30": "Yes",
+    "31": "Yes",
+    "32": "Yes",
+    "33": "Yes",
+    "34": "Yes",
+    "35": "Yes",
+    "36": "Yes",
+    "37": "Yes",
+    "38": "Yes",
+    "39": "Yes",
+    "40": "Yes",
+    "41": "Yes",
+    "42": "Yes",
+    "43": "Yes",
+    "44": "Yes",
+    "45": "Yes",
+    "46": "Yes",
+    "47": "Yes",
+    "48": "Yes",
+    "49": "Yes",
+    "50": "Yes",
+    "51": "Yes",
+    "52": "Yes",
+    "53": "Yes",
+    "54": "Yes",
+    "55": "Yes",
+    "56": "Yes",
+    "57": "Yes",
+    "58": "Yes",
+    "59": "Yes",
+    "60": "No",
+    "61": "Yes",
+    "63": "Yes",
+    "65": "Yes",
+    "66": "Yes"
+  },
+  "confidence": {
+    "0": 1.0,
+    "1": 0.9,
+    "2": 1.0,
+    "3": 0.7,
+    "4": 0.7,
+    "5": 0.7,
+    "6": 1.0,
+    "7": 0.9,
+    "8": 0.7,
+    "9": 0.9,
+    "10": 0.9,
+    "11": 0.6,
+    "12": 1.0,
+    "13": 0.9,
+    "14": 0.9,
+    "15": 0.9,
+    "17": 0.7,
+    "18": 0.5,
+    "21": 0.8,
+    "22": 0.7,
+    "23": 1.0,
+    "24": 0.6,
+    "25": 0.7,
+    "26": 1.0,
+    "27": 0.8,
+    "29": 0.7,
+    "30": 0.7,
+    "31": 0.8,
+    "32": 1.0,
+    "33": 0.6,
+    "34": 1.0,
+    "35": 0.9,
+    "36": 0.9,
+    "37": 1.0,
+    "38": 0.7,
+    "39": 0.9,
+    "40": 0.9,
+    "41": 0.9,
+    "42": 0.7,
+    "43": 0.7,
+    "44": 0.7,
+    "45": 0.7,
+    "46": 0.9,
+    "47": 0.8,
+    "48": 1.0,
+    "49": 1.0,
+    "50": 0.9,
+    "51": 0.7,
+    "52": 1.0,
+    "53": 0.6,
+    "54": 0.8,
+    "55": 0.6,
+    "56": 0.8,
+    "57": 0.9,
+    "58": 0.9,
+    "59": 0.9,
+    "60": 0.8,
+    "61": 0.7,
+    "63": 1.0,
+    "65": 1.0
+  },
+  "necessary_sequences": {
+    "0": "",
+    "1": "",
+    "2": "",
+    "3": "",
+    "4": "",
+    "5": "",
+    "6": "",
+    "7": "",
+    "8": "",
+    "9": "",
+    "10": "",
+    "11": "",
+    "12": "",
+    "13": "",
+    "14": "",
+    "15": "",
+    "16": "",
+    "17": "",
+    "18": "",
+    "19": "",
+    "20": "",
+    "21": "",
+    "22": "",
+    "23": "",
+    "24": "",
+    "25": "",
+    "26": "",
+    "27": "",
+    "28": "",
+    "29": "",
+    "30": "",
+    "31": "",
+    "32": "",
+    "33": "",
+    "34": "",
+    "35": "",
+    "36": "",
+    "37": "",
+    "38": "",
+    "39": "",
+    "40": "",
+    "41": "",
+    "42": "",
+    "43": "",
+    "44": "",
+    "45": "",
+    "46": "",
+    "47": "",
+    "48": "",
+    "49": "",
+    "50": "",
+    "51": "",
+    "52": "",
+    "53": "",
+    "54": "",
+    "55": "",
+    "56": "",
+    "57": "",
+    "58": "",
+    "59": "",
+    "60": "",
+    "61": "",
+    "62": "",
+    "63": "",
+    "64": "",
+    "65": "",
+    "66": "",
+    "67": "",
+    "68": "",
+    "69": "",
+    "70": "",
+    "71": "",
+    "72": "",
+    "73": ""
+  },
+  "comments": {
+    "0": "",
+    "1": "",
+    "2": "",
+    "3": "",
+    "4": "",
+    "5": "",
+    "6": "",
+    "7": "",
+    "8": "",
+    "9": "",
+    "10": "just one question?",
+    "11": "",
+    "12": "",
+    "13": "",
+    "14": "",
+    "15": "",
+    "16": "No standardized criteria for mild, moderate or significant",
+    "17": "seems just mismatching locations and direction? maybe just asking involved structure",
+    "18": "T2 and FLAIR often have same signal changes. So option 3 is technically correct too.",
+    "19": "Not sure about what the point of this question",
+    "20": "",
+    "21": "",
+    "22": "Same, option 1 =3",
+    "23": "",
+    "24": "why is it 1,2,3,5? where is option 4?",
+    "25": "1 =3",
+    "26": "",
+    "27": "",
+    "28": "no standardized criteria to define mild, moderate, severe narrowing",
+    "29": "",
+    "30": "",
+    "31": "",
+    "32": "",
+    "33": "no standard criteria for mild mod or severe",
+    "34": "",
+    "35": "",
+    "36": "",
+    "37": "",
+    "38": "",
+    "39": "",
+    "40": "",
+    "41": "",
+    "42": "",
+    "43": "",
+    "44": "",
+    "45": "Flair and T2 changes simutaneously.",
+    "46": "",
+    "47": "",
+    "48": "",
+    "49": "",
+    "50": "",
+    "51": "",
+    "52": "",
+    "53": "",
+    "54": "",
+    "55": "",
+    "56": "",
+    "57": "",
+    "58": "",
+    "59": "",
+    "60": "",
+    "61": "",
+    "62": "",
+    "63": "",
+    "64": "",
+    "65": "",
+    "66": "",
+    "67": "",
+    "68": "",
+    "69": "",
+    "70": "",
+    "71": "",
+    "72": "",
+    "73": ""
+  }
+}

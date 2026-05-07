@@ -27,6 +27,7 @@ class MedGemmaAdapter(ModelAdapter):
         "montage_slice":   "testing_scripts/QA_testing_medgemma_single_slice.py",
         "multi_montage_slice": "testing_scripts/QA_testing_medgemma_contrast_montage.py",
         "blank":           "testing_scripts/QA_testing_medgemma_blank.py",
+        "text_only":       "testing_scripts/QA_testing_medgemma_text_only.py",
     }
 
     # For image-dir-based variants, the filename to look for in each patient dir

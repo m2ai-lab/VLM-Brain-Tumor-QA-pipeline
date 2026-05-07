@@ -112,7 +112,12 @@
           "variant": "multi_montage_slice",
           "qa_path": "{human_qa_path}",
           "output_path": "{output_base}/MedGemma1.5/human_montage_multi_results.csv"
-      }
+        },
+        {
+          "name": "text_only",
+          "variant": "text_only",
+          "output_path": "{output_base}/MedGemma1.5/text_only_results.csv"
+        }
 
       ]
     },
