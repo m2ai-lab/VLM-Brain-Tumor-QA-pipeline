@@ -90,37 +90,47 @@ for idx, row in clinical_notes.iterrows():
     
     #Post-Processing 
     categorized_prompt2 = f"""
-    Given a radiology report for a brain MRI, 
-    Please go through each of the question-answer pairs and determine if the pairs are be answer given the criteria below. 
-    
+    Given a radiology report for a brain MRI, please go through each of the question-answer pairs and determine if the pairs can be answered given the criteria below. 
+
     Please answer the following list of questions and provide the reasoning for each answer. 
     Please format the response so that the reasoning is clearly separated from the answer. 
     Place the reasoning section before the answer. 
-    
     Please quote direct full sentences of evidence from the report in the reasoning section to help justify the answer. 
     Each question will provide the multiple options of the answer, pick one of them and follow the instructions on how to answer.
     Keep the original numbering for the list of questions.
-    
     If the question-answer pairs MEETS any of the criteria below, then tag them with the "NO" string.
     If the question-answer pairs does NOT MEET any of the criteria below, then tag them with the "YES" string.
-    Also, be sure to explain why you chose the tag in the 'tag_reasoning' response.
+    Also, be sure to explain why you chose the tag in the `tag reasoning' response.
     
     CRITERIA:
-    - ANY question-answer pairs that require the patient's clinical history, previous brain MRIs, or any other information outside of the report to answer 
-    (Questions about "midline shift" are ok and should NOT be tagged 'NO')
+    - ANY question-answer pairs that require the patient's clinical history, previous brain MRIs, or any other information outside of the report to answer (Questions about "midline shift" are ok and should NOT be tagged `NO')
     - ANY question-answer pairs with the reasoning of "Inconclusive" and nothing else
     - ANY question-answer pairs with the answer of "Not discussed" and nothing else
-    - ANY questions that explicitly asks to compare the MRI with a previous MRI or ask about a previous MRI. 
-(Some keywords: postsurgical changes, postsurgical, retrospect, progression, recurrent, stable, tumor growth, tumor shrinkage, metastasis)
+    - ANY questions that explicitly asks to compare the MRI with a previous MRI or ask about a previous MRI. (Some keywords: postsurgical changes, postsurgical, retrospect, progression, recurrent, stable, tumor growth, tumor shrinkage, metastasis)
     - ANY questions that REQUIRE knowledge outside of the report to answer it.
-    - ANY questions that ask about 'residual' portions of the tumor.
+    - ANY questions that ask about `residual' portions of the tumor.
     - ANY question-answer pairs with the answer of "None of the above".
-    - ANY question-answer pairs where it asks what technique is being used in the report in an explicit or implicit manner.
-(Some keywords: multivoxel spectroscopy, FLAIR, T1, T2)
+    - ANY question-answer pairs where it asks what technique is being used in the report in an explicit or implicit manner. (Some keywords: multivoxel spectroscopy, FLAIR, T1, T2)
     - ANY questions that are not related to the brain  
     - ANY questions that are not about aspects found in the brain MRI
+
+    You also have the ability to change questions if they do not meet the QUESTION CHANGING CRITERIA below.
+    Your job is to look over the input question-answer pair and make the changes to the questions and answers based on the information given in the `IMPRESSION' and `FINDING' sections of the report.
+    ONLY MAKE CHANGES if the question-answer pair meets the criteria below that show which questions need to be changed and how they should be changed, otherwise keep everything the same.
+    Do NOT add `based on the report' in any of the questions.
+    
+    Your outputted question MUST contain a new question or the original question.
+    Your output choices MUST include FOUR potential choices. ONE should be the answer based on the report, the others should be changed to more easily differentiate the incorrect choices from the correct one, or be the same as the original choices.
+    Your outputted answer MUST be ONE of the potential choices and must be based on the radiology report.
+
+    QUESTION CHANGING CRITERIA:
+    - Any questions asking about the size MUST specify what dimensions it is looking for. You MUST add the dimension format used to answer the question 
+    (EX: DIMENSION: (x, y, z) for 5 x 5 x 5 cm. DIMENSION: (x, y) for 5 x 5 cm) 
+    Be sure to space out the potential choices so only one choice is correct within a margin of error (For cm measurements, you MUST have a 1 cm difference between choices. For midline shifts and bigger structures, you MUST have a 5mm difference between choices. For smaller structures, like pituitary gland, you MUST have a 3mm difference between choices.) 
+    - Any questions that are asking about a specific aspect (e.g, lesion, mass, tumor, anything dependent on anatomy) of the MRI MUST be sure to change the question so we know the exact location of where the characteristic is. You MUST be as descriptive as possible when describing the location. 
+    If the location of the specific aspect is unknown, then you MUST include the aspect's laterality.
   
-    Question-Answer Pairs:
+    QUESTION-ANSWER PAIRS:
     {categorized.choices[0].message.content}
     """
     
@@ -170,7 +180,8 @@ for idx, row in clinical_notes.iterrows():
 "Progression", "recurrent", "Recurrent", "stable", "Stable", "tumor growth", "Tumor growth", "tumor shrinkage", "retrospective", "Retrospective",
 "Tumor shrinkage", "metastasis", "Metastasis", "spine", "Spine", "spinal", "Spinal", "\\*\\*\\*\\*\\*", "\\*\\*\\*\\*\\*'s", "metastases", "Metastases",
 "diffus\\*", "perfus\\*", "flow", "MRA", "MRV", "metasta\\*", "contrast", "age", "date", "fiducial", "discussed", "specified", "purpose", "radiation", "susceptibility",
-"Diffus\\*", "Perfus\\*", "Flow", "Metasta\\*", "Contrast", "Age", "Date", "Fiducial", "Discussed", "Specified", "Purpose", "Radiation", "Susceptibility"]:
+"Diffus\\*", "Perfus\\*", "Flow", "Metasta\\*", "Contrast", "Age", "Date", "Fiducial", "Discussed", "Specified", "Purpose", "Radiation", "Susceptibility", 
+"report", "Report", "Necrosis", "necrosis", "Necrotic", "necrotic", "Metastatic", "metastatic", "Diffusion", "diffusion"]:
             
             if re.search(rf"{keyword}", entry['question']) != None or re.search(rf"{keyword}", entry['answer']) != None:
                 skip = True #Check if the keyword is found
@@ -201,3 +212,4 @@ pairs = pd.DataFrame(QAPairs)
 pairs = pairs[pairs['Tag'] == 'YES']
 pairs.drop(["Tag"], axis=1) #Drop the tag column since it is no longer needed
 pairs.to_csv('ucsf_neuroimaging_pairs_5000_7000.csv') #save it to a .csv file
+
