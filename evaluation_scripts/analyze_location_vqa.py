@@ -215,26 +215,23 @@ def run_analysis():
             q_display = (q[:100] + '...') if len(q) > 200 else q
             print(f"  {i+1}. [Hits: {combined_hits}] {q_display}")
 
-    # SPECIFIC: Qwen Text-Only Overlap Across All Runs (Global Consistency)
+    # SPECIFIC: Sample Location Questions Qwen Got Right
     print("\n" + "="*85)
-    print("QUESTIONS QWEN GOT RIGHT ON ALL TEXT-ONLY RUNS (Global Consistency)")
+    print("8 LOCATION QUESTIONS QWEN GOT RIGHT (Text-Only)")
     print("="*85)
     
     qwen_models = [m for m in all_models if "qwen" in m.lower()]
     for model in qwen_models:
-        runs = text_runs.get(model, 0)
-        if runs <= 1: continue # Only interesting if multiple runs
-        
         correct_map = text_correct_maps.get(model, {})
-        always_correct = [q for q, count in correct_map.items() if count == runs]
+        # Filter for location questions
+        location_correct = [q for q in correct_map.keys() if re.search(r'location|where', q, re.I)]
         
-        print(f"\n>>> MODEL: {model} ({runs} runs analyzed)")
-        if not always_correct:
-            print("  No questions were answered correctly across all runs.")
+        print(f"\n>>> MODEL: {model}")
+        if not location_correct:
+            print("  No 'location' questions were found.")
         else:
-            print(f"  Total globally consistent answers: {len(always_correct)}")
-            for i, q in enumerate(sorted(always_correct)[:20]): # Show top 20
-                q_display = (q[:120] + '...') if len(q) > 120 else q
+            for i, q in enumerate(sorted(location_correct)[:8]):
+                q_display = (q[:150] + '...') if len(q) > 150 else q
                 print(f"    {i+1}. {q_display}")
 
     print("\n" + "="*85)
