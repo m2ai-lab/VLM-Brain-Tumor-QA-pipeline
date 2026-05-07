@@ -4,8 +4,8 @@ import json
 import re
 
 #grab the notes that were saved and convert them into a list for easy row access
-clinical_notes = pd.read_csv('path/to/neuroimaging_notes_nopdgm.csv',)
-clinical_notes = clinical_notes.iloc[5000:7000]
+clinical_notes = pd.read_csv('path/to/radiology_reports.csv',)
+#clinical_notes = clinical_notes.iloc[5000:7000] (Only needed if we are creating qa pairs for a subset of radiology reports)
 
 #creating the dictioanry that will hold the question answer pairs
 QAPairs = {'Accession Num': [], 'Patient Pic ID': [], 'Patient Durable Key': [], 'DeID Note ID': [], 'DeID Note CSN ID': [], 'Procedure ID': [], 'DeID Note Key': [], 'Original Note': [], 'Question': [], 'Answer': [], 'Tag': []}
@@ -203,7 +203,7 @@ for idx, row in clinical_notes.iterrows():
         QAPairs['Tag'].append(entry['tag'])
         
             
-    print("Progress: ", round((idx+1-5000)/len(clinical_notes) * 100, 2), "%")
+    print("Progress: ", round((idx+1)/len(clinical_notes) * 100, 2), "%")
 
 #Make the directory a dataframe for easy filtering
 pairs = pd.DataFrame(QAPairs) 
@@ -211,5 +211,6 @@ pairs = pd.DataFrame(QAPairs)
 #After creating and preprocessing all of the data points, filter out all QAPairs that are tagged 'NO'
 pairs = pairs[pairs['Tag'] == 'YES']
 pairs.drop(["Tag"], axis=1) #Drop the tag column since it is no longer needed
-pairs.to_csv('ucsf_neuroimaging_pairs_5000_7000.csv') #save it to a .csv file
+pairs.to_csv('qa_pairs.csv') #save it to a .csv file
+
 
